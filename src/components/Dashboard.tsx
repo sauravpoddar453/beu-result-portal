@@ -24,6 +24,12 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, allExams, onExamCha
     const [error, setError] = useState('');
     const pdfRef = useRef<HTMLDivElement>(null);
 
+    // Dynamic Batch Detection from Reg Number
+    // BEU Reg Numbers usually start with batch year digits, e.g., "22..." meaning 2022 batch.
+    const detectedBatchYear = (regNumber && regNumber.length >= 2) 
+        ? `20${regNumber.substring(0, 2)}` 
+        : selectedExam?.batchYear;
+
     const handleSearch = async (overrideRegNo?: string | React.MouseEvent | React.KeyboardEvent, overrideExam?: any) => {
         const targetRegNo = typeof overrideRegNo === 'string' ? overrideRegNo : regNumber;
         if (!targetRegNo) {
@@ -220,7 +226,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, allExams, onExamCha
                         }}
                     >
                         {allExams
-                            .filter(ex => ex.batchYear === selectedExam.batchYear)
+                            .filter(ex => ex.batchYear === detectedBatchYear)
                             .sort((a, b) => a.semId - b.semId)
                             .map(ex => (
                                 <option key={ex.id} value={ex.id} style={{ color: 'black', background: 'white' }}>
