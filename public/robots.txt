@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://spcreative.in/sitemap.xml
