@@ -1,0 +1,8 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/api/result/[regNo]/route": "/api/result/[regNo]",
+  "/api/students/route": "/api/students",
+  "/api/add-student/route": "/api/add-student",
+  "/api/add-result/route": "/api/add-result",
+  "/page": "/"
+}
