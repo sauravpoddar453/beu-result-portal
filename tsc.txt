@@ -1,0 +1,2 @@
+src/components/Dashboard.tsx(162,46): error TS2737: BigInt literals are not available when targeting lower than ES2020.
+src/components/Dashboard.tsx(168,46): error TS2737: BigInt literals are not available when targeting lower than ES2020.

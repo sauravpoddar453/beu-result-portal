@@ -29,6 +29,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+    const [selectedBatchYear, setSelectedBatchYear] = useState<string>('All');
     const [notices, setNotices] = useState<any[]>([]);
     const [noticesLoading, setNoticesLoading] = useState(true);
     const [isSubscribed, setIsSubscribed] = useState(false);
@@ -90,6 +91,10 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     }, []);
 
     const activeCourse = courses.find(c => c.courseid === selectedCourseId);
+    
+    // Calculate unique batch years
+    const batchYears = activeCourse ? Array.from(new Set(activeCourse.exams.map(e => e.batchYear))).sort((a, b) => Number(b) - Number(a)) : [];
+    const filteredExams = activeCourse?.exams.filter(e => selectedBatchYear === 'All' || e.batchYear === selectedBatchYear) || [];
 
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
@@ -140,7 +145,10 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         {courses.map((course) => (
                             <button
                                 key={course.courseid}
-                                onClick={() => setSelectedCourseId(course.courseid)}
+                                onClick={() => {
+                                    setSelectedCourseId(course.courseid);
+                                    setSelectedBatchYear('All');
+                                }}
                                 style={{
                                     padding: '0.75rem 1.5rem',
                                     borderRadius: '1rem',
@@ -161,9 +169,59 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
 
                     {/* Exams Grid */}
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                        <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', marginBottom: '2rem', opacity: 0.8 }}>
+                        <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', marginBottom: '1rem', opacity: 0.8 }}>
                             Search Your BEU Result 🚀
                         </h2>
+                        {batchYears.length > 0 && (
+                            <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'center', 
+                                alignItems: 'center', 
+                                gap: '0.75rem', 
+                                marginBottom: '1rem',
+                                flexWrap: 'wrap'
+                            }}>
+                                <button
+                                    onClick={() => setSelectedBatchYear('All')}
+                                    style={{
+                                        padding: '0.4rem 1.2rem',
+                                        borderRadius: '2rem',
+                                        border: '1px solid',
+                                        borderColor: selectedBatchYear === 'All' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                                        background: selectedBatchYear === 'All' ? 'var(--primary--glow)' : 'rgba(255,255,255,0.05)',
+                                        color: selectedBatchYear === 'All' ? 'var(--text-main)' : 'var(--text-muted)',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.3s ease',
+                                        backdropFilter: 'blur(10px)'
+                                    }}
+                                >
+                                    All Batches
+                                </button>
+                                {batchYears.map(year => (
+                                    <button
+                                        key={year}
+                                        onClick={() => setSelectedBatchYear(year)}
+                                        style={{
+                                            padding: '0.4rem 1.2rem',
+                                            borderRadius: '2rem',
+                                            border: '1px solid',
+                                            borderColor: selectedBatchYear === year ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                                            background: selectedBatchYear === year ? 'var(--primary--glow)' : 'rgba(255,255,255,0.05)',
+                                            color: selectedBatchYear === year ? 'var(--text-main)' : 'var(--text-muted)',
+                                            fontSize: '0.85rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease',
+                                            backdropFilter: 'blur(10px)'
+                                        }}
+                                    >
+                                        Batch {year}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     <div style={{
@@ -181,7 +239,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 transition={{ duration: 0.3 }}
                                 style={{ display: 'contents' }}
                             >
-                                {activeCourse?.exams.map((exam, index) => (
+                                {filteredExams.map((exam, index) => (
                                     <motion.div
                                         key={exam.id}
                                         initial={{ opacity: 0, scale: 0.9 }}
@@ -190,7 +248,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                         whileHover={{ scale: 1.02, translateY: -5 }}
                                         whileTap={{ scale: 0.98 }}
                                         className="glass"
-                                        onClick={() => onSelectSemester(exam, activeCourse?.exams || [])}
+                                        onClick={() => onSelectSemester(exam, filteredExams)}
                                         style={{
                                             padding: '2rem',
                                             cursor: 'pointer',
@@ -225,7 +283,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                             fontWeight: 600
                                         }}>
                                             <Lucide.GraduationCap size={18} />
-                                            {activeCourse.courseName} • Sem {exam.semId}
+                                            {activeCourse?.courseName || 'Course'} • Sem {exam.semId}
                                         </div>
 
                                         <h3 style={{ fontSize: '1.2rem', fontWeight: 700, lineHeight: 1.3, color: 'var(--text-main)' }}>
