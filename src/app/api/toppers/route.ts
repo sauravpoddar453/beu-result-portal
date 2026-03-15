@@ -56,7 +56,14 @@ export async function GET(request: Request) {
         }
     }
 
-    // Tier 3: If still no results (DB is empty or college not yet detected), provide sample "Verified Toppers" for demonstration
+    // Tier 2.5: If still empty (e.g. unknown college typing), try finding ANY recent real results from DB
+    if (toppers.length === 0) {
+        toppers = await Result.find({ isSample: { $ne: true } })
+            .sort({ sgpa: -1, lastUpdated: -1 })
+            .limit(5);
+    }
+
+    // Tier 3: If STILL no results (DB totally empty), provide sample data
     if (toppers.length === 0) {
         toppers = [
             { 

@@ -171,13 +171,35 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         fetchToppers(resultData.college, resultData.semester, resultData.course);
                     }, 1000);
                 }).catch(err => console.error('Sync error:', err));
+
+                // BACKGROUND INDEXING: "Self-see" logic
+                // Fetch first 10 students of the same branch to populate toppers list automatically
+                if (targetRegNo.length >= 11) {
+                    const prefix = targetRegNo.substring(0, 8); // College + Branch code
+                    const lastDigits = targetRegNo.substring(8);
+                    
+                    // Fire-and-forget background indexing for first 5 students (1-5)
+                    ['001', '002', '003', '004', '005'].forEach((suffix, i) => {
+                        const neighborRegNo = prefix + suffix;
+                        if (neighborRegNo === targetRegNo) return;
+                        
+                        setTimeout(() => {
+                            fetch('/api/sync-neighbor', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ regNo: neighborRegNo, semId: currentExam.semId })
+                            }).then(() => {
+                                // Refresh toppers list occasionally after indexing neighbors
+                                if (i === 4) fetchToppers(data.college_name, `${currentExam.semId}th Semester`, data.course);
+                            }).catch(() => {});
+                        }, (i + 1) * 3000); 
+                    });
+                }
+
                 toast.success('Official Result Found!', { id: searchToast });
                 
-                // When official result is found, fetch toppers for this college/branch/sem
-                const college = data.college_name;
-                const sem = `${currentExam?.semId}th Semester`;
-                const branch = data.course || '';
-                fetchToppers(college, sem, branch);
+                // Refresh toppers list after a success
+                fetchToppers(data.college_name, `${currentExam?.semId}th Semester`, data.course);
             } else {
                 throw new Error('Official server is currently unresponsive.');
             }
@@ -385,11 +407,13 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     }}>
                                         {idx + 1}
                                     </div>
-                                    <div style={{ flexGrow: 1 }}>
-                                        <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)' }}>{topper.name}</div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{topper.course?.split('(')[0] || 'Engineering'}</div>
+                                    <div style={{ flexGrow: 1, minWidth: 0 }}>
+                                        <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{topper.name}</div>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            {topper.college?.split(',')[0] || topper.course?.split('(')[0] || 'Engineering Student'}
+                                        </div>
                                     </div>
-                                    <div style={{ textAlign: 'right' }}>
+                                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
                                         <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.2rem' }}>{(topper.sgpa || 0).toFixed(2)}</div>
                                         <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>SGPA</div>
                                     </div>
@@ -560,7 +584,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                             gap: '1rem',
                                             border: idx === 0 ? '1px solid var(--primary)' : '1px solid var(--glass-border)',
                                             background: idx === 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
-                                            position: 'relative'
+                                            position: 'relative',
+                                            minWidth: 0
                                         }}>
                                             {topper.isSample && (
                                                 <div style={{ position: 'absolute', top: '-8px', right: '10px', background: 'var(--accent)', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 900 }}>DEMO</div>
@@ -578,15 +603,18 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                                 justifyContent: 'center',
                                                 fontWeight: 800,
                                                 fontSize: '0.9rem',
-                                                color: idx === 0 ? 'var(--text-main)' : 'var(--text-muted)'
+                                                color: idx === 0 ? 'var(--text-main)' : 'var(--text-muted)',
+                                                flexShrink: 0
                                             }}>
                                                 {idx + 1}
                                             </div>
-                                            <div style={{ flexGrow: 1 }}>
-                                                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{topper.name}</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reg: {topper.regNo}</div>
+                                            <div style={{ flexGrow: 1, minWidth: 0 }}>
+                                                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{topper.name}</div>
+                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {topper.college?.split(',')[0] || 'Engineering'}
+                                                </div>
                                             </div>
-                                            <div style={{ textAlign: 'right' }}>
+                                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
                                                 <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1rem' }}>{(topper.sgpa || 0).toFixed(2)}</div>
                                                 <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>SGPA</div>
                                             </div>
