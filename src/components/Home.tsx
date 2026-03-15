@@ -94,7 +94,9 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     
     // Calculate unique batch years
     const batchYears = activeCourse ? Array.from(new Set(activeCourse.exams.map(e => e.batchYear))).sort((a, b) => Number(b) - Number(a)) : [];
-    const filteredExams = activeCourse?.exams.filter(e => selectedBatchYear === 'All' || e.batchYear === selectedBatchYear) || [];
+    const filteredExams = activeCourse?.exams
+        .filter(e => selectedBatchYear === 'All' || e.batchYear === selectedBatchYear)
+        .filter(e => !(e.semId === 2 && e.batchYear === '2025')) || [];
 
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>

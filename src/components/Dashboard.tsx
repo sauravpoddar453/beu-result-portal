@@ -227,6 +227,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, allExams, onExamCha
                     >
                         {allExams
                             .filter(ex => ex.batchYear === detectedBatchYear)
+                            .filter(ex => !(ex.semId === 2 && ex.batchYear === '2025'))
                             .sort((a, b) => a.semId - b.semId)
                             .map(ex => (
                                 <option key={ex.id} value={ex.id} style={{ color: 'black', background: 'white' }}>
