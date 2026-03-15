@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import * as Lucide from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -30,10 +30,14 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         ? `20${regNumber.substring(0, 2)}` 
         : selectedExam?.batchYear;
 
-    const fetchToppers = async (college: string, semester: string, branch: string) => {
+    const fetchToppers = async (college: string, semester: string, branch: string, regNo?: string) => {
         setLoadingToppers(true);
         try {
-            const res = await fetch(`/api/toppers?college=${encodeURIComponent(college)}&semester=${encodeURIComponent(semester)}&branch=${encodeURIComponent(branch)}`);
+            const url = regNo 
+                ? `/api/toppers?regNo=${encodeURIComponent(regNo)}`
+                : `/api/toppers?college=${encodeURIComponent(college)}&semester=${encodeURIComponent(semester)}&branch=${encodeURIComponent(branch)}`;
+            
+            const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
                 setToppers(Array.isArray(data) ? data : []);
@@ -44,6 +48,16 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
             setLoadingToppers(false);
         }
     };
+
+    // Proactive Topper Detection on Typing
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (regNumber.length >= 7 && !result) {
+                fetchToppers('', '', '', regNumber);
+            }
+        }, 600);
+        return () => clearTimeout(timer);
+    }, [regNumber, result]);
 
     const handleSearch = async (overrideRegNo?: string | React.MouseEvent | React.KeyboardEvent, overrideExam?: any) => {
         const targetRegNo = typeof overrideRegNo === 'string' ? overrideRegNo : regNumber;
@@ -300,6 +314,78 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: 'var(--accent)', textAlign: 'center', marginTop: '1rem', fontSize: '0.8rem' }}>{error}</motion.div>}
             </div>
 
+            {/* Branch Toppers Section - Moved out of result condition so it shows while typing */}
+            {!result && (
+                <div className="no-print" style={{ maxWidth: '1100px', margin: '0 auto 3rem auto' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
+                        <Lucide.Trophy size={20} color="var(--primary)" />
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>College Branch Toppers</h3>
+                    </div>
+                    
+                    {loadingToppers ? (
+                        <div style={{ textAlign: 'center', padding: '1rem' }}>
+                            <Lucide.Loader2 className="animate-spin" size={24} color="var(--primary)" />
+                        </div>
+                    ) : toppers.length > 0 ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                            {toppers.map((topper, idx) => (
+                                <motion.div 
+                                    key={idx} 
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className="glass" 
+                                    style={{ 
+                                        padding: '1.2rem', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '1rem',
+                                        border: idx === 0 ? '1px solid var(--primary)' : '1px solid var(--glass-border)',
+                                        background: idx === 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
+                                        position: 'relative'
+                                    }}
+                                >
+                                    {topper.isSample && (
+                                        <div style={{ position: 'absolute', top: '-8px', right: '10px', background: 'var(--accent)', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 900 }}>DEMO</div>
+                                    )}
+                                    {!topper.isSample && (
+                                        <div style={{ position: 'absolute', top: '-8px', right: '10px', background: 'var(--secondary)', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 900 }}>VERIFIED</div>
+                                    )}
+                                    <div style={{ 
+                                        width: '36px', 
+                                        height: '36px', 
+                                        borderRadius: '50%', 
+                                        background: idx === 0 ? 'var(--primary--glow)' : 'rgba(255,255,255,0.05)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 800,
+                                        fontSize: '1rem',
+                                        color: idx === 0 ? 'var(--text-main)' : 'var(--text-muted)'
+                                    }}>
+                                        {idx + 1}
+                                    </div>
+                                    <div style={{ flexGrow: 1 }}>
+                                        <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)' }}>{topper.name}</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{topper.course?.split('(')[0] || 'Engineering'}</div>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.2rem' }}>{(topper.sgpa || 0).toFixed(2)}</div>
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>SGPA</div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="glass" style={{ padding: '1.5rem', textAlign: 'center', borderStyle: 'dashed' }}>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                                Discovering toppers... Typing registration number will fetch college data.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
+
             <AnimatePresence>
                 {loading && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="student-card" style={{ textAlign: 'center', marginTop: '2rem' }}>
@@ -437,18 +523,14 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             </div>
                         </div>
 
-                        {/* Branch Toppers Section */}
+                        {/* Branch Toppers Section (Shown inside result card) */}
                         <div className="no-print" style={{ marginTop: '3rem', borderTop: '1px solid var(--glass-border)', paddingTop: '2rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                                 <Lucide.Trophy size={20} color="var(--primary)" />
                                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>College Branch Toppers</h3>
                             </div>
                             
-                            {loadingToppers ? (
-                                <div style={{ textAlign: 'center', padding: '1rem' }}>
-                                    <Lucide.Loader2 className="animate-spin" size={24} color="var(--primary)" />
-                                </div>
-                            ) : toppers.length > 0 ? (
+                            {toppers.length > 0 ? (
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
                                     {toppers.map((topper, idx) => (
                                         <div key={idx} className="glass" style={{ 

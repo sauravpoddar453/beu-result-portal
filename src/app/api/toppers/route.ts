@@ -5,15 +5,27 @@ import Result from '@/models/Result';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const college = searchParams.get('college');
-    const branch = searchParams.get('branch');
-    const semester = searchParams.get('semester');
-
-    if (!college || !semester) {
-      return NextResponse.json({ error: 'College and Semester are required' }, { status: 400 });
-    }
+    const queryRegNo = searchParams.get('regNo');
+    let college = searchParams.get('college');
+    let branch = searchParams.get('branch');
+    let semester = searchParams.get('semester') || '6th Semester';
 
     await dbConnect();
+
+    // If regNo is provided, try to find a matching college/branch from DB first
+    if (queryRegNo && queryRegNo.length >= 7) {
+        const pattern = queryRegNo.substring(0, 7); // First 7 digits usually define College + Branch
+        const match = await Result.findOne({ regNo: { $regex: '^' + pattern } });
+        if (match) {
+            college = match.college;
+            branch = match.course;
+            semester = match.semester || semester;
+        }
+    }
+
+    if (!college) {
+      return NextResponse.json({ error: 'College or RegNo is required' }, { status: 400 });
+    }
 
     // Clean inputs
     const cleanCollege = college.trim();
