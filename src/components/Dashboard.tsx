@@ -40,10 +40,25 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
             const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
-                setToppers(Array.isArray(data) ? data : []);
+                if (Array.isArray(data) && data.length > 0) {
+                    setToppers(data);
+                } else {
+                    // Local fallback if API returns empty/error
+                    setToppers([
+                        { name: "Aseem Raj (Sample)", regNo: "22151131015", sgpa: 9.85, course: "Engineering", isSample: true },
+                        { name: "Saurav Poddar (Sample)", regNo: "22151131026", sgpa: 9.72, course: "Engineering", isSample: true }
+                    ]);
+                }
+            } else {
+                throw new Error('API unstable');
             }
         } catch (err) {
             console.error('Error fetching toppers:', err);
+            // Local fallback on network error
+            setToppers([
+                { name: "Aseem Raj (Sample)", regNo: "22151131015", sgpa: 9.85, course: "Engineering", isSample: true },
+                { name: "Saurav Poddar (Sample)", regNo: "22151131026", sgpa: 9.72, course: "Engineering", isSample: true }
+            ]);
         } finally {
             setLoadingToppers(false);
         }
