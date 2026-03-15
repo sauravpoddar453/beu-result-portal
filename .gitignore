@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Next.js
+.next/
+out/
+build/
+.env*.local
+.vercel
+tsc.txt
+tsc_error.log
