@@ -22,12 +22,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
     const [error, setError] = useState('');
     const pdfRef = useRef<HTMLDivElement>(null);
 
-    const handleSearch = async () => {
-        if (!regNumber) {
+    const handleSearch = async (overrideRegNo?: string | React.MouseEvent | React.KeyboardEvent) => {
+        const targetRegNo = typeof overrideRegNo === 'string' ? overrideRegNo : regNumber;
+        if (!targetRegNo) {
             setError('Please enter a registration number');
             toast.error('Please enter a Registration Number!');
             return;
         }
+        if (typeof overrideRegNo === 'string') setRegNumber(targetRegNo);
+
         setError('');
         setLoading(true);
         setResult(null);
@@ -41,7 +44,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
             const semester = toRoman(selectedExam?.semId || 0);
             const examHeld = encodeURIComponent(selectedExam?.examHeld || '');
 
-            const url = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${year}&redg_no=${regNumber}&semester=${semester}&exam_held=${examHeld}`;
+            const url = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}`;
 
             const response = await fetch(url);
 
@@ -58,7 +61,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 // Map official data to our UI structure
                 setResult({
                     name: data.name,
-                    rollNo: data.redg_no || regNumber,
+                    rollNo: data.redg_no || targetRegNo,
                     fatherName: data.father_name,
                     motherName: data.mother_name,
                     college: data.college_name,
@@ -94,8 +97,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
             console.error(err);
 
             // Fallback for demonstration if official API fails or is restricted by CORS
-            if (regNumber === '22151131015' || regNumber === '22151131026') {
-                if (regNumber === '22151131015') {
+            if (targetRegNo === '22151131015' || targetRegNo === '22151131026') {
+                if (targetRegNo === '22151131015') {
                     setResult({
                         name: 'ASEEM RAJ',
                         rollNo: '22151131015',
@@ -152,6 +155,18 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         setTimeout(() => {
             window.print();
         }, 100);
+    };
+
+    const handleNextStudent = () => {
+        if (!regNumber || isNaN(Number(regNumber))) return;
+        const nextReg = (BigInt(regNumber) + 1n).toString();
+        handleSearch(nextReg);
+    };
+
+    const handlePrevStudent = () => {
+        if (!regNumber || isNaN(Number(regNumber))) return;
+        const prevReg = (BigInt(regNumber) - 1n).toString();
+        handleSearch(prevReg);
     };
 
     return (
@@ -353,9 +368,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             </div>
                         </div>
 
-                        <div className="no-print" style={{ display: 'flex', justifyContent: 'center' }}>
+                        <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                            <button className="premium-btn" onClick={handlePrevStudent} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-main)', boxShadow: 'none' }}>
+                                <Lucide.ChevronLeft size={18} /> Prev Student
+                            </button>
                             <button className="premium-btn" onClick={handlePrint}>
                                 <Lucide.Download size={18} /> Official Marksheet
+                            </button>
+                            <button className="premium-btn" onClick={handleNextStudent} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-main)', boxShadow: 'none' }}>
+                                Next Student <Lucide.ChevronRight size={18} />
                             </button>
                         </div>
 
