@@ -116,19 +116,26 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
 
                 // Auto-sync search result to local database for toppers logic
                 const sgpaValue = Array.isArray(data.sgpa) ? (data.sgpa[currentExam.semId - 1] || '0') : (data.sgpa || '0');
+                const resultData = {
+                    regNo: targetRegNo,
+                    name: data.name,
+                    college: data.college_name,
+                    semester: `${currentExam?.semId}th Semester`,
+                    sgpa: parseFloat(sgpaValue) || 0,
+                    cgpa: parseFloat(data.cgpa) || 0,
+                    status: data.fail_any || 'PASSED',
+                    course: data.course
+                };
+
                 fetch('/api/add-result', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        regNo: targetRegNo,
-                        name: data.name,
-                        college: data.college_name,
-                        semester: `${currentExam?.semId}th Semester`,
-                        sgpa: parseFloat(sgpaValue) || 0,
-                        cgpa: parseFloat(data.cgpa) || 0,
-                        status: data.fail_any || 'PASSED',
-                        course: data.course
-                    })
+                    body: JSON.stringify(resultData)
+                }).then(() => {
+                    // Small delay to let DB update, then refresh toppers
+                    setTimeout(() => {
+                        fetchToppers(resultData.college, resultData.semester, resultData.course);
+                    }, 1000);
                 }).catch(err => console.error('Sync error:', err));
                 toast.success('Official Result Found!', { id: searchToast });
                 
@@ -450,8 +457,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                             alignItems: 'center', 
                                             gap: '1rem',
                                             border: idx === 0 ? '1px solid var(--primary)' : '1px solid var(--glass-border)',
-                                            background: idx === 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent'
+                                            background: idx === 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
+                                            position: 'relative'
                                         }}>
+                                            {topper.isSample && (
+                                                <div style={{ position: 'absolute', top: '-8px', right: '10px', background: 'var(--accent)', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 900 }}>DEMO</div>
+                                            )}
+                                            {!topper.isSample && (
+                                                <div style={{ position: 'absolute', top: '-8px', right: '10px', background: 'var(--secondary)', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 900 }}>VERIFIED</div>
+                                            )}
                                             <div style={{ 
                                                 width: '32px', 
                                                 height: '32px', 

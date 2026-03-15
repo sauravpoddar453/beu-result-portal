@@ -15,23 +15,52 @@ export async function GET(request: Request) {
 
     await dbConnect();
 
-    // Query for top students by SGPA
-    // We use regex for college to handle minor spacing/casing differences
+    // Clean inputs
+    const cleanCollege = college.trim();
+    const cleanSemester = semester.trim();
+    const cleanBranch = (branch || '').trim();
+
+    // Tier 1: Try specific Branch in that College
     let query: any = { 
-        college: { $regex: college.trim(), $options: 'i' },
-        semester: semester.trim() 
+        college: { $regex: cleanCollege, $options: 'i' },
+        semester: { $regex: cleanSemester, $options: 'i' }
     };
     
-    // If branch is provided, we try to match it in the 'course' field
-    if (branch) {
-      // Escape special characters and use a more flexible match
-      const escapedBranch = branch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (cleanBranch) {
+      const escapedBranch = cleanBranch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       query.course = { $regex: escapedBranch, $options: 'i' };
     }
 
-    const toppers = await Result.find(query)
+    let toppers = await Result.find(query)
       .sort({ sgpa: -1 })
-      .limit(3);
+      .limit(5);
+
+    // Tier 3: If still no results (DB is empty), provide sample "Verified Toppers" for demonstration
+    if (toppers.length === 0) {
+        toppers = [
+            { 
+                name: "Aseem Raj (Sample)", 
+                regNo: "22151131015", 
+                sgpa: 9.85, 
+                course: cleanBranch || "Computer Science", 
+                isSample: true 
+            },
+            { 
+                name: "Saurav Poddar (Sample)", 
+                regNo: "22151131026", 
+                sgpa: 9.72, 
+                course: cleanBranch || "Computer Science", 
+                isSample: true 
+            },
+            { 
+                name: "Vikash Kumar (Sample)", 
+                regNo: "22151131001", 
+                sgpa: 9.58, 
+                course: cleanBranch || "Computer Science", 
+                isSample: true 
+            }
+        ];
+    }
 
     return NextResponse.json(toppers);
   } catch (error: any) {
