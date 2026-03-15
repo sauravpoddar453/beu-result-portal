@@ -224,7 +224,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, allExams, onExamCha
                             .sort((a, b) => a.semId - b.semId)
                             .map(ex => (
                                 <option key={ex.id} value={ex.id} style={{ color: 'black', background: 'white' }}>
-                                    Sem {ex.semId} - {selectedExam.batchYear} Batch
+                                    Sem {ex.semId} - {ex.batchYear}
                                 </option>
                             ))
                         }
