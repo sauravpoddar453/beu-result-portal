@@ -22,6 +22,9 @@ const App: React.FC = () => {
     <div style={{ minHeight: '100vh', paddingBottom: '5rem' }}>
       <Navbar onGoHome={handleGoHome} />
       <main>
+        <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+          Check BEU Results Online – Bihar Engineering University Result Portal
+        </h1>
         {view === 'home' ? (
           <Home onSelectSemester={handleSelectSemester} />
         ) : (

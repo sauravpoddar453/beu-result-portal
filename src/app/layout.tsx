@@ -4,8 +4,8 @@ import { Providers } from './Providers';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: 'BEU Result Portal',
-  description: 'View your BEU results online.',
+  title: 'BEU Result Portal | Check Bihar Engineering University Results Online',
+  description: 'Check BEU BTech results online. Fast and simple Bihar Engineering University result portal for students.',
 };
 
 export default function RootLayout({
