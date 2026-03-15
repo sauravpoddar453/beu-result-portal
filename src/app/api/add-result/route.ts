@@ -6,9 +6,15 @@ export async function POST(request: Request) {
   try {
     await dbConnect();
     const body = await request.json();
-    const result = new Result(body);
-    await result.save();
-    return NextResponse.json({ message: "Result added successfully" });
+    const { regNo, ...updateData } = body;
+    
+    await Result.findOneAndUpdate(
+      { regNo },
+      { $set: { regNo, ...updateData, lastUpdated: new Date() } },
+      { upsert: true, new: true }
+    );
+    
+    return NextResponse.json({ message: "Result synced successfully" });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

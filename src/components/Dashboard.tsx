@@ -35,7 +35,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         try {
             const res = await fetch(`/api/toppers?college=${encodeURIComponent(college)}&semester=${encodeURIComponent(semester)}&branch=${encodeURIComponent(branch)}`);
             if (res.ok) {
-                const data = await res.ok ? await res.json() : [];
+                const data = await res.json();
                 setToppers(Array.isArray(data) ? data : []);
             }
         } catch (err) {
@@ -113,6 +113,22 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         credit: d.credit
                     })) || []
                 });
+
+                // Auto-sync search result to local database for toppers logic
+                fetch('/api/add-result', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        regNo: targetRegNo,
+                        name: data.name,
+                        college: data.college_name,
+                        semester: `${currentExam?.semId}th Semester`,
+                        sgpa: Array.isArray(data.sgpa) ? (data.sgpa[currentExam.semId - 1] || 'N/A') : (data.sgpa || 'N/A'),
+                        cgpa: data.cgpa || 'N/A',
+                        status: data.fail_any || 'PASSED',
+                        course: data.course
+                    })
+                }).catch(err => console.error('Sync error:', err));
                 toast.success('Official Result Found!', { id: searchToast });
                 
                 // When official result is found, fetch toppers for this college/branch/sem
@@ -170,6 +186,13 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     });
                 }
                 toast.success('Result Fetched Successfully!', { id: searchToast });
+
+                // Also fetch toppers for fallback results
+                fetchToppers(
+                    'PURNEA COLLEGE OF ENGINEERING, PURNEA',
+                    '6th Semester',
+                    'Computer Science'
+                );
             } else {
                 setError(err.message || 'Result not found or server error.');
                 toast.error('Result Not Found', { id: searchToast });

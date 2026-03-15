@@ -8,6 +8,7 @@ const resultSchema = new mongoose.Schema({
   sgpa: String,
   cgpa: String,
   status: String,
+  course: String,
   subjects: [
     {
       code: String,
