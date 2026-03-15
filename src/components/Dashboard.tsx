@@ -52,12 +52,17 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
     // Proactive Topper Detection on Typing
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (regNumber.length >= 7 && !result) {
+            if (!result) {
                 fetchToppers('', '', '', regNumber);
             }
         }, 600);
         return () => clearTimeout(timer);
     }, [regNumber, result]);
+
+    // Initial load of toppers
+    useEffect(() => {
+        fetchToppers('', '', '');
+    }, []);
 
     const handleSearch = async (overrideRegNo?: string | React.MouseEvent | React.KeyboardEvent, overrideExam?: any) => {
         const targetRegNo = typeof overrideRegNo === 'string' ? overrideRegNo : regNumber;
