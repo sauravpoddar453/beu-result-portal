@@ -19,8 +19,6 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
     const [regNumber, setRegNumber] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
-    const [toppers, setToppers] = useState<any[]>([]);
-    const [loadingToppers, setLoadingToppers] = useState(false);
     const [error, setError] = useState('');
     const pdfRef = useRef<HTMLDivElement>(null);
 
@@ -30,54 +28,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         ? `20${regNumber.substring(0, 2)}` 
         : selectedExam?.batchYear;
 
-    const fetchToppers = async (college: string, semester: string, branch: string, regNo?: string) => {
-        setLoadingToppers(true);
-        try {
-            const url = regNo 
-                ? `/api/toppers?regNo=${encodeURIComponent(regNo)}`
-                : `/api/toppers?college=${encodeURIComponent(college)}&semester=${encodeURIComponent(semester)}&branch=${encodeURIComponent(branch)}`;
-            
-            const res = await fetch(url);
-            if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    setToppers(data);
-                } else {
-                    // Local fallback if API returns empty/error
-                    setToppers([
-                        { name: "Aseem Raj (Sample)", regNo: "22151131015", sgpa: 9.85, course: "Engineering", isSample: true },
-                        { name: "Saurav Poddar (Sample)", regNo: "22151131026", sgpa: 9.72, course: "Engineering", isSample: true }
-                    ]);
-                }
-            } else {
-                throw new Error('API unstable');
-            }
-        } catch (err) {
-            console.error('Error fetching toppers:', err);
-            // Local fallback on network error
-            setToppers([
-                { name: "Aseem Raj (Sample)", regNo: "22151131015", sgpa: 9.85, course: "Engineering", isSample: true },
-                { name: "Saurav Poddar (Sample)", regNo: "22151131026", sgpa: 9.72, course: "Engineering", isSample: true }
-            ]);
-        } finally {
-            setLoadingToppers(false);
-        }
-    };
 
-    // Proactive Topper Detection on Typing
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (!result) {
-                fetchToppers('', '', '', regNumber);
-            }
-        }, 600);
-        return () => clearTimeout(timer);
-    }, [regNumber, result]);
-
-    // Initial load of toppers
-    useEffect(() => {
-        fetchToppers('', '', '');
-    }, []);
 
     const handleSearch = async (overrideRegNo?: string | React.MouseEvent | React.KeyboardEvent, overrideExam?: any) => {
         const targetRegNo = typeof overrideRegNo === 'string' ? overrideRegNo : regNumber;
@@ -148,58 +99,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     })) || []
                 });
 
-                // Auto-sync search result to local database for toppers logic
-                const sgpaValue = Array.isArray(data.sgpa) ? (data.sgpa[currentExam.semId - 1] || '0') : (data.sgpa || '0');
-                const resultData = {
-                    regNo: targetRegNo,
-                    name: data.name,
-                    college: data.college_name,
-                    semester: `${currentExam?.semId}th Semester`,
-                    sgpa: parseFloat(sgpaValue) || 0,
-                    cgpa: parseFloat(data.cgpa) || 0,
-                    status: data.fail_any || 'PASSED',
-                    course: data.course
-                };
-
-                fetch('/api/add-result', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(resultData)
-                }).then(() => {
-                    // Small delay to let DB update, then refresh toppers
-                    setTimeout(() => {
-                        fetchToppers(resultData.college, resultData.semester, resultData.course);
-                    }, 1000);
-                }).catch(err => console.error('Sync error:', err));
-
-                // BACKGROUND INDEXING: "Self-see" logic
-                // Fetch first 10 students of the same branch to populate toppers list automatically
-                if (targetRegNo.length >= 11) {
-                    const prefix = targetRegNo.substring(0, 8); // College + Branch code
-                    const lastDigits = targetRegNo.substring(8);
-                    
-                    // Fire-and-forget background indexing for first 5 students (1-5)
-                    ['001', '002', '003', '004', '005'].forEach((suffix, i) => {
-                        const neighborRegNo = prefix + suffix;
-                        if (neighborRegNo === targetRegNo) return;
-                        
-                        setTimeout(() => {
-                            fetch('/api/sync-neighbor', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ regNo: neighborRegNo, semId: currentExam.semId })
-                            }).then(() => {
-                                // Refresh toppers list occasionally after indexing neighbors
-                                if (i === 4) fetchToppers(data.college_name, `${currentExam.semId}th Semester`, data.course);
-                            }).catch(() => {});
-                        }, (i + 1) * 3000); 
-                    });
-                }
-
                 toast.success('Official Result Found!', { id: searchToast });
-                
-                // Refresh toppers list after a success
-                fetchToppers(data.college_name, `${currentExam?.semId}th Semester`, data.course);
             } else {
                 throw new Error('Official server is currently unresponsive.');
             }
@@ -250,13 +150,6 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     });
                 }
                 toast.success('Result Fetched Successfully!', { id: searchToast });
-
-                // Also fetch toppers for fallback results
-                fetchToppers(
-                    'PURNEA COLLEGE OF ENGINEERING, PURNEA',
-                    '6th Semester',
-                    'Computer Science'
-                );
             } else {
                 setError(err.message || 'Result not found or server error.');
                 toast.error('Result Not Found', { id: searchToast });
@@ -356,79 +249,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: 'var(--accent)', textAlign: 'center', marginTop: '1rem', fontSize: '0.8rem' }}>{error}</motion.div>}
             </div>
 
-            {/* Branch Toppers Section - Moved out of result condition so it shows while typing */}
-            {!result && (
-                <div className="no-print" style={{ maxWidth: '1100px', margin: '0 auto 3rem auto' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
-                        <Lucide.Trophy size={20} color="var(--primary)" />
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>College Branch Toppers</h3>
-                    </div>
-                    
-                    {loadingToppers ? (
-                        <div style={{ textAlign: 'center', padding: '1rem' }}>
-                            <Lucide.Loader2 className="animate-spin" size={24} color="var(--primary)" />
-                        </div>
-                    ) : toppers.length > 0 ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-                            {toppers.map((topper, idx) => (
-                                <motion.div 
-                                    key={idx} 
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    className="glass" 
-                                    style={{ 
-                                        padding: '1.2rem', 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '1rem',
-                                        border: idx === 0 ? '1px solid var(--primary)' : '1px solid var(--glass-border)',
-                                        background: idx === 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
-                                        position: 'relative'
-                                    }}
-                                >
-                                    {topper.isSample && (
-                                        <div style={{ position: 'absolute', top: '-8px', right: '10px', background: 'var(--accent)', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 900 }}>DEMO</div>
-                                    )}
-                                    {!topper.isSample && (
-                                        <div style={{ position: 'absolute', top: '-8px', right: '10px', background: 'var(--secondary)', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 900 }}>VERIFIED</div>
-                                    )}
-                                    <div style={{ 
-                                        width: '36px', 
-                                        height: '36px', 
-                                        borderRadius: '50%', 
-                                        background: idx === 0 ? 'var(--primary--glow)' : 'rgba(255,255,255,0.05)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontWeight: 800,
-                                        fontSize: '1rem',
-                                        color: idx === 0 ? 'var(--text-main)' : 'var(--text-muted)'
-                                    }}>
-                                        {idx + 1}
-                                    </div>
-                                    <div style={{ flexGrow: 1, minWidth: 0 }}>
-                                        <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{topper.name}</div>
-                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                            {topper.college?.split(',')[0] || topper.course?.split('(')[0] || 'Engineering Student'}
-                                        </div>
-                                    </div>
-                                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                        <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.2rem' }}>{(topper.sgpa || 0).toFixed(2)}</div>
-                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>SGPA</div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="glass" style={{ padding: '1.5rem', textAlign: 'center', borderStyle: 'dashed' }}>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                Discovering toppers... Typing registration number will fetch college data.
-                            </p>
-                        </div>
-                    )}
-                </div>
-            )}
+
 
             <AnimatePresence>
                 {loading && (
@@ -567,68 +388,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             </div>
                         </div>
 
-                        {/* Branch Toppers Section (Shown inside result card) */}
-                        <div className="no-print" style={{ marginTop: '3rem', borderTop: '1px solid var(--glass-border)', paddingTop: '2rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                                <Lucide.Trophy size={20} color="var(--primary)" />
-                                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>College Branch Toppers</h3>
-                            </div>
-                            
-                            {toppers.length > 0 ? (
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                                    {toppers.map((topper, idx) => (
-                                        <div key={idx} className="glass" style={{ 
-                                            padding: '1rem', 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            gap: '1rem',
-                                            border: idx === 0 ? '1px solid var(--primary)' : '1px solid var(--glass-border)',
-                                            background: idx === 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
-                                            position: 'relative',
-                                            minWidth: 0
-                                        }}>
-                                            {topper.isSample && (
-                                                <div style={{ position: 'absolute', top: '-8px', right: '10px', background: 'var(--accent)', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 900 }}>DEMO</div>
-                                            )}
-                                            {!topper.isSample && (
-                                                <div style={{ position: 'absolute', top: '-8px', right: '10px', background: 'var(--secondary)', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 900 }}>VERIFIED</div>
-                                            )}
-                                            <div style={{ 
-                                                width: '32px', 
-                                                height: '32px', 
-                                                borderRadius: '50%', 
-                                                background: idx === 0 ? 'var(--primary--glow)' : 'rgba(255,255,255,0.05)',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontWeight: 800,
-                                                fontSize: '0.9rem',
-                                                color: idx === 0 ? 'var(--text-main)' : 'var(--text-muted)',
-                                                flexShrink: 0
-                                            }}>
-                                                {idx + 1}
-                                            </div>
-                                            <div style={{ flexGrow: 1, minWidth: 0 }}>
-                                                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{topper.name}</div>
-                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                    {topper.college?.split(',')[0] || 'Engineering'}
-                                                </div>
-                                            </div>
-                                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                                <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1rem' }}>{(topper.sgpa || 0).toFixed(2)}</div>
-                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>SGPA</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="glass" style={{ padding: '1.5rem', textAlign: 'center', borderStyle: 'dashed' }}>
-                                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                        Discovering toppers... More results are being indexed as students search.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+
 
                         <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginTop: '2rem' }}>
                             <button className="premium-btn" onClick={handlePrint}>
