@@ -213,19 +213,27 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 <p style={{ color: 'var(--text-muted)' }}>Official University Result Engine</p>
             </header>
 
-            <div className="no-print" style={{ position: 'relative', maxWidth: '500px', margin: '0 auto 3rem auto' }}>
-                <div className="glass" style={{ padding: '0.4rem', display: 'flex', gap: '0.5rem', borderRadius: '1.25rem' }}>
-                    <input
-                        type="text"
-                        className="premium-input"
-                        placeholder="Registration No (e.g. 21101110001)"
-                        value={regNumber}
-                        onKeyPress={(e: any) => e.key === 'Enter' && handleSearch()}
-                        onChange={(e) => setRegNumber(e.target.value)}
-                        style={{ border: 'none', background: 'transparent' }}
-                    />
-                    <button className="premium-btn" onClick={handleSearch} disabled={loading}>
-                        {loading ? <Lucide.Loader2 className="animate-spin" size={18} /> : <Lucide.Search size={18} />}
+            <div className="no-print" style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 3rem auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button className="premium-btn" onClick={handlePrevStudent} style={{ flexShrink: 0, padding: '0.8rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-main)' }} title="Previous Student">
+                        <Lucide.ChevronLeft size={18} />
+                    </button>
+                    <div className="glass" style={{ flexGrow: 1, padding: '0.4rem', display: 'flex', gap: '0.5rem', borderRadius: '1.25rem' }}>
+                        <input
+                            type="text"
+                            className="premium-input"
+                            placeholder="Registration No (e.g. 21101110001)"
+                            value={regNumber}
+                            onKeyPress={(e: any) => e.key === 'Enter' && handleSearch()}
+                            onChange={(e) => setRegNumber(e.target.value)}
+                            style={{ border: 'none', background: 'transparent', width: '100%' }}
+                        />
+                        <button className="premium-btn" onClick={handleSearch} disabled={loading} style={{ flexShrink: 0 }}>
+                            {loading ? <Lucide.Loader2 className="animate-spin" size={18} /> : <Lucide.Search size={18} />}
+                        </button>
+                    </div>
+                    <button className="premium-btn" onClick={handleNextStudent} style={{ flexShrink: 0, padding: '0.8rem', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-main)' }} title="Next Student">
+                        <Lucide.ChevronRight size={18} />
                     </button>
                 </div>
                 {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: 'var(--accent)', textAlign: 'center', marginTop: '1rem', fontSize: '0.8rem' }}>{error}</motion.div>}
@@ -369,14 +377,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         </div>
 
                         <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                            <button className="premium-btn" onClick={handlePrevStudent} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-main)', boxShadow: 'none' }}>
-                                <Lucide.ChevronLeft size={18} /> Prev Student
-                            </button>
                             <button className="premium-btn" onClick={handlePrint}>
                                 <Lucide.Download size={18} /> Official Marksheet
-                            </button>
-                            <button className="premium-btn" onClick={handleNextStudent} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-main)', boxShadow: 'none' }}>
-                                Next Student <Lucide.ChevronRight size={18} />
                             </button>
                         </div>
 
