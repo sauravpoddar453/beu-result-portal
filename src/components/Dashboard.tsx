@@ -19,6 +19,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
     const [regNumber, setRegNumber] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
+    const [toppers, setToppers] = useState<any[]>([]);
+    const [loadingToppers, setLoadingToppers] = useState(false);
     const [error, setError] = useState('');
     const pdfRef = useRef<HTMLDivElement>(null);
 
@@ -27,6 +29,21 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
     const detectedBatchYear = (regNumber && regNumber.length >= 2) 
         ? `20${regNumber.substring(0, 2)}` 
         : selectedExam?.batchYear;
+
+    const fetchToppers = async (college: string, semester: string, branch: string) => {
+        setLoadingToppers(true);
+        try {
+            const res = await fetch(`/api/toppers?college=${encodeURIComponent(college)}&semester=${encodeURIComponent(semester)}&branch=${encodeURIComponent(branch)}`);
+            if (res.ok) {
+                const data = await res.ok ? await res.json() : [];
+                setToppers(Array.isArray(data) ? data : []);
+            }
+        } catch (err) {
+            console.error('Error fetching toppers:', err);
+        } finally {
+            setLoadingToppers(false);
+        }
+    };
 
     const handleSearch = async (overrideRegNo?: string | React.MouseEvent | React.KeyboardEvent, overrideExam?: any) => {
         const targetRegNo = typeof overrideRegNo === 'string' ? overrideRegNo : regNumber;
@@ -97,6 +114,12 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     })) || []
                 });
                 toast.success('Official Result Found!', { id: searchToast });
+                
+                // When official result is found, fetch toppers for this college/branch/sem
+                const college = data.college_name;
+                const sem = `${currentExam?.semId}th Semester`;
+                const branch = data.course || '';
+                fetchToppers(college, sem, branch);
             } else {
                 throw new Error('Official server is currently unresponsive.');
             }
@@ -383,7 +406,59 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             </div>
                         </div>
 
-                        <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                        {/* Branch Toppers Section */}
+                        {(loadingToppers || toppers.length > 0) && (
+                            <div className="no-print" style={{ marginTop: '3rem', borderTop: '1px solid var(--glass-border)', paddingTop: '2rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                    <Lucide.Trophy size={20} color="var(--primary)" />
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>College Branch Toppers</h3>
+                                </div>
+                                
+                                {loadingToppers ? (
+                                    <div style={{ textAlign: 'center', padding: '1rem' }}>
+                                        <Lucide.Loader2 className="animate-spin" size={24} color="var(--primary)" />
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                                        {toppers.map((topper, idx) => (
+                                            <div key={idx} className="glass" style={{ 
+                                                padding: '1rem', 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                gap: '1rem',
+                                                border: idx === 0 ? '1px solid var(--primary)' : '1px solid var(--glass-border)',
+                                                background: idx === 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent'
+                                            }}>
+                                                <div style={{ 
+                                                    width: '32px', 
+                                                    height: '32px', 
+                                                    borderRadius: '50%', 
+                                                    background: idx === 0 ? 'var(--primary--glow)' : 'rgba(255,255,255,0.05)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontWeight: 800,
+                                                    fontSize: '0.9rem',
+                                                    color: idx === 0 ? 'var(--text-main)' : 'var(--text-muted)'
+                                                }}>
+                                                    {idx + 1}
+                                                </div>
+                                                <div style={{ flexGrow: 1 }}>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{topper.name}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reg: {topper.regNo}</div>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1rem' }}>{topper.sgpa}</div>
+                                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>SGPA</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginTop: '2rem' }}>
                             <button className="premium-btn" onClick={handlePrint}>
                                 <Lucide.Download size={18} /> Official Marksheet
                             </button>
