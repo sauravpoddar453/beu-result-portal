@@ -5,6 +5,8 @@ import toast from 'react-hot-toast';
 
 interface DashboardProps {
     selectedExam?: any;
+    allExams?: any[];
+    onExamChange?: (exam: any) => void;
     onBack?: () => void;
 }
 
@@ -15,14 +17,14 @@ const toRoman = (num: number): string => {
     return romanMap[num] || num.toString();
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
+const Dashboard: React.FC<DashboardProps> = ({ selectedExam, allExams, onExamChange, onBack }) => {
     const [regNumber, setRegNumber] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState('');
     const pdfRef = useRef<HTMLDivElement>(null);
 
-    const handleSearch = async (overrideRegNo?: string | React.MouseEvent | React.KeyboardEvent) => {
+    const handleSearch = async (overrideRegNo?: string | React.MouseEvent | React.KeyboardEvent, overrideExam?: any) => {
         const targetRegNo = typeof overrideRegNo === 'string' ? overrideRegNo : regNumber;
         if (!targetRegNo) {
             setError('Please enter a registration number');
@@ -40,9 +42,10 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         try {
             // Official BEU API Call
             // Note: In a production app, this might need a proxy for CORS, but we'll attempt direct fetch
-            const year = selectedExam?.batchYear || '2024';
-            const semester = toRoman(selectedExam?.semId || 0);
-            const examHeld = encodeURIComponent(selectedExam?.examHeld || '');
+            const currentExam = overrideExam || selectedExam;
+            const year = currentExam?.batchYear || '2024';
+            const semester = toRoman(currentExam?.semId || 0);
+            const examHeld = encodeURIComponent(currentExam?.examHeld || '');
 
             const url = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}`;
 
@@ -66,8 +69,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     motherName: data.mother_name,
                     college: data.college_name,
                     course: data.course,
-                    semester: `${selectedExam?.semId}th Semester`,
-                    sgpa: Array.isArray(data.sgpa) ? (data.sgpa[selectedExam.semId - 1] || 'N/A') : (data.sgpa || 'N/A'),
+                    semester: `${currentExam?.semId}th Semester`,
+                    sgpa: Array.isArray(data.sgpa) ? (data.sgpa[currentExam.semId - 1] || 'N/A') : (data.sgpa || 'N/A'),
                     cgpa: data.cgpa || 'N/A',
                     status: data.fail_any || 'PASSED',
                     theorySubjects: data.theorySubjects?.map((d: any) => ({
@@ -191,7 +194,38 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         <Lucide.ArrowLeft size={20} />
                     </button>
                 )}
-                {selectedExam && (
+                {selectedExam && allExams && allExams.length > 0 && onExamChange ? (
+                    <select
+                        value={selectedExam.id}
+                        onChange={(e) => {
+                            const newExam = allExams.find(ex => ex.id === Number(e.target.value));
+                            if (newExam) {
+                                onExamChange(newExam);
+                                if (regNumber || result) {
+                                    handleSearch(regNumber, newExam);
+                                }
+                            }
+                        }}
+                        style={{
+                            background: 'linear-gradient(45deg, var(--primary), #a855f7)',
+                            padding: '0.4rem 1rem',
+                            borderRadius: '2rem',
+                            fontSize: '0.85rem',
+                            fontWeight: 700,
+                            color: 'white',
+                            boxShadow: '0 4px 12px var(--primary-glow)',
+                            border: 'none',
+                            outline: 'none',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        {allExams.map(ex => (
+                            <option key={ex.id} value={ex.id} style={{ color: 'black', background: 'white' }}>
+                                Sem {ex.semId} - {ex.examName.split('Examination')[0].trim().toUpperCase()}
+                            </option>
+                        ))}
+                    </select>
+                ) : selectedExam ? (
                     <div style={{
                         background: 'linear-gradient(45deg, var(--primary), #a855f7)',
                         padding: '0.3rem 0.8rem',
@@ -203,7 +237,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     }}>
                         {selectedExam.examName.split('Examination')[0].trim().toUpperCase()}
                     </div>
-                )}
+                ) : null}
             </div>
 
             <header className="no-print" style={{ textAlign: 'center', marginBottom: '3rem' }}>

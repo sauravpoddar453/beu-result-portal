@@ -21,7 +21,7 @@ interface Course {
 }
 
 interface HomeProps {
-    onSelectSemester: (exam: Exam) => void;
+    onSelectSemester: (exam: Exam, allExams: Exam[]) => void;
 }
 
 const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
@@ -190,7 +190,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                         whileHover={{ scale: 1.02, translateY: -5 }}
                                         whileTap={{ scale: 0.98 }}
                                         className="glass"
-                                        onClick={() => onSelectSemester(exam)}
+                                        onClick={() => onSelectSemester(exam, activeCourse?.exams || [])}
                                         style={{
                                             padding: '2rem',
                                             cursor: 'pointer',

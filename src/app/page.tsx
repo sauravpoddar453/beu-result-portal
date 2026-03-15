@@ -7,10 +7,18 @@ import Home from '../components/Home';
 const App: React.FC = () => {
   const [view, setView] = useState<'home' | 'dashboard'>('home');
   const [selectedExam, setSelectedExam] = useState<any>(null);
+  const [allExams, setAllExams] = useState<any[]>([]);
 
-  const handleSelectSemester = (exam: any) => {
+  const handleSelectSemester = (exam: any, exams: any[] = []) => {
     setSelectedExam(exam);
+    if (exams && exams.length > 0) {
+      setAllExams(exams);
+    }
     setView('dashboard');
+  };
+
+  const handleExamChange = (exam: any) => {
+    setSelectedExam(exam);
   };
 
   const handleGoHome = () => {
@@ -28,7 +36,7 @@ const App: React.FC = () => {
         {view === 'home' ? (
           <Home onSelectSemester={handleSelectSemester} />
         ) : (
-          <Dashboard selectedExam={selectedExam} onBack={handleGoHome} />
+          <Dashboard selectedExam={selectedExam} allExams={allExams} onExamChange={handleExamChange} onBack={handleGoHome} />
         )}
       </main>
 
