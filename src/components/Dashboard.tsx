@@ -219,11 +219,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, allExams, onExamCha
                             cursor: 'pointer',
                         }}
                     >
-                        {allExams.map(ex => (
-                            <option key={ex.id} value={ex.id} style={{ color: 'black', background: 'white' }}>
-                                Sem {ex.semId} - {ex.examName.split('Examination')[0].trim().toUpperCase()}
-                            </option>
-                        ))}
+                        {allExams
+                            .filter(ex => ex.batchYear === selectedExam.batchYear)
+                            .sort((a, b) => a.semId - b.semId)
+                            .map(ex => (
+                                <option key={ex.id} value={ex.id} style={{ color: 'black', background: 'white' }}>
+                                    Sem {ex.semId} - {selectedExam.batchYear} Batch
+                                </option>
+                            ))
+                        }
                     </select>
                 ) : selectedExam ? (
                     <div style={{
