@@ -159,13 +159,13 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
 
     const handleNextStudent = () => {
         if (!regNumber || isNaN(Number(regNumber))) return;
-        const nextReg = (BigInt(regNumber) + 1n).toString();
+        const nextReg = (Number(regNumber) + 1).toString();
         handleSearch(nextReg);
     };
 
     const handlePrevStudent = () => {
         if (!regNumber || isNaN(Number(regNumber))) return;
-        const prevReg = (BigInt(regNumber) - 1n).toString();
+        const prevReg = (Number(regNumber) - 1).toString();
         handleSearch(prevReg);
     };
 
