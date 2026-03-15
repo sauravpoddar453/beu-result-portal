@@ -5,8 +5,8 @@ const resultSchema = new mongoose.Schema({
   name: String,
   college: String,
   semester: String,
-  sgpa: String,
-  cgpa: String,
+  sgpa: Number,
+  cgpa: Number,
   status: String,
   course: String,
   subjects: [

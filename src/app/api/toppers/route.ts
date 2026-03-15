@@ -15,14 +15,18 @@ export async function GET(request: Request) {
 
     await dbConnect();
 
-    // Query for top 3 students by SGPA
-    // We filter by college and semester. 
-    // Branch detection is tricky as it's often part of the 'course' string.
-    let query: any = { college, semester };
+    // Query for top students by SGPA
+    // We use regex for college to handle minor spacing/casing differences
+    let query: any = { 
+        college: { $regex: college.trim(), $options: 'i' },
+        semester: semester.trim() 
+    };
     
     // If branch is provided, we try to match it in the 'course' field
     if (branch) {
-      query.course = { $regex: branch, $options: 'i' };
+      // Escape special characters and use a more flexible match
+      const escapedBranch = branch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.course = { $regex: escapedBranch, $options: 'i' };
     }
 
     const toppers = await Result.find(query)
