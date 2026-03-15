@@ -4,8 +4,9 @@ import { Providers } from './Providers';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: 'BEU Result Portal | Check Bihar Engineering University Results Online',
-  description: 'Check BEU BTech results online. Fast and simple Bihar Engineering University result portal for students.',
+  title: 'BEU Result 2025 | Check Bihar Engineering University BTech Results Online',
+  description: 'Check BEU Result 2025 online. Fast and easy Bihar Engineering University result portal to check BTech semester results, SGPA and CGPA.',
+  keywords: 'BEU Result, BEU BTech Result, Bihar Engineering University Result, BEU Result Portal, BEU Result 2025',
 };
 
 export default function RootLayout({

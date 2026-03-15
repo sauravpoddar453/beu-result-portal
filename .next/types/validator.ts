@@ -47,6 +47,60 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 }
 
 
+// Validate ../../src/app/beu-2nd-sem-result/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/beu-2nd-sem-result">> = Specific
+  const handler = {} as typeof import("../../src/app/beu-2nd-sem-result/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/beu-4th-sem-result/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/beu-4th-sem-result">> = Specific
+  const handler = {} as typeof import("../../src/app/beu-4th-sem-result/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/beu-6th-sem-result/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/beu-6th-sem-result">> = Specific
+  const handler = {} as typeof import("../../src/app/beu-6th-sem-result/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/beu-notification/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/beu-notification">> = Specific
+  const handler = {} as typeof import("../../src/app/beu-notification/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/beu-result-2025-how-to-check/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/beu-result-2025-how-to-check">> = Specific
+  const handler = {} as typeof import("../../src/app/beu-result-2025-how-to-check/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../src/app/beu-result/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/beu-result">> = Specific
+  const handler = {} as typeof import("../../src/app/beu-result/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../src/app/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/">> = Specific

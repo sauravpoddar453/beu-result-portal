@@ -40,6 +40,42 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/beu-2nd-sem-result",
+      "regex": "^/beu\\-2nd\\-sem\\-result(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/beu\\-2nd\\-sem\\-result(?:/)?$"
+    },
+    {
+      "page": "/beu-4th-sem-result",
+      "regex": "^/beu\\-4th\\-sem\\-result(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/beu\\-4th\\-sem\\-result(?:/)?$"
+    },
+    {
+      "page": "/beu-6th-sem-result",
+      "regex": "^/beu\\-6th\\-sem\\-result(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/beu\\-6th\\-sem\\-result(?:/)?$"
+    },
+    {
+      "page": "/beu-notification",
+      "regex": "^/beu\\-notification(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/beu\\-notification(?:/)?$"
+    },
+    {
+      "page": "/beu-result",
+      "regex": "^/beu\\-result(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/beu\\-result(?:/)?$"
+    },
+    {
+      "page": "/beu-result-2025-how-to-check",
+      "regex": "^/beu\\-result\\-2025\\-how\\-to\\-check(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/beu\\-result\\-2025\\-how\\-to\\-check(?:/)?$"
     }
   ],
   "dataRoutes": [],

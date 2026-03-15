@@ -1,8 +1,14 @@
 {
-  "/_not-found/page": "/_not-found",
-  "/api/result/[regNo]/route": "/api/result/[regNo]",
-  "/api/students/route": "/api/students",
   "/api/add-student/route": "/api/add-student",
+  "/api/result/[regNo]/route": "/api/result/[regNo]",
   "/api/add-result/route": "/api/add-result",
-  "/page": "/"
+  "/api/students/route": "/api/students",
+  "/_not-found/page": "/_not-found",
+  "/beu-6th-sem-result/page": "/beu-6th-sem-result",
+  "/beu-4th-sem-result/page": "/beu-4th-sem-result",
+  "/page": "/",
+  "/beu-2nd-sem-result/page": "/beu-2nd-sem-result",
+  "/beu-notification/page": "/beu-notification",
+  "/beu-result-2025-how-to-check/page": "/beu-result-2025-how-to-check",
+  "/beu-result/page": "/beu-result"
 }

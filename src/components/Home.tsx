@@ -162,7 +162,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     {/* Exams Grid */}
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                         <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', marginBottom: '2rem', opacity: 0.8 }}>
-                            Available {activeCourse?.courseName} Examinations
+                            Search Your BEU Result 🚀
                         </h2>
                     </div>
 
@@ -357,6 +357,49 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 <Lucide.Mail size={16} color="var(--accent)" /> info@beu-bih.ac.in
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* SEO Content Section */}
+            <div className="glass" style={{ marginTop: '4rem', padding: '3rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '1.5rem', fontWeight: 800 }}>
+                    BEU Result Portal
+                </h2>
+                <div style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <p>
+                        Bihar Engineering University (BEU) releases semester examination results for BTech students every year. Many students face difficulty finding the correct result link quickly. This BEU Result Portal helps students easily access their Bihar Engineering University results online.
+                    </p>
+                    <p>
+                        With this platform, students can quickly check their BEU BTech semester results, view their SGPA and CGPA, and access the latest result updates in a simple interface.
+                    </p>
+                    <p>Our website provides a fast and user-friendly way to check:</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.5rem', marginBottom: '1rem' }}>
+                        <a href="/beu-1st-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 1st Semester Result</a>
+                        <a href="/beu-2nd-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 2nd Semester Result</a>
+                        <a href="/beu-3rd-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 3rd Semester Result</a>
+                        <a href="/beu-4th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 4th Semester Result</a>
+                        <a href="/beu-5th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 5th Semester Result</a>
+                        <a href="/beu-6th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 6th Semester Result</a>
+                        <a href="/beu-7th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 7th Semester Result</a>
+                        <a href="/beu-8th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 8th Semester Result</a>
+                    </div>
+                    <p>
+                        Students can simply enter their roll number or registration number to view their exam results. This portal is designed to make it easier for students of Bihar Engineering University to access result information without navigating complex official websites.
+                    </p>
+                </div>
+                
+                <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', marginTop: '3rem', marginBottom: '1.5rem', fontWeight: 800 }}>
+                    BEU Result Updates
+                </h2>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+                    <p>Students searching for the following terms can use this portal to check their results:</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1rem' }}>
+                        {['BEU Result 2025', 'Bihar Engineering University Result', 'BEU BTech Result', 'BEU Semester Result', 'BEU Result Portal'].map(keyword => (
+                            <span key={keyword} style={{ padding: '0.4rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                                {keyword}
+                            </span>
+                        ))}
                     </div>
                 </div>
             </div>
