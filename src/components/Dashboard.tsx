@@ -5,8 +5,6 @@ import toast from 'react-hot-toast';
 
 interface DashboardProps {
     selectedExam?: any;
-    allExams?: any[];
-    onExamChange?: (exam: any) => void;
     onBack?: () => void;
 }
 
@@ -17,7 +15,7 @@ const toRoman = (num: number): string => {
     return romanMap[num] || num.toString();
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ selectedExam, allExams, onExamChange, onBack }) => {
+const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
     const [regNumber, setRegNumber] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -200,43 +198,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, allExams, onExamCha
                         <Lucide.ArrowLeft size={20} />
                     </button>
                 )}
-                {selectedExam && allExams && allExams.length > 0 && onExamChange ? (
-                    <select
-                        value={selectedExam.id}
-                        onChange={(e) => {
-                            const newExam = allExams.find(ex => ex.id === Number(e.target.value));
-                            if (newExam) {
-                                onExamChange(newExam);
-                                if (regNumber || result) {
-                                    handleSearch(regNumber, newExam);
-                                }
-                            }
-                        }}
-                        style={{
-                            background: 'linear-gradient(45deg, var(--primary), #a855f7)',
-                            padding: '0.4rem 1rem',
-                            borderRadius: '2rem',
-                            fontSize: '0.85rem',
-                            fontWeight: 700,
-                            color: 'white',
-                            boxShadow: '0 4px 12px var(--primary-glow)',
-                            border: 'none',
-                            outline: 'none',
-                            cursor: 'pointer',
-                        }}
-                    >
-                        {allExams
-                            .filter(ex => ex.batchYear === detectedBatchYear)
-                            .filter(ex => !(ex.semId === 2 && ex.batchYear === '2025'))
-                            .sort((a, b) => a.semId - b.semId)
-                            .map(ex => (
-                                <option key={ex.id} value={ex.id} style={{ color: 'black', background: 'white' }}>
-                                    Sem {ex.semId} - {ex.batchYear}
-                                </option>
-                            ))
-                        }
-                    </select>
-                ) : selectedExam ? (
+                {selectedExam && (
                     <div style={{
                         background: 'linear-gradient(45deg, var(--primary), #a855f7)',
                         padding: '0.3rem 0.8rem',
@@ -248,7 +210,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, allExams, onExamCha
                     }}>
                         {selectedExam.examName.split('Examination')[0].trim().toUpperCase()}
                     </div>
-                ) : null}
+                )}
             </div>
 
             <header className="no-print" style={{ textAlign: 'center', marginBottom: '3rem' }}>
