@@ -391,6 +391,79 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 </div>
             </div>
 
+            {/* About the Developer Section */}
+            <div className="glass" style={{ 
+                marginTop: '4rem', 
+                padding: '3rem', 
+                borderRadius: '1rem', 
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), transparent)', 
+                border: '1px solid rgba(255,255,255,0.05)',
+                position: 'relative',
+                overflow: 'hidden'
+            }}>
+                <div style={{ 
+                    position: 'absolute', top: '-20px', right: '-20px', opacity: 0.1, color: 'var(--primary)'
+                }}>
+                    <Lucide.Code2 size={120} />
+                </div>
+                
+                <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '2rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Lucide.UserCircle2 size={28} color="var(--primary)" />
+                    Meet the Developer
+                </h2>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem', flexWrap: 'wrap' }}>
+                    <div style={{ 
+                        width: '120px', 
+                        height: '120px', 
+                        borderRadius: '2rem', 
+                        background: 'linear-gradient(135deg, var(--primary), #a855f7)', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        fontSize: '3rem', 
+                        fontWeight: 900, 
+                        color: 'white',
+                        boxShadow: '0 10px 25px var(--primary-glow)',
+                        transform: 'rotate(-5deg)'
+                    }}>
+                        SP
+                    </div>
+                    
+                    <div style={{ flex: 1, minWidth: '280px' }}>
+                        <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                            Saurav Poddar
+                        </h3>
+                        <p style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem' }}>
+                            Full Stack Developer • CSE (Artificial Intelligence)
+                        </p>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, maxWidth: '600px' }}>
+                            Student at <strong>Purnea College of Engineering, Purnea</strong> (Batch 2022-26). 
+                            Focused on building high-performance web applications and AI-integrated systems for Bihar's engineering community.
+                        </p>
+                        
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+                            <a href="https://github.com/sauravpoddar453" target="_blank" rel="noreferrer" className="premium-btn" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
+                                <Lucide.Github size={18} /> GitHub
+                            </a>
+                            <div style={{ 
+                                padding: '0.6rem 1.2rem', 
+                                background: 'rgba(255,255,255,0.05)', 
+                                borderRadius: '0.75rem', 
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                color: 'var(--text-muted)',
+                                fontSize: '0.85rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}>
+                                <Lucide.Mail size={16} /> sauravpoddar453@gmail.com
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Footer */}
             <footer style={{ marginTop: '6rem', padding: '4rem 0 2rem 0', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', letterSpacing: '0.05em' }}>
