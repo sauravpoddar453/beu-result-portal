@@ -33,13 +33,23 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     const [noticesLoading, setNoticesLoading] = useState(true);
     const [isSubscribed, setIsSubscribed] = useState(false);
 
-    const handleSubscribe = () => {
-        if (isSubscribed) {
-            toast.success("Notifications Disabled.");
-        } else {
-            toast.success("Push Notifications Enabled! You will be instantly notified of new BEU results.", { icon: '🔔', duration: 4000 });
+    // Load subscription status from localStorage
+    useEffect(() => {
+        const savedStatus = localStorage.getItem('beu_notifications_enabled');
+        if (savedStatus === 'true') {
+            setIsSubscribed(true);
         }
-        setIsSubscribed(!isSubscribed);
+    }, []);
+
+    const handleSubscribe = () => {
+        const newStatus = !isSubscribed;
+        if (newStatus) {
+            toast.success("Push Notifications Enabled! You will be instantly notified of new BEU results.", { icon: '🔔', duration: 4000 });
+        } else {
+            toast.success("Notifications Disabled.");
+        }
+        setIsSubscribed(newStatus);
+        localStorage.setItem('beu_notifications_enabled', String(newStatus));
     };
     useEffect(() => {
         const fetchExams = async () => {
@@ -265,6 +275,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             {noticesLoading && <Lucide.Loader2 className="animate-spin" size={18} color="var(--primary)" />}
                             
                             <button
+                                type="button"
                                 onClick={handleSubscribe}
                                 className="premium-btn"
                                 style={{
