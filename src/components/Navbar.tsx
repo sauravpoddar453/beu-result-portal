@@ -82,6 +82,21 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
                     <Lucide.Github size={18} />
                 </a>
 
+                <a 
+                    href="https://instagram.com/saurav_poddar_45" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    style={{ 
+                        color: 'var(--text-main)', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', padding: '0.4rem', borderRadius: '50%',
+                        transition: 'all 0.2s ease'
+                    }}
+                    className="hover-scale"
+                    title="Follow on Instagram"
+                >
+                    <Lucide.Instagram size={18} />
+                </a>
+
                 <button 
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     style={{ 
