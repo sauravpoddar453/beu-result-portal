@@ -59,7 +59,7 @@ const App: React.FC = () => {
         color: 'var(--text-muted)',
         fontSize: '0.85rem'
       }}>
-        <p>&copy; 2026 BEU Result Portal. Developed by Saurav Poddar CSE(AI) 2022 | PCE Purnea</p>
+        <p>&copy; 2026 BEU Result Portal. Developed by <a href="https://github.com/sauravpoddar453" target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>Saurav Poddar</a> CSE(AI) 2022 | PCE Purnea</p>
       </footer>
     </div>
   );

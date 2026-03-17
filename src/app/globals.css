@@ -114,6 +114,15 @@ h4 {
   box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
+.hover-scale {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.1);
+  color: var(--primary) !important;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

@@ -67,6 +67,21 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
                 <a href="https://beu-bih.ac.in/tpo/Overview" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>TPO</a>
                 <a href="https://beu-bih.ac.in/grievance/user-submit" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>Grievance</a>
                 
+                <a 
+                    href="https://github.com/sauravpoddar453/beu-result-portal" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    style={{ 
+                        color: 'var(--text-main)', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', padding: '0.4rem', borderRadius: '50%',
+                        transition: 'all 0.2s ease'
+                    }}
+                    className="hover-scale"
+                    title="View Source on GitHub"
+                >
+                    <Lucide.Github size={18} />
+                </a>
+
                 <button 
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     style={{ 

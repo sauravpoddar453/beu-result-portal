@@ -372,23 +372,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     <p>
                         Bihar Engineering University (BEU) releases semester examination results for BTech students every year. Many students face difficulty finding the correct result link quickly. This BEU Result Portal helps students easily access their Bihar Engineering University results online.
                     </p>
-                    <p>
-                        With this platform, students can quickly check their BEU BTech semester results, view their SGPA and CGPA, and access the latest result updates in a simple interface.
-                    </p>
-                    <p>Our website provides a fast and user-friendly way to check:</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '0.75rem', marginTop: '0.5rem', marginBottom: '1rem' }}>
-                        <a href="/beu-1st-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 1st Semester Result</a>
-                        <a href="/beu-2nd-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 2nd Semester Result</a>
-                        <a href="/beu-3rd-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 3rd Semester Result</a>
-                        <a href="/beu-4th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 4th Semester Result</a>
-                        <a href="/beu-5th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 5th Semester Result</a>
-                        <a href="/beu-6th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 6th Semester Result</a>
-                        <a href="/beu-7th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 7th Semester Result</a>
-                        <a href="/beu-8th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>BEU BTech 8th Semester Result</a>
-                    </div>
-                    <p>
-                        Students can simply enter their roll number or registration number to view their exam results. This portal is designed to make it easier for students of Bihar Engineering University to access result information without navigating complex official websites.
-                    </p>
+
+
                 </div>
                 
                 <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', marginTop: '3rem', marginBottom: '1.5rem', fontWeight: 800 }}>
