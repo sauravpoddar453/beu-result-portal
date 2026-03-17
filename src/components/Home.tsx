@@ -468,10 +468,16 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 color: 'var(--text-muted)',
                                 fontSize: '0.85rem',
                                 display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem'
+                                flexDirection: 'column',
+                                gap: '0.4rem',
+                                minWidth: '220px'
                             }}>
-                                <Lucide.Mail size={16} /> sauravpoddar453@gmail.com
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Lucide.Mail size={16} /> <a href="mailto:sauravpoddar453@gmail.com" style={{ color: 'inherit', textDecoration: 'none' }}>sauravpoddar453@gmail.com</a>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Lucide.Mail size={16} /> <a href="mailto:sauravpoddar645@gmail.com" style={{ color: 'inherit', textDecoration: 'none' }}>sauravpoddar645@gmail.com</a>
+                                </div>
                             </div>
                         </div>
                     </div>
