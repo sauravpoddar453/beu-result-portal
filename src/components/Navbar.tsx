@@ -83,7 +83,7 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
                 </a>
 
                 <a 
-                    href="https://instagram.com/saurav_poddar_45" 
+                    href="https://instagram.com/spcreative453" 
                     target="_blank" 
                     rel="noreferrer"
                     style={{ 

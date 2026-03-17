@@ -446,7 +446,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             <a href="https://github.com/sauravpoddar453" target="_blank" rel="noreferrer" className="premium-btn" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
                                 <Lucide.Github size={18} /> GitHub
                             </a>
-                            <a href="https://instagram.com/saurav_poddar_45" target="_blank" rel="noreferrer" className="premium-btn" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2338 75%, #bc1888 100%)' }}>
+                            <a href="https://instagram.com/spcreative453" target="_blank" rel="noreferrer" className="premium-btn" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2338 75%, #bc1888 100%)' }}>
                                 <Lucide.Instagram size={18} /> Instagram
                             </a>
                             <div style={{ 
