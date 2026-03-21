@@ -1,11 +1,7 @@
+'use client';
 import React from 'react';
 import Link from 'next/link';
-import Navbar from '../../components/Navbar';
-
-export const metadata = {
-  title: "BEU Result 2026 (Coming Soon) | Bihar Engineering University Check Here",
-  description: "BEU Result 2026 jaldi hi release hone wala hai. Bihar Engineering University ke sabhi results yaha check kare. Official fast portal.",
-};
+import Navbar from '@/components/Navbar';
 
 export default function BeuResult2026Page() {
   return (

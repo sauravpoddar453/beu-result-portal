@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
-import Dashboard from '../components/Dashboard';
-import Home from '../components/Home';
+import Navbar from '@/components/Navbar';
+import Dashboard from '@/components/Dashboard';
+import Home from '@/components/Home';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'home' | 'dashboard'>('home');
