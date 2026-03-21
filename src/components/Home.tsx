@@ -423,7 +423,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'center' }}>
                         <Link href="/beu-result-2026" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '1rem', fontWeight: 800, padding: '0.4rem 1rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '0.75rem' }}>Check BEU Result 2026 🔥</Link>
                         <a href="/beu-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>Bihar Engineering University 2026</a>
-                        <a href="/beu-2nd-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>2nd Sem Result</a>
+                        <Link href="/beu-1st-sem-result-2026" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>1st Sem Result</Link>
+                        <Link href="/beu-2nd-sem-result-2026" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>2nd Sem Result</Link>
                         <a href="/beu-4th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>4th Sem Result</a>
                         <a href="/beu-6th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>6th Sem Result</a>
                         <a href="/beu-result-2026-how-to-check" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>How to Check Result</a>
@@ -519,9 +520,11 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', letterSpacing: '0.05em' }}>
                     © {new Date().getFullYear()} BEU PORTAL • DIRECT API SYNC WITH BEU BIHAR
                 </p>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '1.5rem' }}>
-                    <a href="https://beu-bih.ac.in/home/privacy-policy" style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textDecoration: 'none' }}>Privacy Policy</a>
-                    <a href="https://beu-bih.ac.in/home/terms-condition" style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textDecoration: 'none' }}>Terms & Conditions</a>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+                    <Link href="/privacy-policy" style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textDecoration: 'none' }}>Privacy Policy</Link>
+                    <Link href="/terms" style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textDecoration: 'none' }}>Terms & Conditions</Link>
+                    <Link href="/about" style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textDecoration: 'none' }}>About us</Link>
+                    <Link href="/contact" style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textDecoration: 'none' }}>Contact</Link>
                 </div>
             </footer>
         </div>
