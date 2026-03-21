@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Lucide from 'lucide-react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 
 interface Exam {
@@ -375,11 +376,25 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             </div>
 
             {/* SEO Content Section */}
-            <div className="glass" style={{ marginTop: '4rem', padding: '3rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '1.5rem', fontWeight: 800 }}>
-                    BEU Result Portal
+            <div className="glass" id="seo-content" style={{ marginTop: '4rem', padding: '3rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
+                    <img src="/result.png" alt="BEU result 2026 check portal" style={{ width: '100%', maxWidth: '600px', borderRadius: '1rem', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)' }} />
+                </div>
+                <h1 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '0.5rem', fontWeight: 800 }}>
+                    BEU Result 2026
+                </h1>
+                <h2 style={{ fontSize: '1.4rem', color: 'var(--primary)', marginBottom: '1.5rem', fontWeight: 700 }}>
+                    Bihar Engineering University Results
                 </h2>
+                
                 <div style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <p style={{ fontWeight: 600, color: 'var(--primary)', borderLeft: '4px solid var(--primary)', paddingLeft: '1rem' }}>
+                        BEU result 2026 check karne ke liye is portal ka use kare. 
+                        Yaha aapko semester wise result, latest updates aur direct result links milenge.
+                    </p>
+                    <p style={{ fontWeight: 500, color: 'var(--text-main)' }}>
+                        Yaha se aap BEU result 2026, semester wise result aur latest updates check kar sakte hai.
+                    </p>
                     <p>
                         Bihar Engineering University (BEU) releases semester examination results for BTech students every year. Many students face difficulty finding the correct result link quickly. This BEU Result Portal helps students easily access their Bihar Engineering University results online.
                     </p>
@@ -393,11 +408,25 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.6 }}>
                     <p>Students searching for the following terms can use this portal to check their results:</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1rem' }}>
-                        {['BEU Result 2025', 'Bihar Engineering University Result', 'BEU BTech Result', 'BEU Semester Result', 'BEU Result Portal'].map(keyword => (
+                        {['BEU Result 2026', 'Bihar Engineering University Result', 'BEU BTech Result', 'BEU Semester Result', 'BEU Result Portal'].map(keyword => (
                             <span key={keyword} style={{ padding: '0.4rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.85rem', color: 'var(--secondary)' }}>
                                 {keyword}
                             </span>
                         ))}
+                    </div>
+                </div>
+
+                {/* Internal Linking Section */}
+                <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <h3 style={{ color: 'var(--text-main)', fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 700 }}>Quick Result Access 🔗</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'center' }}>
+                        <Link href="/beu-result-2026" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '1rem', fontWeight: 800, padding: '0.4rem 1rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '0.75rem' }}>Check BEU Result 2026 🔥</Link>
+                        <a href="/beu-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>Bihar Engineering University 2026</a>
+                        <a href="/beu-2nd-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>2nd Sem Result</a>
+                        <a href="/beu-4th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>4th Sem Result</a>
+                        <a href="/beu-6th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>6th Sem Result</a>
+                        <a href="/beu-result-2026-how-to-check" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>How to Check Result</a>
+                        <a href="/beu-notification" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>BEU News</a>
                     </div>
                 </div>
             </div>

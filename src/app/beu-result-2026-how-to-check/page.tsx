@@ -2,14 +2,14 @@ import React from 'react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: "BEU Result 2025: How to Check Bihar Engineering University Result",
-  description: "Learn how to check BEU result 2025 online. Follow easy steps to view your Bihar Engineering University semester results.",
+  title: "BEU Result 2026: How to Check Bihar Engineering University Result",
+  description: "Learn how to check BEU result 2026 online. Follow easy steps to view your Bihar Engineering University semester results.",
 };
 
 export default function HowToCheckResultPage() {
   return (
     <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', minHeight: '100vh', fontFamily: 'sans-serif', lineHeight: '1.6' }}>
-      <h1>BEU Result 2025: How to Check Bihar Engineering University Result</h1>
+      <h1>BEU Result 2026: How to Check Bihar Engineering University Result</h1>
       <p>If you are a student of Bihar Engineering University (BEU) and waiting for your B.Tech results, this guide will help you check your results smoothly.</p>
       
       <h2>Steps to Check BEU Result</h2>

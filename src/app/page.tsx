@@ -22,7 +22,7 @@ const App: React.FC = () => {
       <Navbar onGoHome={handleGoHome} />
       <main>
         <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
-          Check BEU Result 2025 – Bihar Engineering University Result Portal
+          Check BEU Result 2026 | Bihar Engineering University Result Portal
         </h1>
         {view === 'home' ? (
           <Home onSelectSemester={handleSelectSemester} />
