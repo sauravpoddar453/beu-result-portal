@@ -21,9 +21,14 @@ const App: React.FC = () => {
     <div style={{ minHeight: '100vh', paddingBottom: '5rem' }}>
       <Navbar onGoHome={handleGoHome} />
       <main>
-        <h1 style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
-          Check BEU Result 2026 | Bihar Engineering University Result Portal
-        </h1>
+        {/* Static Content for SEO Crowling (Hidden but Effective) */}
+        <section style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+            <h1>BEU Result 2026</h1>
+            <p>
+                Check Bihar Engineering University (BEU) result 2026 for all semesters. 
+                Fast and easy result portal.
+            </p>
+        </section>
         {view === 'home' ? (
           <Home onSelectSemester={handleSelectSemester} />
         ) : (

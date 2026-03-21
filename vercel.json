@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/beuresults",
+      "destination": "/beu-result-2026",
+      "permanent": true
+    }
+  ]
+}
