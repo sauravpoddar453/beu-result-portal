@@ -290,7 +290,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             <img src="/beu-logo.jpg" alt="BEU Logo" style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
                             <div className="header-text">
                                 <h1 style={{ fontSize: '1.6rem', fontWeight: 'bold', margin: '0', color: '#000' }}>BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
-                                <h2 style={{ fontSize: '1.1rem', color: '#C00000', margin: '0.4rem 0 0 0', fontWeight: 'bold' }}>B.Tech. {selectedExam ? selectedExam.semId : '7'}th Semester Examination, 2025</h2>
+                                <h2 style={{ fontSize: '1.1rem', color: '#C00000', margin: '0.4rem 0 0 0', fontWeight: 'bold' }}>B.Tech. {result?.semester ? parseInt(result.semester) : (selectedExam ? selectedExam.semId : '7')}th Semester Examination</h2>
                             </div>
                             <div style={{ width: '100px' }}></div>
                         </div>
@@ -299,7 +299,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             <table className="official-table">
                                 <tbody>
                                     <tr>
-                                        <td colSpan={2}><b>Semester:</b> {toRoman(selectedExam?.semId || 7)}</td>
+                                        <td colSpan={2}><b>Semester:</b> {toRoman(result?.semester ? parseInt(result.semester) : (selectedExam?.semId || 7))}</td>
                                         <td colSpan={2}><b>Examination (Month/Year):</b> {selectedExam?.examHeld || 'February/2026'}</td>
                                     </tr>
                                     <tr>
@@ -408,9 +408,35 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 <tbody>
                                     <tr>
                                         <td className="center" style={{ fontWeight: 'bold' }}>SGPA</td>
-                                        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
-                                            <td key={i} className="center">{result.allSgpa && result.allSgpa[i] ? result.allSgpa[i] : '-'}</td>
-                                        ))}
+                                        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => {
+                                            const sgpaVal = result.allSgpa && result.allSgpa[i] ? result.allSgpa[i] : '-';
+                                            const displayedSemId = result?.semester ? parseInt(result.semester) : (selectedExam?.semId || 7);
+                                            const isClickable = sgpaVal !== '-' && (i + 1) !== displayedSemId;
+                                            return (
+                                                <td 
+                                                    key={i} 
+                                                    className="center"
+                                                    onClick={() => {
+                                                        if (isClickable) {
+                                                            handleSearch(result.rollNo, {
+                                                                semId: i + 1,
+                                                                batchYear: selectedExam?.batchYear || detectedBatchYear,
+                                                                examHeld: ''
+                                                            });
+                                                        }
+                                                    }}
+                                                    style={{ 
+                                                        cursor: isClickable ? 'pointer' : 'default',
+                                                        color: isClickable ? '#0000EE' : 'inherit',
+                                                        textDecoration: isClickable ? 'underline' : 'none',
+                                                        fontWeight: isClickable ? 'bold' : 'normal'
+                                                    }}
+                                                    title={isClickable ? `Click to view Semester ${i + 1} Result` : undefined}
+                                                >
+                                                    {sgpaVal}
+                                                </td>
+                                            );
+                                        })}
                                         <td className="center">{result.cgpa}</td>
                                     </tr>
                                 </tbody>
