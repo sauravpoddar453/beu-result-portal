@@ -109,6 +109,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
             console.error(err);
 
             // Fallback for demonstration if official API fails or is restricted by CORS
+            const fallbackSem = (overrideExam || selectedExam)?.semId || 6;
             if (targetRegNo === '22151131015' || targetRegNo === '22151131026') {
                 if (targetRegNo === '22151131015') {
                     setResult({
@@ -118,8 +119,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         motherName: 'MANJU KUMARI',
                         college: 'PURNEA COLLEGE OF ENGINEERING, PURNEA',
                         course: 'Computer Science and Engineering (Artificial Intelligence)',
-                        semester: '6th Semester',
-                        sgpa: '6.3',
+                        semester: `${fallbackSem}th Semester`,
+                        sgpa: ['7.1', '7.4', '7.0', '6.8', '6.5', '6.3'][fallbackSem - 1] || 'N/A',
                         allSgpa: ['7.1', '7.4', '7.0', '6.8', '6.5', '6.3'],
                         cgpa: '7.23',
                         status: 'FAIL:151603',
@@ -142,8 +143,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         name: 'SAURAV PODDAR',
                         rollNo: '22151131026',
                         college: 'PURNEA COLLEGE OF ENGINEERING, PURNEA',
-                        semester: '6th Semester',
-                        sgpa: '8.75',
+                        semester: `${fallbackSem}th Semester`,
+                        sgpa: ['8.1', '8.0', '8.2', '8.5', '8.3', '8.75'][fallbackSem - 1] || 'N/A',
                         allSgpa: ['8.1', '8.0', '8.2', '8.5', '8.3', '8.75'],
                         cgpa: '8.32',
                         status: 'PASSED',
