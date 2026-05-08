@@ -408,35 +408,9 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 <tbody>
                                     <tr>
                                         <td className="center" style={{ fontWeight: 'bold' }}>SGPA</td>
-                                        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => {
-                                            const sgpaVal = result.allSgpa && result.allSgpa[i] ? result.allSgpa[i] : '-';
-                                            const displayedSemId = result?.semester ? parseInt(result.semester) : (selectedExam?.semId || 7);
-                                            const isClickable = sgpaVal !== '-' && (i + 1) !== displayedSemId;
-                                            return (
-                                                <td 
-                                                    key={i} 
-                                                    className="center"
-                                                    onClick={() => {
-                                                        if (isClickable) {
-                                                            handleSearch(result.rollNo, {
-                                                                semId: i + 1,
-                                                                batchYear: selectedExam?.batchYear || detectedBatchYear,
-                                                                examHeld: ''
-                                                            });
-                                                        }
-                                                    }}
-                                                    style={{ 
-                                                        cursor: isClickable ? 'pointer' : 'default',
-                                                        color: isClickable ? '#0000EE' : 'inherit',
-                                                        textDecoration: isClickable ? 'underline' : 'none',
-                                                        fontWeight: isClickable ? 'bold' : 'normal'
-                                                    }}
-                                                    title={isClickable ? `Click to view Semester ${i + 1} Result` : undefined}
-                                                >
-                                                    {sgpaVal}
-                                                </td>
-                                            );
-                                        })}
+                                        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+                                            <td key={i} className="center">{result.allSgpa && result.allSgpa[i] ? result.allSgpa[i] : '-'}</td>
+                                        ))}
                                         <td className="center">{result.cgpa}</td>
                                     </tr>
                                 </tbody>
