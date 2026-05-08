@@ -271,159 +271,178 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 )}
 
                 {result && !loading && (
-                    <motion.div ref={pdfRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, type: "spring" }} className="student-card dashboard-grid" style={{ position: 'relative' }}>
-                        
-                        {/* Official Print Header */}
-                        <div className="print-flex" style={{ display: 'none', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginBottom: '2rem', borderBottom: '2px solid #333', paddingBottom: '1rem' }}>
-                            <img src="/beu-logo.jpg" alt="BEU Logo" style={{ height: '80px', width: '80px', objectFit: 'contain' }} />
-                            <div style={{ textAlign: 'center' }}>
-                                <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: 'black', margin: 0, letterSpacing: '2px' }}>BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
-                                <h2 style={{ fontSize: '1.2rem', fontWeight: 600, color: '#444', margin: '0.2rem 0' }}>PROVISIONAL STATEMENT OF MARKS</h2>
-                                <p style={{ fontSize: '0.9rem', color: '#666', margin: 0 }}>{selectedExam ? selectedExam.examName : 'Semester Examination'}</p>
+                    <motion.div ref={pdfRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, type: "spring" }} className="student-card" style={{ background: '#fff', color: '#000', borderRadius: '0', border: '1px solid #ccc', padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+                        <style>{`
+                            .official-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-size: 0.85rem; color: #000; }
+                            .official-table th, .official-table td { border: 1px solid #000; padding: 0.4rem 0.5rem; text-align: left; }
+                            .official-table th { text-align: center; font-weight: bold; background: transparent; color: #000; }
+                            .official-table .center { text-align: center; }
+                            .section-title { font-weight: bold; color: #999; text-transform: uppercase; margin-bottom: 0.5rem; font-size: 0.9rem; letter-spacing: 1px; }
+                            .header-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; position: relative; }
+                            .header-text { text-align: center; flex-grow: 1; }
+                            .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; pointer-events: none; width: 60%; z-index: 0; }
+                        `}</style>
+
+                        {/* Watermark Logo */}
+                        <img src="/beu-logo.jpg" alt="" className="watermark" />
+
+                        <div className="header-container" style={{ position: 'relative', zIndex: 1 }}>
+                            <img src="/beu-logo.jpg" alt="BEU Logo" style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
+                            <div className="header-text">
+                                <h1 style={{ fontSize: '1.6rem', fontWeight: 'bold', margin: '0', color: '#000' }}>BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
+                                <h2 style={{ fontSize: '1.1rem', color: '#C00000', margin: '0.4rem 0 0 0', fontWeight: 'bold' }}>B.Tech. {selectedExam ? selectedExam.semId : '7'}th Semester Examination, 2025</h2>
                             </div>
+                            <div style={{ width: '100px' }}></div>
                         </div>
 
-                        {/* Print Watermark */}
-                        <div className="print-only" style={{ display: 'none', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)', opacity: 0.05, fontSize: '8rem', fontWeight: 900, whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 0 }}>
-                            BEU OFFICIAL
-                        </div>
+                        <div style={{ position: 'relative', zIndex: 1 }}>
+                            <table className="official-table">
+                                <tbody>
+                                    <tr>
+                                        <td colSpan={2}><b>Semester:</b> {toRoman(selectedExam?.semId || 7)}</td>
+                                        <td colSpan={2}><b>Examination (Month/Year):</b> {selectedExam?.examHeld || 'February/2026'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style={{ width: '20%' }}><b>Registration No:</b></td>
+                                        <td colSpan={3}><b>{result.rollNo}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Student Name:</b></td>
+                                        <td colSpan={3}><b>{result.name}</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Father's Name:</b></td>
+                                        <td style={{ width: '30%' }}>{result.fatherName || 'N/A'}</td>
+                                        <td style={{ width: '20%' }}><b>Mother's Name:</b></td>
+                                        <td style={{ width: '30%' }}>{result.motherName || 'N/A'}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>College Name:</b></td>
+                                        <td colSpan={3}>{result.college}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Course Name:</b></td>
+                                        <td colSpan={3}>{result.course}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-                        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '2rem', marginBottom: '3rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '2rem', position: 'relative', zIndex: 1 }}>
-                            <div>
-                                <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.5rem' }}>{result.name}</h2>
-                                <p style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem' }}>{result.college}</p>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{result.course}</p>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{
-                                    background: result.status?.includes('FAIL') ? 'rgba(244, 63, 94, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                                    color: result.status?.includes('FAIL') ? 'var(--accent)' : 'var(--secondary)',
-                                    padding: '0.5rem 1.5rem', borderRadius: '2rem', display: 'inline-block', fontWeight: 800, marginBottom: '1rem'
-                                }}>
-                                    {result.status}
-                                </div>
-                                <p style={{ color: 'var(--text-muted)' }}>Reg: {result.rollNo}</p>
-                            </div>
-                        </div>
-
-                        <div style={{ marginBottom: '3rem' }}>
-                            <h3 style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Theory Examination</h3>
-                            <div style={{ overflowX: 'auto' }}>
-                                <table className="student-table">
-                                    <thead>
-                                        <tr>
-                                            <th style={{ textAlign: 'left' }}>SUBJECT</th>
-                                            <th style={{ textAlign: 'center' }}>ESE</th>
-                                            <th style={{ textAlign: 'center' }}>IA</th>
-                                            <th style={{ textAlign: 'center' }}>TOTAL</th>
-                                            <th style={{ textAlign: 'center' }}>GRADE</th>
+                            <div className="section-title">THEORY</div>
+                            <table className="official-table">
+                                <thead>
+                                    <tr>
+                                        <th>Subject Code</th>
+                                        <th>Subject Name</th>
+                                        <th>ESE</th>
+                                        <th>IA</th>
+                                        <th>Total</th>
+                                        <th>Grade</th>
+                                        <th>Credit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {result.theorySubjects && result.theorySubjects.length > 0 ? result.theorySubjects.map((sub: any, idx: number) => (
+                                        <tr key={idx}>
+                                            <td className="center">{sub.code}</td>
+                                            <td>{sub.name}</td>
+                                            <td className="center">{sub.ese}</td>
+                                            <td className="center">{sub.ia}</td>
+                                            <td className="center">{sub.total}</td>
+                                            <td className="center">{sub.grade}</td>
+                                            <td className="center">{sub.credit}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {result.theorySubjects && result.theorySubjects.length > 0 ? result.theorySubjects.map((sub: any, idx: number) => (
-                                            <tr key={idx}>
-                                                <td>
-                                                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{sub.name}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{sub.code}</div>
-                                                </td>
-                                                <td style={{ textAlign: 'center', color: sub.ese === 'NA' ? 'var(--accent)' : 'inherit' }}>{sub.ese}</td>
-                                                <td style={{ textAlign: 'center' }}>{sub.ia}</td>
-                                                <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{sub.total}</td>
-                                                <td style={{ textAlign: 'center' }}>
-                                                    <span style={{
-                                                        color: sub.grade === 'F' ? 'var(--accent)' : 'var(--primary)',
-                                                        fontWeight: 800, background: 'rgba(128,128,128,0.1)', padding: '0.2rem 0.6rem', borderRadius: '0.4rem'
-                                                    }}>{sub.grade}</span>
-                                                </td>
-                                            </tr>
-                                        )) : (
-                                            <tr>
-                                                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No theory marks found</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                                    )) : (
+                                        <tr><td colSpan={7} className="center">No theory marks found</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
 
-                        {result.practicalSubjects && result.practicalSubjects.length > 0 && (
-                            <div style={{ marginBottom: '3rem' }}>
-                                <h3 style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Practical Examination</h3>
-                                <div style={{ overflowX: 'auto' }}>
-                                    <table className="student-table">
+                            {result.practicalSubjects && result.practicalSubjects.length > 0 && (
+                                <>
+                                    <div className="section-title">PRACTICAL</div>
+                                    <table className="official-table">
                                         <thead>
                                             <tr>
-                                                <th style={{ textAlign: 'left' }}>SUBJECT</th>
-                                                <th style={{ textAlign: 'center' }}>ESE</th>
-                                                <th style={{ textAlign: 'center' }}>IA</th>
-                                                <th style={{ textAlign: 'center' }}>TOTAL</th>
-                                                <th style={{ textAlign: 'center' }}>GRADE</th>
+                                                <th>Subject Code</th>
+                                                <th>Subject Name</th>
+                                                <th>ESE</th>
+                                                <th>IA</th>
+                                                <th>Total</th>
+                                                <th>Grade</th>
+                                                <th>Credit</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {result.practicalSubjects.map((sub: any, idx: number) => (
                                                 <tr key={idx}>
-                                                    <td>
-                                                        <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>{sub.name}</div>
-                                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{sub.code}</div>
-                                                    </td>
-                                                    <td style={{ textAlign: 'center' }}>{sub.ese}</td>
-                                                    <td style={{ textAlign: 'center' }}>{sub.ia}</td>
-                                                    <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{sub.total}</td>
-                                                    <td style={{ textAlign: 'center' }}>
-                                                        <span style={{ fontWeight: 800, color: 'var(--secondary)' }}>{sub.grade}</span>
-                                                    </td>
+                                                    <td className="center">{sub.code}</td>
+                                                    <td>{sub.name}</td>
+                                                    <td className="center">{sub.ese}</td>
+                                                    <td className="center">{sub.ia}</td>
+                                                    <td className="center">{sub.total}</td>
+                                                    <td className="center">{sub.grade}</td>
+                                                    <td className="center">{sub.credit}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
-                                </div>
+                                </>
+                            )}
+
+                            <div className="section-title">SGPA / CGPA</div>
+                            <table className="official-table">
+                                <thead>
+                                    <tr>
+                                        <th>Semester</th>
+                                        <th>I</th>
+                                        <th>II</th>
+                                        <th>III</th>
+                                        <th>IV</th>
+                                        <th>V</th>
+                                        <th>VI</th>
+                                        <th>VII</th>
+                                        <th>VIII</th>
+                                        <th>Cur. CGPA</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className="center" style={{ fontWeight: 'bold' }}>SGPA</td>
+                                        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+                                            <td key={i} className="center">{result.allSgpa && result.allSgpa[i] ? result.allSgpa[i] : '-'}</td>
+                                        ))}
+                                        <td className="center">{result.cgpa}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div style={{ border: '1px solid #000', padding: '0.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center' }}>
+                                <b style={{ marginRight: '0.5rem' }}>Remarks:</b> 
+                                <span style={{ color: result.status?.includes('FAIL') ? '#C00000' : 'green', fontWeight: 'bold' }}>{result.status}</span>
                             </div>
-                        )}
 
-                        {result.allSgpa && result.allSgpa.length > 0 && (
-                            <div style={{ marginBottom: '3rem' }}>
-                                <h3 style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Semester-wise Performance</h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '1rem' }}>
-                                    {result.allSgpa.map((sgpaVal: any, idx: number) => (
-                                        <div key={idx} className="glass" style={{ padding: '1rem', textAlign: 'center', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)' }}>
-                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Sem {idx + 1}</div>
-                                            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>{sgpaVal || '-'}</div>
-                                        </div>
-                                    ))}
-                                </div>
+                            <div>
+                                <b style={{ fontSize: '0.9rem' }}>Note:</b>
+                                <ul style={{ listStyleType: 'disc', paddingLeft: '1.5rem', fontSize: '0.75rem', lineHeight: '1.4', margin: '0.3rem 0 0 0', color: '#333' }}>
+                                    <li><b>ESE:</b> End Semester Exam</li>
+                                    <li><b>IA:</b> Internal Assessment</li>
+                                    <li><b>SGPA:</b> Semester Grade Point Average</li>
+                                    <li><b>CGPA:</b> Cumulative Grade Point Average</li>
+                                    <li><b>AB:</b> Absent</li>
+                                    <li><b>NA:</b> Not Applicable</li>
+                                    <li><b>N/A:</b> Not Available</li>
+                                    <li><b>*:</b> Passed Under Regulation(UR)</li>
+                                    <li><b>CA:</b> Cancellation of Assessment</li>
+                                    <li><b>UMC:</b> Unfair Mean Case</li>
+                                    <li><b>WEB COPY:</b> Not valid for official purpose</li>
+                                    <li>University does not own for errors or omissions, if any, in the statement.</li>
+                                </ul>
                             </div>
-                        )}
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-                            <div className="glass" style={{ padding: '1.5rem', textAlign: 'center', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), transparent)' }}>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.5rem' }}>Current SGPA</p>
-                                <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--text-main)' }}>{result.sgpa}</div>
-                            </div>
-                            <div className="glass" style={{ padding: '1.5rem', textAlign: 'center' }}>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginBottom: '0.5rem' }}>Current CGPA</p>
-                                <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--secondary)' }}>{result.cgpa}</div>
-                            </div>
-                        </div>
-
-
-
-                        <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginTop: '2rem' }}>
-                            <button className="premium-btn" onClick={handlePrint}>
-                                <Lucide.Download size={18} /> Official Marksheet
-                            </button>
-                        </div>
-
-                        {/* Official Print Footer */}
-                        <div className="print-flex" style={{ display: 'none', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 2rem', marginTop: '4rem', paddingTop: '2rem', borderTop: '2px solid #333' }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <p style={{ color: '#000', margin: 0, fontWeight: 600, fontSize: '0.9rem' }}>Date of Issue: {new Date().toLocaleDateString()}</p>
-                                <p style={{ color: '#666', fontSize: '0.75rem', marginTop: '0.2rem' }}>System Generated Report</p>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ borderBottom: '1px solid #000', width: '150px', marginBottom: '0.4rem', height: '30px' }}></div>
-                                <p style={{ color: '#000', margin: 0, fontWeight: 600, fontSize: '0.9rem' }}>Controller of Examinations</p>
-                                <p style={{ color: '#666', fontSize: '0.75rem', marginTop: '0.2rem' }}>Bihar Engineering University</p>
+                            <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginTop: '3rem' }}>
+                                <button className="premium-btn" onClick={handlePrint}>
+                                    <Lucide.Download size={18} /> Download Official Format
+                                </button>
                             </div>
                         </div>
                     </motion.div>
