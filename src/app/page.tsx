@@ -23,9 +23,9 @@ const App: React.FC = () => {
       <main>
         {/* Static Content for SEO Crowling (Hidden but Effective) */}
         <section style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
-            <h1>BEU Result 2026</h1>
+            <h1>BEU Result</h1>
             <p>
-                Check Bihar Engineering University (BEU) result 2026 for all semesters. 
+                Check Bihar Engineering University (BEU) result for all semesters. 
                 Fast and easy result portal.
             </p>
         </section>

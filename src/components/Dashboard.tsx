@@ -78,6 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     course: data.course,
                     semester: `${currentExam?.semId}th Semester`,
                     sgpa: Array.isArray(data.sgpa) ? (data.sgpa[currentExam.semId - 1] || 'N/A') : (data.sgpa || 'N/A'),
+                    allSgpa: Array.isArray(data.sgpa) ? data.sgpa : (data.sgpa ? [data.sgpa] : []),
                     cgpa: data.cgpa || 'N/A',
                     status: data.fail_any || 'PASSED',
                     theorySubjects: data.theorySubjects?.map((d: any) => ({
@@ -119,6 +120,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         course: 'Computer Science and Engineering (Artificial Intelligence)',
                         semester: '6th Semester',
                         sgpa: '6.3',
+                        allSgpa: ['7.1', '7.4', '7.0', '6.8', '6.5', '6.3'],
                         cgpa: '7.23',
                         status: 'FAIL:151603',
                         theorySubjects: [
@@ -142,6 +144,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         college: 'PURNEA COLLEGE OF ENGINEERING, PURNEA',
                         semester: '6th Semester',
                         sgpa: '8.75',
+                        allSgpa: ['8.1', '8.0', '8.2', '8.5', '8.3', '8.75'],
                         cgpa: '8.32',
                         status: 'PASSED',
                         theorySubjects: [
@@ -374,6 +377,20 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                             ))}
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {result.allSgpa && result.allSgpa.length > 0 && (
+                            <div style={{ marginBottom: '3rem' }}>
+                                <h3 style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Semester-wise Performance</h3>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '1rem' }}>
+                                    {result.allSgpa.map((sgpaVal: any, idx: number) => (
+                                        <div key={idx} className="glass" style={{ padding: '1rem', textAlign: 'center', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)' }}>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>Sem {idx + 1}</div>
+                                            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)' }}>{sgpaVal || '-'}</div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
