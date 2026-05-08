@@ -286,13 +286,12 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         {/* Watermark Logo */}
                         <img src="/beu-logo.jpg" alt="" className="watermark" />
 
-                        <div className="header-container" style={{ position: 'relative', zIndex: 1 }}>
-                            <img src="/beu-logo.jpg" alt="BEU Logo" style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
-                            <div className="header-text">
+                        <div className="header-container" style={{ position: 'relative', zIndex: 1, flexDirection: 'column', textAlign: 'center', justifyContent: 'center' }}>
+                            <img src="/beu-logo.jpg" alt="BEU Logo" style={{ width: '90px', height: '90px', objectFit: 'contain', marginBottom: '0.5rem' }} />
+                            <div className="header-text" style={{ width: '100%' }}>
                                 <h1 style={{ fontSize: '1.6rem', fontWeight: 'bold', margin: '0', color: '#000' }}>BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
                                 <h2 style={{ fontSize: '1.1rem', color: '#C00000', margin: '0.4rem 0 0 0', fontWeight: 'bold' }}>B.Tech. {result?.semester ? parseInt(result.semester) : (selectedExam ? selectedExam.semId : '7')}th Semester Examination</h2>
                             </div>
-                            <div style={{ width: '100px' }}></div>
                         </div>
 
                         <div style={{ position: 'relative', zIndex: 1 }}>
