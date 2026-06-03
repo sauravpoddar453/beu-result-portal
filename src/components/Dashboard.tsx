@@ -103,7 +103,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
 
                 toast.success('Official Result Found!', { id: searchToast });
             } else {
-                throw new Error('Official server is currently unresponsive.');
+                const errJson = await response.json().catch(() => ({}));
+                throw new Error(errJson.error || 'Official server is currently unresponsive.');
             }
         } catch (err: any) {
             console.error(err);
