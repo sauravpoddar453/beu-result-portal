@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   }
 
   // Security check: Only allow requests to the official BEU university domain
-  if (!targetUrl.startsWith('https://beu-bih.ac.in/')) {
+  if (!targetUrl.startsWith('https://beu-bih.ac.in/') && !targetUrl.startsWith('https://www.beu-bih.ac.in/')) {
     return NextResponse.json({ error: 'Forbidden target url host' }, { status: 403 });
   }
 
