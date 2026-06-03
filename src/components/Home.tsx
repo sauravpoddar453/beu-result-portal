@@ -56,7 +56,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     useEffect(() => {
         const fetchExams = async () => {
             try {
-                const response = await fetch('https://beu-bih.ac.in/backend/v1/result/sem-get');
+                const response = await fetch('/api/proxy?url=' + encodeURIComponent('https://beu-bih.ac.in/backend/v1/result/sem-get'));
                 if (!response.ok) throw new Error('Failed to fetch exams');
                 const data = await response.json();
                 setCourses(data);
@@ -85,7 +85,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
 
         const fetchNotices = async () => {
             try {
-                const response = await fetch('https://beu-bih.ac.in/backend/v1/notice/get-notice-board');
+                const response = await fetch('/api/proxy?url=' + encodeURIComponent('https://beu-bih.ac.in/backend/v1/notice/get-notice-board'));
                 if (response.ok) {
                     const data = await response.json();
                     setNotices(data.slice(0, 6)); // Top 6 notices

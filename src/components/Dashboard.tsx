@@ -54,7 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
             const semester = toRoman(currentExam?.semId || 0);
             const examHeld = encodeURIComponent(currentExam?.examHeld || '');
 
-            const url = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}`;
+            const url = `/api/proxy?url=` + encodeURIComponent(`https://beu-bih.ac.in/backend/v1/result/get-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}`);
 
             const response = await fetch(url);
 
