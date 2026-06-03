@@ -161,6 +161,12 @@ export async function GET(request: Request) {
 
   } catch (error: any) {
     console.error('Proxy fetch failed:', error.message);
-    return NextResponse.json({ error: error.message || 'Internal proxy error' }, { status: 500 });
+    const msg = error.message || '';
+    if (msg.includes('CAPTCHA') || msg.includes('403') || msg.includes('Forbidden')) {
+      return NextResponse.json({ 
+        error: 'The university server is temporarily rate-limiting requests (CAPTCHA required). Please try again in a few minutes or reset your internet connection to change your IP.' 
+      }, { status: 429 });
+    }
+    return NextResponse.json({ error: msg || 'Internal proxy error' }, { status: 500 });
   }
 }
