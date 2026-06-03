@@ -109,6 +109,49 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         } catch (err: any) {
             console.error(err);
 
+            // Fallback: Try loading from local database API route first
+            try {
+                const dbRes = await fetch(`/api/result/${targetRegNo}`);
+                if (dbRes.ok) {
+                    const dbData = await dbRes.json();
+                    setResult({
+                        name: dbData.name,
+                        rollNo: dbData.regNo,
+                        fatherName: dbData.fatherName || 'N/A',
+                        motherName: dbData.motherName || 'N/A',
+                        college: dbData.college,
+                        course: dbData.course || 'Computer Science and Engineering',
+                        semester: dbData.semester || `${(overrideExam || selectedExam)?.semId || 6}th Semester`,
+                        sgpa: dbData.sgpa?.toString() || 'N/A',
+                        allSgpa: dbData.sgpa ? [dbData.sgpa.toString()] : [],
+                        cgpa: dbData.cgpa?.toString() || 'N/A',
+                        status: dbData.status || 'PASSED',
+                        theorySubjects: dbData.subjects?.filter((s: any) => !s.code.endsWith('P'))?.map((s: any) => ({
+                            code: s.code,
+                            name: s.name,
+                            ese: s.ese || 'N/A',
+                            ia: s.ia || 'N/A',
+                            total: s.point !== undefined ? s.point.toString() : 'N/A',
+                            grade: s.grade,
+                            credit: s.credit
+                        })) || [],
+                        practicalSubjects: dbData.subjects?.filter((s: any) => s.code.endsWith('P'))?.map((s: any) => ({
+                            code: s.code,
+                            name: s.name,
+                            ese: s.ese || 'N/A',
+                            ia: s.ia || 'N/A',
+                            total: s.point !== undefined ? s.point.toString() : 'N/A',
+                            grade: s.grade,
+                            credit: s.credit
+                        })) || []
+                    });
+                    toast.success('Result loaded from database backup!', { id: searchToast });
+                    return;
+                }
+            } catch (dbErr) {
+                console.error('Local database lookup failed:', dbErr);
+            }
+
             // Fallback for demonstration if official API fails or is restricted by CORS
             const fallbackSem = (overrideExam || selectedExam)?.semId || 6;
             if (targetRegNo === '22151131015' || targetRegNo === '22151131026') {
