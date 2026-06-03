@@ -46,15 +46,16 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         
         const searchToast = toast.loading('Searching University Records...');
 
+        const currentExam = overrideExam || selectedExam;
+        const year = currentExam?.batchYear || '2024';
+        const semester = toRoman(currentExam?.semId || 0);
+        const examHeld = encodeURIComponent(currentExam?.examHeld || '');
+
         try {
             // Official BEU API Call
             // Note: In a production app, this might need a proxy for CORS, but we'll attempt direct fetch
-            const currentExam = overrideExam || selectedExam;
-            const year = currentExam?.batchYear || '2024';
-            const semester = toRoman(currentExam?.semId || 0);
-            const examHeld = encodeURIComponent(currentExam?.examHeld || '');
 
-            const url = `/api/proxy?url=` + encodeURIComponent(`https://beu-bih.ac.in/backend/v1/result/get-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}`);
+            const url = `/api/fetch-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}`;
 
             const response = await fetch(url);
 
@@ -62,7 +63,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 const json = await response.json();
 
                 // Check for official success message or status
-                if (json.status !== 200 || json.message !== "Report retrieved successfully." || !json.data) {
+                if (json.status !== 200 || !json.data) {
                     throw new Error(json.message || 'Result not found');
                 }
 
@@ -71,16 +72,16 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 // Map official data to our UI structure
                 setResult({
                     name: data.name,
-                    rollNo: data.redg_no || targetRegNo,
-                    fatherName: data.father_name,
-                    motherName: data.mother_name,
-                    college: data.college_name,
+                    rollNo: data.regNo || data.redg_no || targetRegNo,
+                    fatherName: data.fatherName || data.father_name || 'N/A',
+                    motherName: data.motherName || data.mother_name || 'N/A',
+                    college: data.college || data.college_name,
                     course: data.course,
-                    semester: `${currentExam?.semId}th Semester`,
-                    sgpa: Array.isArray(data.sgpa) ? (data.sgpa[currentExam.semId - 1] || 'N/A') : (data.sgpa || 'N/A'),
-                    allSgpa: Array.isArray(data.sgpa) ? data.sgpa : (data.sgpa ? [data.sgpa] : []),
+                    semester: data.semester || `${currentExam?.semId}th Semester`,
+                    sgpa: data.sgpa || 'N/A',
+                    allSgpa: data.allSgpa || [],
                     cgpa: data.cgpa || 'N/A',
-                    status: data.fail_any || 'PASSED',
+                    status: data.status || data.fail_any || 'PASSED',
                     theorySubjects: data.theorySubjects?.map((d: any) => ({
                         code: d.code,
                         name: d.name,
@@ -111,7 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
 
             // Fallback: Try loading from local database API route first
             try {
-                const dbRes = await fetch(`/api/result/${targetRegNo}`);
+                const dbRes = await fetch(`/api/result/${targetRegNo}?semester=${semester}`);
                 if (dbRes.ok) {
                     const dbData = await dbRes.json();
                     setResult({
