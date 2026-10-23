@@ -47,6 +47,8 @@ export async function GET(request: Request) {
     const regNo = searchParams.get('redg_no') || searchParams.get('regNo');
     const semester = searchParams.get('semester');
     const examHeld = searchParams.get('exam_held') || searchParams.get('examHeld');
+    const examId = searchParams.get('exam_id') || searchParams.get('examId') || '';
+    const captcha = searchParams.get('captcha');
 
     if (!regNo || !semester) {
       return NextResponse.json({ error: 'Missing registration number or semester' }, { status: 400 });
@@ -62,18 +64,60 @@ export async function GET(request: Request) {
     try {
       await dbConnect();
       dbConnected = true;
-      // 1. Try querying our local database first (cached copy)
-      cachedResult = await Result.findOne({ regNo, semester: normalizedSemester });
+      // 1. Try querying our local database first (cached copy) with flexible semester format
+      cachedResult = await Result.findOne({
+        regNo,
+        $or: [
+          { semester: normalizedSemester },
+          { semester: `${normalizedSemester}th Semester` },
+          { semester: `${normalizedSemester}st Semester` },
+          { semester: `${normalizedSemester}nd Semester` },
+          { semester: `${normalizedSemester}rd Semester` },
+          { semester: new RegExp(`(^|\\b)${normalizedSemester}(\\b|th|st|nd|rd)`, 'i') }
+        ]
+      });
+
+      if (!cachedResult) {
+        cachedResult = await Result.findOne({ regNo });
+      }
     } catch (dbErr: any) {
       console.warn(`[Proxy Database Warning] DB connection/query failed: ${dbErr.message}. Bypassing cache...`);
     }
 
     if (cachedResult) {
       console.log(`[Proxy Cache HIT] regNo: ${regNo}, semester: ${normalizedSemester}`);
+      const doc = cachedResult.toObject ? cachedResult.toObject() : cachedResult;
+
+      // Ensure theorySubjects and practicalSubjects are populated if stored under 'subjects'
+      if ((!doc.theorySubjects || doc.theorySubjects.length === 0) && doc.subjects && doc.subjects.length > 0) {
+        doc.theorySubjects = doc.subjects
+          .filter((s: any) => !s.code?.endsWith('P'))
+          .map((s: any) => ({
+            code: s.code,
+            name: s.name,
+            ese: s.ese || 'N/A',
+            ia: s.ia || 'N/A',
+            total: s.point !== undefined ? s.point.toString() : (s.total || 'N/A'),
+            grade: s.grade,
+            credit: s.credit
+          }));
+        doc.practicalSubjects = doc.subjects
+          .filter((s: any) => s.code?.endsWith('P'))
+          .map((s: any) => ({
+            code: s.code,
+            name: s.name,
+            ese: s.ese || 'N/A',
+            ia: s.ia || 'N/A',
+            total: s.point !== undefined ? s.point.toString() : (s.total || 'N/A'),
+            grade: s.grade,
+            credit: s.credit
+          }));
+      }
+
       return NextResponse.json({
         status: 200,
         message: 'Report retrieved successfully.',
-        data: cachedResult
+        data: doc
       });
     }
 
@@ -94,7 +138,10 @@ export async function GET(request: Request) {
     // 3. Fetch token
     let tokenData;
     try {
-      tokenData = await fetchJsonWithHttps('https://beu-bih.ac.in/backend/v1/result/token', headers);
+      const tokenUrl = captcha 
+        ? `https://beu-bih.ac.in/backend/v1/result/token?captcha=${encodeURIComponent(captcha)}`
+        : 'https://beu-bih.ac.in/backend/v1/result/token';
+      tokenData = await fetchJsonWithHttps(tokenUrl, headers);
     } catch (err: any) {
       throw new Error(`Failed to fetch secure token: ${err.message}`);
     }
@@ -105,7 +152,7 @@ export async function GET(request: Request) {
     }
 
     // 4. Fetch actual result using the token
-    const beuUrl = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${year || ''}&redg_no=${regNo}&semester=${semester}&exam_held=${encodedExamHeld}&token=${token}`;
+    const beuUrl = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${year || ''}&redg_no=${regNo}&semester=${semester}&exam_held=${encodedExamHeld}&exam_id=${examId}&token=${token}`;
     
     let beuData;
     try {
@@ -164,8 +211,9 @@ export async function GET(request: Request) {
     const msg = error.message || '';
     if (msg.includes('CAPTCHA') || msg.includes('403') || msg.includes('Forbidden')) {
       return NextResponse.json({ 
-        error: 'The university server is temporarily rate-limiting requests (CAPTCHA required). Please try again in a few minutes or reset your internet connection to change your IP.' 
-      }, { status: 429 });
+        error: 'CAPTCHA_REQUIRED',
+        message: 'The university server requires CAPTCHA verification to fetch live results. Please solve the CAPTCHA.' 
+      }, { status: 403 });
     }
     return NextResponse.json({ error: msg || 'Internal proxy error' }, { status: 500 });
   }

@@ -10,11 +10,17 @@ const App: React.FC = () => {
   const handleSelectSemester = (exam: any) => {
     setSelectedExam(exam);
     setView('dashboard');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleGoHome = () => {
     setView('home');
     setSelectedExam(null);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (

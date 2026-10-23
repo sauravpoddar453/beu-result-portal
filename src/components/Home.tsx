@@ -14,6 +14,8 @@ interface Exam {
     batchYear: string;
     semId: number;
     examHeld: string;
+    examId?: string;
+    courseName?: string;
 }
 
 interface Course {
@@ -31,6 +33,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+    const [activeFilter, setActiveFilter] = useState<string>('all');
+    const [searchQuery, setSearchQuery] = useState('');
     const [notices, setNotices] = useState<any[]>([]);
     const [noticesLoading, setNoticesLoading] = useState(true);
     const [isSubscribed, setIsSubscribed] = useState(false);
@@ -101,12 +105,41 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
         fetchNotices();
     }, []);
 
-    const activeCourse = courses.find(c => c.courseid === selectedCourseId);
+    const allExams: Exam[] = courses.flatMap(c => (c.exams || []).map(e => ({ ...e, courseName: c.courseName })));
+
+    const getOfficialUrl = (exam: Exam) => {
+        try {
+            const paramObj = {
+                semester: exam.semId,
+                session: (exam.batchYear || '2024').toString().trim(),
+                exam_held: (exam.examHeld || '').toString().trim(),
+                exam_id: (exam.id || exam.examId || '').toString().trim()
+            };
+            const d = typeof window !== 'undefined' ? btoa(JSON.stringify(paramObj)) : '';
+            return `https://beu-bih.ac.in/result-two/${encodeURIComponent(exam.examName)}?d=${encodeURIComponent(d)}`;
+        } catch {
+            return 'https://beu-bih.ac.in/result-one';
+        }
+    };
+
+    const filteredExams = allExams.filter(exam => {
+        const matchesCourse = activeFilter === 'all' || exam.courseid.toString() === activeFilter;
+        const q = searchQuery.toLowerCase().trim();
+        if (!q) return matchesCourse;
+        const matchesQuery = 
+            exam.examName.toLowerCase().includes(q) ||
+            exam.session.toLowerCase().includes(q) ||
+            exam.examHeld.toLowerCase().includes(q) ||
+            (exam.courseName || '').toLowerCase().includes(q) ||
+            `sem ${exam.semId}`.toLowerCase().includes(q) ||
+            `${exam.semId}th`.toLowerCase().includes(q);
+        return matchesCourse && matchesQuery;
+    });
 
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             {/* Hero Section */}
-            <header style={{ textAlign: 'center', marginBottom: '4rem', marginTop: '2rem' }}>
+            <header style={{ textAlign: 'center', marginBottom: '3rem', marginTop: '2rem' }}>
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -115,8 +148,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     <h1 style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--text-main)', lineHeight: 1.1 }}>
                         BEU <span style={{ color: 'var(--primary)' }}>RESULTS</span> PORTAL
                     </h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginTop: '1rem', maxWidth: '600px', margin: '1rem auto' }}>
-                        Access official Bihar Engineering University results with real-time data synchronization.
+                    <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginTop: '1rem', maxWidth: '650px', margin: '1rem auto' }}>
+                        Access all 90+ official Bihar Engineering University results with real-time official server synchronization.
                     </p>
                 </motion.div>
             </header>
@@ -124,7 +157,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             {loading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '4rem' }}>
                     <Lucide.Loader2 className="animate-spin" size={48} color="var(--primary)" />
-                    <p style={{ color: 'var(--text-muted)' }}>Fetching official exam list...</p>
+                    <p style={{ color: 'var(--text-muted)' }}>Fetching official exam list from BEU server...</p>
                 </div>
             ) : error ? (
                 <div className="glass" style={{ padding: '3rem', textAlign: 'center', border: '1px solid var(--accent)' }}>
@@ -141,125 +174,338 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 </div>
             ) : (
                 <>
-                    {/* Course Selection Tabs */}
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: '1rem',
-                        marginBottom: '3rem',
-                        flexWrap: 'wrap'
-                    }}>
-                        {courses.map((course) => (
-                            <button
-                                key={course.courseid}
-                                onClick={() => {
-                                    setSelectedCourseId(course.courseid);
-                                }}
+                    {/* Search & Course Filter Section */}
+                    <div style={{ maxWidth: '850px', margin: '0 auto 3rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {/* Live Search Input */}
+                        <div className="glass" style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            padding: '0.9rem 1.25rem',
+                            borderRadius: '1.25rem',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            background: 'rgba(255,255,255,0.03)'
+                        }}>
+                            <Lucide.Search size={22} color="var(--primary)" />
+                            <input
+                                type="text"
+                                placeholder={`Search all ${allExams.length} BEU examinations (e.g. 8th Sem, B.Tech, 2026, MBA, Supplementary)...`}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 style={{
-                                    padding: '0.75rem 1.5rem',
-                                    borderRadius: '1rem',
-                                    border: '1px solid',
-                                    borderColor: selectedCourseId === course.courseid ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                                    background: selectedCourseId === course.courseid ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                    border: 'none',
+                                    background: 'transparent',
                                     color: 'var(--text-main)',
-                                    fontWeight: 600,
+                                    width: '100%',
+                                    outline: 'none',
+                                    fontSize: '0.95rem'
+                                }}
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                                >
+                                    <Lucide.X size={18} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Course Filter Pills */}
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: '0.6rem',
+                            flexWrap: 'wrap'
+                        }}>
+                            <button
+                                onClick={() => setActiveFilter('all')}
+                                style={{
+                                    padding: '0.6rem 1.25rem',
+                                    borderRadius: '2rem',
+                                    border: '1px solid',
+                                    borderColor: activeFilter === 'all' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                                    background: activeFilter === 'all' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                    color: 'var(--text-main)',
+                                    fontWeight: 700,
                                     cursor: 'pointer',
-                                    transition: 'all 0.3s ease',
-                                    fontSize: '0.9rem'
+                                    fontSize: '0.85rem',
+                                    transition: 'all 0.2s ease'
                                 }}
                             >
-                                {course.courseName}
+                                All Results ({allExams.length})
                             </button>
-                        ))}
+                            {courses.map((course) => (
+                                <button
+                                    key={course.courseid}
+                                    onClick={() => setActiveFilter(course.courseid.toString())}
+                                    style={{
+                                        padding: '0.6rem 1.25rem',
+                                        borderRadius: '2rem',
+                                        border: '1px solid',
+                                        borderColor: activeFilter === course.courseid.toString() ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                                        background: activeFilter === course.courseid.toString() ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                        color: 'var(--text-main)',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        fontSize: '0.85rem',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                >
+                                    {course.courseName} ({course.exams.length})
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Section Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div>
+                            <h2 style={{ fontSize: '1.6rem', color: 'var(--text-main)', fontWeight: 800 }}>
+                                Available Examinations ({filteredExams.length})
+                            </h2>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                                Click any exam to check result on portal or open the direct official university link.
+                            </p>
+                        </div>
+                        <a
+                            href="#all-results"
+                            style={{
+                                color: 'var(--primary)',
+                                textDecoration: 'none',
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.4rem'
+                            }}
+                        >
+                            View Directory Table <Lucide.ArrowDown size={14} />
+                        </a>
                     </div>
 
                     {/* Exams Grid */}
-                    <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                        <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', marginBottom: '2rem', opacity: 0.8 }}>
-                            Search Your BEU Result 🚀
-                        </h2>
-                    </div>
-
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
                         gap: '1.5rem',
                         marginBottom: '4rem'
                     }}>
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={selectedCourseId}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.3 }}
-                                style={{ display: 'contents' }}
-                            >
-                                {activeCourse?.exams.map((exam, index) => (
-                                    <motion.div
-                                        key={exam.id}
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: index * 0.05, duration: 0.4 }}
-                                        whileHover={{ scale: 1.02, translateY: -5 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="glass"
-                                        onClick={() => onSelectSemester(exam)}
-                                        style={{
-                                            padding: '2rem',
-                                            cursor: 'pointer',
-                                            border: '1px solid rgba(255,255,255,0.05)',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '1rem',
-                                            position: 'relative',
-                                            overflow: 'hidden'
-                                        }}
-                                    >
-                                        <div style={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            right: 0,
-                                            padding: '0.5rem 1rem',
-                                            background: 'linear-gradient(135deg, var(--primary), #4f46e5)',
-                                            color: 'var(--text-main)',
-                                            fontSize: '0.7rem',
-                                            fontWeight: 800,
-                                            borderBottomLeftRadius: '1rem'
-                                        }}>
-                                            {exam.session}
+                        <AnimatePresence mode="popLayout">
+                            {filteredExams.map((exam, index) => (
+                                <motion.div
+                                    key={`${exam.id}-${index}`}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ delay: Math.min(index * 0.02, 0.2), duration: 0.3 }}
+                                    whileHover={{ scale: 1.02, translateY: -4 }}
+                                    className="glass"
+                                    onClick={() => onSelectSemester(exam)}
+                                    style={{
+                                        padding: '1.75rem',
+                                        cursor: 'pointer',
+                                        border: '1px solid rgba(255,255,255,0.06)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '1rem',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        borderRadius: '1.25rem'
+                                    }}
+                                >
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        right: 0,
+                                        padding: '0.4rem 0.9rem',
+                                        background: 'linear-gradient(135deg, var(--primary), #4f46e5)',
+                                        color: '#fff',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 800,
+                                        borderBottomLeftRadius: '1rem'
+                                    }}>
+                                        {exam.session}
+                                    </div>
+
+                                    <div style={{
+                                        color: 'var(--primary)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 600
+                                    }}>
+                                        <Lucide.GraduationCap size={18} />
+                                        {exam.courseName || 'BEU'} • Sem {exam.semId}
+                                    </div>
+
+                                    <h3 style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.35, color: 'var(--text-main)' }}>
+                                        {exam.examName}
+                                    </h3>
+
+                                    <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <Lucide.Calendar size={13} /> {exam.examHeld}
+                                            </span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--secondary)', fontWeight: 600 }}>
+                                                <Lucide.CheckCircle size={13} /> {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                            </span>
                                         </div>
 
-                                        <div style={{
-                                            color: 'var(--primary)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.5rem',
-                                            fontSize: '0.85rem',
-                                            fontWeight: 600
-                                        }}>
-                                            <Lucide.GraduationCap size={18} />
-                                            {activeCourse?.courseName || 'Course'} • Sem {exam.semId}
+                                        <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.25rem' }}>
+                                            <button
+                                                className="premium-btn"
+                                                style={{ flex: 1, padding: '0.55rem 0.8rem', fontSize: '0.8rem' }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onSelectSemester(exam);
+                                                }}
+                                            >
+                                                Check Result
+                                            </button>
+                                            <a
+                                                href={getOfficialUrl(exam)}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    padding: '0.55rem 0.85rem',
+                                                    fontSize: '0.78rem',
+                                                    fontWeight: 600,
+                                                    textDecoration: 'none',
+                                                    color: 'var(--text-main)',
+                                                    background: 'rgba(255,255,255,0.06)',
+                                                    border: '1px solid rgba(255,255,255,0.12)',
+                                                    borderRadius: '0.75rem',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                title="Open official BEU university page in new tab"
+                                            >
+                                                <Lucide.ExternalLink size={14} style={{ marginRight: '0.3rem' }} /> Official
+                                            </a>
                                         </div>
-
-                                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, lineHeight: 1.3, color: 'var(--text-main)' }}>
-                                            {exam.examName}
-                                        </h3>
-
-                                        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                                                <Lucide.Calendar size={14} />
-                                                Held: {exam.examHeld}
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--secondary)', fontSize: '0.8rem', fontWeight: 600 }}>
-                                                <Lucide.CheckCircle size={14} />
-                                                Published: {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </motion.div>
+                                    </div>
+                                </motion.div>
+                            ))}
                         </AnimatePresence>
+                    </div>
+
+                    {/* Official BEU Results Directory Table (result-one Mirror) */}
+                    <div id="all-results" className="glass" style={{ marginBottom: '4rem', padding: '2rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                    <h2 style={{ fontSize: '1.4rem', color: 'var(--text-main)', fontWeight: 800 }}>
+                                        Official Examination Results Directory
+                                    </h2>
+                                    <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.7rem', borderRadius: '1rem', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--primary)', fontWeight: 700, border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+                                        result-one Live Mirror
+                                    </span>
+                                </div>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.35rem' }}>
+                                    Every link below is mapped directly to both this portal and the official university server.
+                                </p>
+                            </div>
+                            <a
+                                href="https://beu-bih.ac.in/result-one"
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    fontSize: '0.85rem',
+                                    color: 'var(--primary)',
+                                    textDecoration: 'none',
+                                    fontWeight: 700
+                                }}
+                            >
+                                Open beu-bih.ac.in/result-one <Lucide.ExternalLink size={15} />
+                            </a>
+                        </div>
+
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left', color: 'var(--text-muted)' }}>
+                                        <th style={{ padding: '0.85rem 1rem' }}>Examinations Name</th>
+                                        <th style={{ padding: '0.85rem 1rem' }}>Course</th>
+                                        <th style={{ padding: '0.85rem 1rem' }}>Batch / Session</th>
+                                        <th style={{ padding: '0.85rem 1rem' }}>Exam Held</th>
+                                        <th style={{ padding: '0.85rem 1rem' }}>Published Date</th>
+                                        <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Action Links</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredExams.map((exam, i) => (
+                                        <tr
+                                            key={`dir-${exam.id}-${i}`}
+                                            style={{
+                                                borderBottom: '1px solid rgba(255,255,255,0.04)',
+                                                cursor: 'pointer'
+                                            }}
+                                            onClick={() => onSelectSemester(exam)}
+                                        >
+                                            <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                                                {exam.examName}
+                                            </td>
+                                            <td style={{ padding: '0.85rem 1rem', color: 'var(--primary)', fontWeight: 600 }}>
+                                                {exam.courseName} (Sem {exam.semId})
+                                            </td>
+                                            <td style={{ padding: '0.85rem 1rem', color: 'var(--text-muted)' }}>
+                                                {exam.session}
+                                            </td>
+                                            <td style={{ padding: '0.85rem 1rem', color: 'var(--text-muted)' }}>
+                                                {exam.examHeld}
+                                            </td>
+                                            <td style={{ padding: '0.85rem 1rem', color: 'var(--secondary)', fontWeight: 500 }}>
+                                                {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                            </td>
+                                            <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
+                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onSelectSemester(exam);
+                                                        }}
+                                                        className="premium-btn"
+                                                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                                                    >
+                                                        Portal
+                                                    </button>
+                                                    <a
+                                                        href={getOfficialUrl(exam)}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        style={{
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.3rem',
+                                                            padding: '0.35rem 0.75rem',
+                                                            borderRadius: '0.5rem',
+                                                            background: 'rgba(255,255,255,0.05)',
+                                                            color: 'var(--text-main)',
+                                                            textDecoration: 'none',
+                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                            fontSize: '0.75rem'
+                                                        }}
+                                                        title="Open directly on official BEU server"
+                                                    >
+                                                        Official <Lucide.ExternalLink size={12} />
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </>
             )}

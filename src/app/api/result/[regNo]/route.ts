@@ -24,14 +24,53 @@ export async function GET(
     let query: any = { regNo };
     if (semester) {
       const semesterNum = romanToNum(semester);
-      query.semester = semesterNum.toString();
+      const normalizedSemester = semesterNum.toString();
+      query.$or = [
+        { semester: normalizedSemester },
+        { semester: `${normalizedSemester}th Semester` },
+        { semester: `${normalizedSemester}st Semester` },
+        { semester: `${normalizedSemester}nd Semester` },
+        { semester: `${normalizedSemester}rd Semester` },
+        { semester: new RegExp(`(^|\\b)${normalizedSemester}(\\b|th|st|nd|rd)`, 'i') }
+      ];
     }
 
-    const result = await Result.findOne(query);
+    let result = await Result.findOne(query);
+    if (!result) {
+      result = await Result.findOne({ regNo });
+    }
+
     if (!result) {
       return NextResponse.json({ message: 'Result not found in database' }, { status: 404 });
     }
-    return NextResponse.json(result);
+
+    const doc = result.toObject ? result.toObject() : result;
+    if ((!doc.theorySubjects || doc.theorySubjects.length === 0) && doc.subjects && doc.subjects.length > 0) {
+      doc.theorySubjects = doc.subjects
+        .filter((s: any) => !s.code?.endsWith('P'))
+        .map((s: any) => ({
+          code: s.code,
+          name: s.name,
+          ese: s.ese || 'N/A',
+          ia: s.ia || 'N/A',
+          total: s.point !== undefined ? s.point.toString() : (s.total || 'N/A'),
+          grade: s.grade,
+          credit: s.credit
+        }));
+      doc.practicalSubjects = doc.subjects
+        .filter((s: any) => s.code?.endsWith('P'))
+        .map((s: any) => ({
+          code: s.code,
+          name: s.name,
+          ese: s.ese || 'N/A',
+          ia: s.ia || 'N/A',
+          total: s.point !== undefined ? s.point.toString() : (s.total || 'N/A'),
+          grade: s.grade,
+          credit: s.credit
+        }));
+    }
+
+    return NextResponse.json(doc);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

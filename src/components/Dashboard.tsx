@@ -21,7 +21,24 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState('');
+    const [showCaptcha, setShowCaptcha] = useState(false);
     const pdfRef = useRef<HTMLDivElement>(null);
+
+    const getOfficialExamUrl = () => {
+        if (!selectedExam) return 'https://beu-bih.ac.in/result-one';
+        try {
+            const paramObj = {
+                semester: selectedExam.semId,
+                session: (selectedExam.batchYear || '2024').toString().trim(),
+                exam_held: (selectedExam.examHeld || '').toString().trim(),
+                exam_id: (selectedExam.id || selectedExam.examId || '').toString().trim()
+            };
+            const d = typeof window !== 'undefined' ? btoa(JSON.stringify(paramObj)) : '';
+            return `https://beu-bih.ac.in/result-two/${encodeURIComponent(selectedExam.examName || selectedExam.name || 'Examination')}?d=${encodeURIComponent(d)}`;
+        } catch {
+            return 'https://beu-bih.ac.in/result-one';
+        }
+    };
 
     // Dynamic Batch Detection from Reg Number
     // BEU Reg Numbers usually start with batch year digits, e.g., "22..." meaning 2022 batch.
@@ -55,7 +72,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
             // Official BEU API Call
             // Note: In a production app, this might need a proxy for CORS, but we'll attempt direct fetch
 
-            const url = `/api/fetch-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}`;
+            const examId = currentExam?.id || '';
+            const url = `/api/fetch-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}&exam_id=${examId}`;
 
             const response = await fetch(url);
 
@@ -68,6 +86,12 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 }
 
                 const data = json.data;
+                const theory = (data.theorySubjects && data.theorySubjects.length > 0)
+                    ? data.theorySubjects
+                    : (data.subjects ? data.subjects.filter((s: any) => !s.code?.endsWith('P')) : []);
+                const practical = (data.practicalSubjects && data.practicalSubjects.length > 0)
+                    ? data.practicalSubjects
+                    : (data.subjects ? data.subjects.filter((s: any) => s.code?.endsWith('P')) : []);
 
                 // Map official data to our UI structure
                 setResult({
@@ -76,45 +100,109 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     fatherName: data.fatherName || data.father_name || 'N/A',
                     motherName: data.motherName || data.mother_name || 'N/A',
                     college: data.college || data.college_name,
-                    course: data.course,
+                    course: data.course || 'B.Tech',
                     semester: data.semester || `${currentExam?.semId}th Semester`,
                     sgpa: data.sgpa || 'N/A',
-                    allSgpa: data.allSgpa || [],
+                    allSgpa: data.allSgpa || (data.sgpa ? [data.sgpa] : []),
                     cgpa: data.cgpa || 'N/A',
                     status: data.status || data.fail_any || 'PASSED',
-                    theorySubjects: data.theorySubjects?.map((d: any) => ({
+                    theorySubjects: theory?.map((d: any) => ({
                         code: d.code,
                         name: d.name,
-                        ese: d.ese,
-                        ia: d.ia,
-                        total: d.total,
+                        ese: d.ese || 'N/A',
+                        ia: d.ia || 'N/A',
+                        total: d.total || (d.point !== undefined ? d.point.toString() : 'N/A'),
                         grade: d.grade,
                         credit: d.credit
                     })) || [],
-                    practicalSubjects: data.practicalSubjects?.map((d: any) => ({
+                    practicalSubjects: practical?.map((d: any) => ({
                         code: d.code,
                         name: d.name,
-                        ese: d.ese,
-                        ia: d.ia,
-                        total: d.total,
+                        ese: d.ese || 'N/A',
+                        ia: d.ia || 'N/A',
+                        total: d.total || (d.point !== undefined ? d.point.toString() : 'N/A'),
                         grade: d.grade,
                         credit: d.credit
                     })) || []
                 });
 
-                toast.success('Official Result Found!', { id: searchToast });
+                setShowCaptcha(false);
+                toast.success('Result Found!', { id: searchToast });
+                return;
             } else {
                 const errJson = await response.json().catch(() => ({}));
+                if (errJson.error === 'CAPTCHA_REQUIRED') {
+                    // Try DB fallback before giving up
+                    try {
+                        const dbRes = await fetch(`/api/result/${targetRegNo}?semester=${semester}`);
+                        if (dbRes.ok) {
+                            const dbData = await dbRes.json();
+                            const dbTheory = (dbData.theorySubjects && dbData.theorySubjects.length > 0)
+                                ? dbData.theorySubjects
+                                : (dbData.subjects ? dbData.subjects.filter((s: any) => !s.code?.endsWith('P')) : []);
+                            const dbPractical = (dbData.practicalSubjects && dbData.practicalSubjects.length > 0)
+                                ? dbData.practicalSubjects
+                                : (dbData.subjects ? dbData.subjects.filter((s: any) => s.code?.endsWith('P')) : []);
+
+                            setResult({
+                                name: dbData.name,
+                                rollNo: dbData.regNo,
+                                fatherName: dbData.fatherName || 'N/A',
+                                motherName: dbData.motherName || 'N/A',
+                                college: dbData.college,
+                                course: dbData.course || 'Computer Science and Engineering',
+                                semester: dbData.semester || `${(overrideExam || selectedExam)?.semId || 6}th Semester`,
+                                sgpa: dbData.sgpa?.toString() || 'N/A',
+                                allSgpa: dbData.allSgpa || (dbData.sgpa ? [dbData.sgpa.toString()] : []),
+                                cgpa: dbData.cgpa?.toString() || 'N/A',
+                                status: dbData.status || 'PASSED',
+                                theorySubjects: dbTheory.map((s: any) => ({
+                                    code: s.code,
+                                    name: s.name,
+                                    ese: s.ese || 'N/A',
+                                    ia: s.ia || 'N/A',
+                                    total: s.total || (s.point !== undefined ? s.point.toString() : 'N/A'),
+                                    grade: s.grade,
+                                    credit: s.credit
+                                })),
+                                practicalSubjects: dbPractical.map((s: any) => ({
+                                    code: s.code,
+                                    name: s.name,
+                                    ese: s.ese || 'N/A',
+                                    ia: s.ia || 'N/A',
+                                    total: s.total || (s.point !== undefined ? s.point.toString() : 'N/A'),
+                                    grade: s.grade,
+                                    credit: s.credit
+                                }))
+                            });
+                            setShowCaptcha(false);
+                            toast.success('Result loaded from database backup!', { id: searchToast });
+                            return;
+                        }
+                    } catch (dbErr) {
+                        console.error('Local database lookup failed:', dbErr);
+                    }
+
+                    setShowCaptcha(true);
+                    throw new Error('BEU university server requires Cloudflare verification for live un-cached results.');
+                }
                 throw new Error(errJson.error || 'Official server is currently unresponsive.');
             }
         } catch (err: any) {
             console.error(err);
 
-            // Fallback: Try loading from local database API route first
+            // Additional attempt to load from database backup
             try {
                 const dbRes = await fetch(`/api/result/${targetRegNo}?semester=${semester}`);
                 if (dbRes.ok) {
                     const dbData = await dbRes.json();
+                    const dbTheory = (dbData.theorySubjects && dbData.theorySubjects.length > 0)
+                        ? dbData.theorySubjects
+                        : (dbData.subjects ? dbData.subjects.filter((s: any) => !s.code?.endsWith('P')) : []);
+                    const dbPractical = (dbData.practicalSubjects && dbData.practicalSubjects.length > 0)
+                        ? dbData.practicalSubjects
+                        : (dbData.subjects ? dbData.subjects.filter((s: any) => s.code?.endsWith('P')) : []);
+
                     setResult({
                         name: dbData.name,
                         rollNo: dbData.regNo,
@@ -124,28 +212,29 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         course: dbData.course || 'Computer Science and Engineering',
                         semester: dbData.semester || `${(overrideExam || selectedExam)?.semId || 6}th Semester`,
                         sgpa: dbData.sgpa?.toString() || 'N/A',
-                        allSgpa: dbData.sgpa ? [dbData.sgpa.toString()] : [],
+                        allSgpa: dbData.allSgpa || (dbData.sgpa ? [dbData.sgpa.toString()] : []),
                         cgpa: dbData.cgpa?.toString() || 'N/A',
                         status: dbData.status || 'PASSED',
-                        theorySubjects: dbData.subjects?.filter((s: any) => !s.code.endsWith('P'))?.map((s: any) => ({
+                        theorySubjects: dbTheory.map((s: any) => ({
                             code: s.code,
                             name: s.name,
                             ese: s.ese || 'N/A',
                             ia: s.ia || 'N/A',
-                            total: s.point !== undefined ? s.point.toString() : 'N/A',
+                            total: s.total || (s.point !== undefined ? s.point.toString() : 'N/A'),
                             grade: s.grade,
                             credit: s.credit
-                        })) || [],
-                        practicalSubjects: dbData.subjects?.filter((s: any) => s.code.endsWith('P'))?.map((s: any) => ({
+                        })),
+                        practicalSubjects: dbPractical.map((s: any) => ({
                             code: s.code,
                             name: s.name,
                             ese: s.ese || 'N/A',
                             ia: s.ia || 'N/A',
-                            total: s.point !== undefined ? s.point.toString() : 'N/A',
+                            total: s.total || (s.point !== undefined ? s.point.toString() : 'N/A'),
                             grade: s.grade,
                             credit: s.credit
-                        })) || []
+                        }))
                     });
+                    setShowCaptcha(false);
                     toast.success('Result loaded from database backup!', { id: searchToast });
                     return;
                 }
@@ -296,6 +385,51 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         <Lucide.ChevronRight size={18} />
                     </button>
                 </div>
+                {showCaptcha && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        className="glass"
+                        style={{ 
+                            padding: '1.5rem', 
+                            marginTop: '1.5rem', 
+                            borderRadius: '1rem',
+                            border: '1px solid rgba(234, 179, 8, 0.3)',
+                            background: 'rgba(234, 179, 8, 0.05)',
+                            textAlign: 'center',
+                            maxWidth: '650px',
+                            margin: '1.5rem auto 0'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#eab308', marginBottom: '0.5rem' }}>
+                            <Lucide.ShieldAlert size={22} />
+                            <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>University Verification Required</h4>
+                        </div>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>
+                            BEU University has enabled Cloudflare Turnstile verification for live un-cached records.
+                            This result is not yet cached in our database. You can directly view it on the official BEU portal:
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                            <a
+                                href={getOfficialExamUrl()}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="premium-btn"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.6rem 1.2rem',
+                                    fontSize: '0.85rem',
+                                    textDecoration: 'none'
+                                }}
+                            >
+                                <Lucide.ExternalLink size={16} />
+                                Open Official BEU Result Page
+                            </a>
+                        </div>
+                    </motion.div>
+                )}
                 {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: 'var(--accent)', textAlign: 'center', marginTop: '1rem', fontSize: '0.8rem' }}>{error}</motion.div>}
             </div>
 
