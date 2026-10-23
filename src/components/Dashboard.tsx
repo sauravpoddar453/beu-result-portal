@@ -21,24 +21,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState('');
-    const [showCaptcha, setShowCaptcha] = useState(false);
+    const [showNotFound, setShowNotFound] = useState(false);
     const pdfRef = useRef<HTMLDivElement>(null);
-
-    const getOfficialExamUrl = () => {
-        if (!selectedExam) return 'https://beu-bih.ac.in/result-one';
-        try {
-            const paramObj = {
-                semester: selectedExam.semId,
-                session: (selectedExam.batchYear || '2024').toString().trim(),
-                exam_held: (selectedExam.examHeld || '').toString().trim(),
-                exam_id: (selectedExam.id || selectedExam.examId || '').toString().trim()
-            };
-            const d = typeof window !== 'undefined' ? btoa(JSON.stringify(paramObj)) : '';
-            return `https://beu-bih.ac.in/result-two/${encodeURIComponent(selectedExam.examName || selectedExam.name || 'Examination')}?d=${encodeURIComponent(d)}`;
-        } catch {
-            return 'https://beu-bih.ac.in/result-one';
-        }
-    };
 
     // Dynamic Batch Detection from Reg Number
     // BEU Reg Numbers usually start with batch year digits, e.g., "22..." meaning 2022 batch.
@@ -58,6 +42,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         if (typeof overrideRegNo === 'string') setRegNumber(targetRegNo);
 
         setError('');
+        setShowNotFound(false);
         setLoading(true);
         setResult(null);
         
@@ -127,7 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     })) || []
                 });
 
-                setShowCaptcha(false);
+                setShowNotFound(false);
                 toast.success('Result Found!', { id: searchToast });
                 return;
             } else {
@@ -176,7 +161,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     credit: s.credit
                                 }))
                             });
-                            setShowCaptcha(false);
+                            setShowNotFound(false);
                             toast.success('Result loaded from database backup!', { id: searchToast });
                             return;
                         }
@@ -184,7 +169,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         console.error('Local database lookup failed:', dbErr);
                     }
 
-                    setShowCaptcha(true);
+                    setShowNotFound(true);
                     throw new Error('BEU university server requires Cloudflare verification for live un-cached results.');
                 }
                 throw new Error(errJson.error || 'Official server is currently unresponsive.');
@@ -235,7 +220,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             credit: s.credit
                         }))
                     });
-                    setShowCaptcha(false);
+                    setShowNotFound(false);
                     toast.success('Result loaded from database backup!', { id: searchToast });
                     return;
                 }
@@ -289,8 +274,10 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         practicalSubjects: []
                     });
                 }
+                setShowNotFound(false);
                 toast.success('Result Fetched Successfully!', { id: searchToast });
             } else {
+                setShowNotFound(true);
                 setError(err.message || 'Result not found or server error.');
                 toast.error('Result Not Found', { id: searchToast });
             }
@@ -386,7 +373,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         <Lucide.ChevronRight size={18} />
                     </button>
                 </div>
-                {showCaptcha && (
+                {showNotFound && (
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }} 
                         animate={{ opacity: 1, y: 0 }} 
@@ -395,46 +382,24 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             padding: '1.5rem', 
                             marginTop: '1.5rem', 
                             borderRadius: '1rem',
-                            border: '1px solid rgba(234, 179, 8, 0.3)',
-                            background: 'rgba(234, 179, 8, 0.05)',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            background: 'rgba(239, 68, 68, 0.05)',
                             textAlign: 'center',
                             maxWidth: '650px',
                             margin: '1.5rem auto 0'
                         }}
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#eab308', marginBottom: '0.5rem' }}>
-                            <Lucide.ShieldAlert size={22} />
-                            <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>University Verification Required</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#ef4444', marginBottom: '0.5rem' }}>
+                            <Lucide.AlertCircle size={22} />
+                            <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Record Not Found</h4>
                         </div>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-                            BEU University has enabled Cloudflare Turnstile verification for live un-cached records.
-                            This result is not yet cached in our database. You can directly view it on the official BEU portal:
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '0', lineHeight: 1.5 }}>
+                            The marksheet for Registration Number <b>{regNumber}</b> ({selectedExam?.examName || 'this exam'}) is not found in database records. Please double check the Registration Number or verify if the result was published.
                         </p>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                            <a
-                                href={getOfficialExamUrl()}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="premium-btn"
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.6rem 1.2rem',
-                                    fontSize: '0.85rem',
-                                    textDecoration: 'none'
-                                }}
-                            >
-                                <Lucide.ExternalLink size={16} />
-                                Open Official BEU Result Page
-                            </a>
-                        </div>
                     </motion.div>
                 )}
                 {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: 'var(--accent)', textAlign: 'center', marginTop: '1rem', fontSize: '0.8rem' }}>{error}</motion.div>}
             </div>
-
-
 
             <AnimatePresence>
                 {loading && (
@@ -446,121 +411,183 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         >
                             <Lucide.Scan size={48} color="var(--primary)" />
                         </motion.div>
-                        <h3 style={{ color: 'var(--text-main)', fontSize: '1.2rem', fontWeight: 600 }}>Scanning University Records...</h3>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>Fetching secure data from BEU API</p>
+                        <h3 style={{ color: 'var(--text-main)', fontSize: '1.2rem', fontWeight: 600 }}>Searching University Records...</h3>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem' }}>Retrieving student marksheet</p>
                     </motion.div>
                 )}
 
                 {result && !loading && (
-                    <motion.div ref={pdfRef} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, type: "spring" }} className="student-card" style={{ background: '#fff', color: '#000', borderRadius: '0', border: '1px solid #ccc', padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+                    <motion.div ref={pdfRef} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="student-card marksheet-container" style={{ background: '#fff', color: '#000', borderRadius: '4px', border: '1px solid #000', padding: '1.5rem', fontFamily: 'Arial, "Segoe UI", sans-serif', maxWidth: '850px', margin: '0 auto', position: 'relative', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
                         <style>{`
-                            .official-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; font-size: 0.85rem; color: #000; }
-                            .official-table th, .official-table td { border: 1px solid #000; padding: 0.4rem 0.5rem; text-align: left; }
-                            .official-table th { text-align: center; font-weight: bold; background: transparent; color: #000; }
+                            @media print {
+                                @page {
+                                    size: A4 portrait;
+                                    margin: 8mm;
+                                }
+                                body {
+                                    background: #fff !important;
+                                    color: #000 !important;
+                                    margin: 0 !important;
+                                    padding: 0 !important;
+                                }
+                                .no-print {
+                                    display: none !important;
+                                }
+                                .marksheet-container {
+                                    border: 1px solid #000 !important;
+                                    box-shadow: none !important;
+                                    padding: 10mm !important;
+                                    width: 100% !important;
+                                    max-width: 100% !important;
+                                    margin: 0 !important;
+                                }
+                                .official-table th, .official-table td {
+                                    border: 1px solid #000 !important;
+                                }
+                                .bg-secondary-beu {
+                                    background-color: #6c757d !important;
+                                    -webkit-print-color-adjust: exact !important;
+                                    print-color-adjust: exact !important;
+                                    color: #fff !important;
+                                }
+                                .text-danger-beu {
+                                    color: #dc3545 !important;
+                                    -webkit-print-color-adjust: exact !important;
+                                    print-color-adjust: exact !important;
+                                }
+                                .watermark-wrapper {
+                                    opacity: 0.08 !important;
+                                    -webkit-print-color-adjust: exact !important;
+                                    print-color-adjust: exact !important;
+                                }
+                            }
+
+                            .official-table { width: 100%; border-collapse: collapse; margin-bottom: 0.85rem; font-size: 0.82rem; color: #000; }
+                            .official-table th, .official-table td { border: 1px solid #000; padding: 0.32rem 0.45rem; text-align: left; }
+                            .official-table th { text-align: center; font-weight: bold; background: #f8f9fa; color: #000; }
                             .official-table .center { text-align: center; }
-                            .section-title { font-weight: bold; color: #999; text-transform: uppercase; margin-bottom: 0.5rem; font-size: 0.9rem; letter-spacing: 1px; }
-                            .header-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; position: relative; }
-                            .header-text { text-align: center; flex-grow: 1; }
-                            .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; pointer-events: none; width: 60%; z-index: 0; }
+                            .bg-secondary-beu { background-color: #6c757d; color: #fff; font-weight: 700; padding: 0.35rem 0.5rem; margin: 0.75rem 0 0 0; font-size: 0.82rem; letter-spacing: 0.5px; }
+                            .text-danger-beu { color: #dc3545; font-weight: 700; }
+                            .watermark-overlay { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 55px; color: rgba(200, 0, 0, 0.08); z-index: 0; pointer-events: none; user-select: none; font-weight: 900; letter-spacing: 4px; }
+                            .watermark-wrapper { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); z-index: 0; text-align: center; opacity: 0.08; pointer-events: none; user-select: none; width: 80%; }
+                            .watermark-logo { border-radius: 50%; width: 130px; margin: 0 auto 0.5rem auto; display: block; }
+                            .watermark-text { color: #dc3545; font-weight: 900; font-size: 1.3rem; white-space: nowrap; text-transform: uppercase; margin: 0; }
                         `}</style>
 
-                        {/* Watermark Logo */}
-                        <img src="/beu-logo.jpg" alt="" className="watermark" />
+                        {/* Top Watermark Overlay */}
+                        <div className="watermark-overlay no-print">WEB COPY</div>
 
-                        <div className="header-container" style={{ position: 'relative', zIndex: 1, flexDirection: 'column', textAlign: 'center', justifyContent: 'center' }}>
-                            <img src="/beu-logo.jpg" alt="BEU Logo" style={{ width: '90px', height: '90px', objectFit: 'contain', marginBottom: '0.5rem' }} />
-                            <div className="header-text" style={{ width: '100%' }}>
-                                <h1 style={{ fontSize: '1.6rem', fontWeight: 'bold', margin: '0', color: '#000' }}>BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
-                                <h2 style={{ fontSize: '1.1rem', color: '#C00000', margin: '0.4rem 0 0 0', fontWeight: 'bold' }}>B.Tech. {result?.semester ? parseInt(result.semester) : (selectedExam ? selectedExam.semId : '7')}th Semester Examination</h2>
-                            </div>
+                        {/* Background Watermark */}
+                        <div className="watermark-wrapper">
+                            <img src="/beu-logo.jpg" alt="" className="watermark-logo" />
+                            <h1 className="watermark-text">BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
                         </div>
 
+                        {/* Official Header */}
+                        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '2px solid #000', paddingBottom: '0.75rem' }}>
+                            <img src="/beu-logo.jpg" alt="BEU Logo" style={{ width: '95px', height: '95px', objectFit: 'contain', flexShrink: 0 }} />
+                            <div style={{ textAlign: 'center', width: '100%', padding: '0 0.5rem' }}>
+                                <h1 style={{ fontSize: '1.45rem', fontWeight: 800, margin: '0', color: '#000', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                                    Bihar Engineering University, Patna
+                                </h1>
+                                <h2 className="text-danger-beu" style={{ fontSize: '1.05rem', margin: '0.3rem 0 0 0', fontWeight: 700 }}>
+                                    {selectedExam?.examName || `${result.course || 'B.Tech.'} ${result.semester || '6th Semester'} Examination`}
+                                </h2>
+                            </div>
+                            <div style={{ width: '95px', flexShrink: 0 }} /> {/* Spacer for balance */}
+                        </div>
+
+                        {/* Details Table */}
                         <div style={{ position: 'relative', zIndex: 1 }}>
                             <table className="official-table">
                                 <tbody>
                                     <tr>
-                                        <td colSpan={2}><b>Semester:</b> {toRoman(result?.semester ? parseInt(result.semester) : (selectedExam?.semId || 7))}</td>
-                                        <td colSpan={2}><b>Examination (Month/Year):</b> {selectedExam?.examHeld || 'February/2026'}</td>
+                                        <td style={{ width: '25%' }}><strong>Semester:</strong></td>
+                                        <td style={{ width: '25%' }}>{toRoman(result?.semester ? parseInt(result.semester) : (selectedExam?.semId || 6))}</td>
+                                        <td style={{ width: '25%' }}><strong>Examination (Month/Year):</strong></td>
+                                        <td style={{ width: '25%' }}>{result.examHeld || selectedExam?.examHeld || 'November/2025'}</td>
                                     </tr>
                                     <tr>
-                                        <td style={{ width: '20%' }}><b>Registration No:</b></td>
-                                        <td colSpan={3}><b>{result.rollNo}</b></td>
+                                        <td><strong>Registration No:</strong></td>
+                                        <td colSpan={3} style={{ fontWeight: 700 }}>{result.rollNo}</td>
                                     </tr>
                                     <tr>
-                                        <td><b>Student Name:</b></td>
-                                        <td colSpan={3}><b>{result.name}</b></td>
+                                        <td><strong>Student Name:</strong></td>
+                                        <td colSpan={3} style={{ fontWeight: 700 }}>{result.name}</td>
                                     </tr>
                                     <tr>
-                                        <td><b>Father's Name:</b></td>
-                                        <td style={{ width: '30%' }}>{result.fatherName || 'N/A'}</td>
-                                        <td style={{ width: '20%' }}><b>Mother's Name:</b></td>
-                                        <td style={{ width: '30%' }}>{result.motherName || 'N/A'}</td>
+                                        <td><strong>Father's Name:</strong></td>
+                                        <td>{result.fatherName || 'N/A'}</td>
+                                        <td><strong>Mother's Name:</strong></td>
+                                        <td>{result.motherName || 'N/A'}</td>
                                     </tr>
                                     <tr>
-                                        <td><b>College Name:</b></td>
+                                        <td><strong>College Name:</strong></td>
                                         <td colSpan={3}>{result.college}</td>
                                     </tr>
                                     <tr>
-                                        <td><b>Course Name:</b></td>
+                                        <td><strong>Course Name:</strong></td>
                                         <td colSpan={3}>{result.course}</td>
                                     </tr>
                                 </tbody>
                             </table>
 
-                            <div className="section-title">THEORY</div>
+                            {/* Theory Subjects */}
+                            <div className="bg-secondary-beu">THEORY</div>
                             <table className="official-table">
                                 <thead>
                                     <tr>
-                                        <th>Subject Code</th>
-                                        <th>Subject Name</th>
-                                        <th>ESE</th>
-                                        <th>IA</th>
-                                        <th>Total</th>
-                                        <th>Grade</th>
-                                        <th>Credit</th>
+                                        <th style={{ width: '15%' }}>Subject Code</th>
+                                        <th style={{ width: '45%' }}>Subject Name</th>
+                                        <th style={{ width: '8%' }}>ESE</th>
+                                        <th style={{ width: '8%' }}>IA</th>
+                                        <th style={{ width: '8%' }}>Total</th>
+                                        <th style={{ width: '8%' }}>Grade</th>
+                                        <th style={{ width: '8%' }}>Credit</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {result.theorySubjects && result.theorySubjects.length > 0 ? result.theorySubjects.map((sub: any, idx: number) => (
-                                        <tr key={idx}>
+                                        <tr key={`th-${idx}`}>
                                             <td className="center">{sub.code}</td>
                                             <td>{sub.name}</td>
                                             <td className="center">{sub.ese}</td>
                                             <td className="center">{sub.ia}</td>
                                             <td className="center">{sub.total}</td>
-                                            <td className="center">{sub.grade}</td>
+                                            <td className="center" style={{ fontWeight: 700 }}>{sub.grade}</td>
                                             <td className="center">{sub.credit}</td>
                                         </tr>
                                     )) : (
-                                        <tr><td colSpan={7} className="center">No theory marks found</td></tr>
+                                        <tr><td colSpan={7} className="center">No theory subjects recorded</td></tr>
                                     )}
                                 </tbody>
                             </table>
 
+                            {/* Practical Subjects */}
                             {result.practicalSubjects && result.practicalSubjects.length > 0 && (
                                 <>
-                                    <div className="section-title">PRACTICAL</div>
+                                    <div className="bg-secondary-beu">PRACTICAL</div>
                                     <table className="official-table">
                                         <thead>
                                             <tr>
-                                                <th>Subject Code</th>
-                                                <th>Subject Name</th>
-                                                <th>ESE</th>
-                                                <th>IA</th>
-                                                <th>Total</th>
-                                                <th>Grade</th>
-                                                <th>Credit</th>
+                                                <th style={{ width: '15%' }}>Subject Code</th>
+                                                <th style={{ width: '45%' }}>Subject Name</th>
+                                                <th style={{ width: '8%' }}>ESE</th>
+                                                <th style={{ width: '8%' }}>IA</th>
+                                                <th style={{ width: '8%' }}>Total</th>
+                                                <th style={{ width: '8%' }}>Grade</th>
+                                                <th style={{ width: '8%' }}>Credit</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {result.practicalSubjects.map((sub: any, idx: number) => (
-                                                <tr key={idx}>
+                                                <tr key={`pr-${idx}`}>
                                                     <td className="center">{sub.code}</td>
                                                     <td>{sub.name}</td>
                                                     <td className="center">{sub.ese}</td>
                                                     <td className="center">{sub.ia}</td>
                                                     <td className="center">{sub.total}</td>
-                                                    <td className="center">{sub.grade}</td>
+                                                    <td className="center" style={{ fontWeight: 700 }}>{sub.grade}</td>
                                                     <td className="center">{sub.credit}</td>
                                                 </tr>
                                             ))}
@@ -569,11 +596,12 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 </>
                             )}
 
-                            <div className="section-title">SGPA / CGPA</div>
-                            <table className="official-table">
+                            {/* SGPA / CGPA */}
+                            <div className="bg-secondary-beu">SGPA / CGPA</div>
+                            <table className="official-table" style={{ textAlign: 'center' }}>
                                 <thead>
                                     <tr>
-                                        <th>Semester</th>
+                                        <th style={{ textAlign: 'center', width: '12%' }}>Semester</th>
                                         <th>I</th>
                                         <th>II</th>
                                         <th>III</th>
@@ -582,28 +610,34 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                         <th>VI</th>
                                         <th>VII</th>
                                         <th>VIII</th>
-                                        <th>Cur. CGPA</th>
+                                        <th style={{ width: '14%' }}>Cur. CGPA</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td className="center" style={{ fontWeight: 'bold' }}>SGPA</td>
+                                        <td style={{ fontWeight: 700, textAlign: 'center' }}>SGPA</td>
                                         {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
-                                            <td key={i} className="center">{result.allSgpa && result.allSgpa[i] ? result.allSgpa[i] : '-'}</td>
+                                            <td key={`sgpa-${i}`} className="center">
+                                                {result.allSgpa && result.allSgpa[i] ? result.allSgpa[i] : '-'}
+                                            </td>
                                         ))}
-                                        <td className="center">{result.cgpa}</td>
+                                        <td className="center" style={{ fontWeight: 700 }}>{result.cgpa}</td>
                                     </tr>
                                 </tbody>
                             </table>
 
-                            <div style={{ border: '1px solid #000', padding: '0.5rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center' }}>
-                                <b style={{ marginRight: '0.5rem' }}>Remarks:</b> 
-                                <span style={{ color: result.status?.includes('FAIL') ? '#C00000' : 'green', fontWeight: 'bold' }}>{result.status}</span>
+                            {/* Remarks */}
+                            <div style={{ border: '1px solid #000', padding: '0.45rem 0.6rem', margin: '0.75rem 0', fontSize: '0.85rem' }}>
+                                <strong style={{ color: '#000' }}>Remarks: &nbsp;&nbsp;</strong>
+                                <span className="text-danger-beu">
+                                    {result.status || 'PASS'}
+                                </span>
                             </div>
 
-                            <div>
-                                <b style={{ fontSize: '0.9rem' }}>Note:</b>
-                                <ul style={{ listStyleType: 'disc', paddingLeft: '1.5rem', fontSize: '0.75rem', lineHeight: '1.4', margin: '0.3rem 0 0 0', color: '#333' }}>
+                            {/* Notes */}
+                            <div style={{ marginTop: '0.5rem' }}>
+                                <strong style={{ fontSize: '0.82rem', color: '#000' }}>Note:</strong>
+                                <ul style={{ listStyleType: 'disc', paddingLeft: '1.25rem', fontSize: '0.72rem', lineHeight: '1.4', margin: '0.2rem 0 0 0', color: '#222' }}>
                                     <li><b>ESE:</b> End Semester Exam</li>
                                     <li><b>IA:</b> Internal Assessment</li>
                                     <li><b>SGPA:</b> Semester Grade Point Average</li>
@@ -611,17 +645,32 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     <li><b>AB:</b> Absent</li>
                                     <li><b>NA:</b> Not Applicable</li>
                                     <li><b>N/A:</b> Not Available</li>
+                                    <li><b>NE:</b> Not Eligible for Assessment/Exam</li>
                                     <li><b>*:</b> Passed Under Regulation(UR)</li>
                                     <li><b>CA:</b> Cancellation of Assessment</li>
                                     <li><b>UMC:</b> Unfair Mean Case</li>
-                                    <li><b>WEB COPY:</b> Not valid for official purpose</li>
+                                    <li><b>WEB COPY:</b> Not valid for official purpose.</li>
                                     <li>University does not own for errors or omissions, if any, in the statement.</li>
                                 </ul>
                             </div>
 
-                            <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginTop: '3rem' }}>
-                                <button className="premium-btn" onClick={handlePrint}>
-                                    <Lucide.Download size={18} /> Download Official Format
+                            {/* Print / Download Button */}
+                            <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+                                <button
+                                    className="premium-btn"
+                                    onClick={handlePrint}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.6rem',
+                                        padding: '0.75rem 1.8rem',
+                                        fontSize: '0.95rem',
+                                        borderRadius: '2rem',
+                                        boxShadow: '0 6px 20px var(--primary-glow)'
+                                    }}
+                                >
+                                    <Lucide.Printer size={18} />
+                                    Download Marksheet (PDF)
                                 </button>
                             </div>
                         </div>

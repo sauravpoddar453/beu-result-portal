@@ -107,20 +107,6 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
 
     const allExams: Exam[] = courses.flatMap(c => (c.exams || []).map(e => ({ ...e, courseName: c.courseName })));
 
-    const getOfficialUrl = (exam: Exam) => {
-        try {
-            const paramObj = {
-                semester: exam.semId,
-                session: (exam.batchYear || '2024').toString().trim(),
-                exam_held: (exam.examHeld || '').toString().trim(),
-                exam_id: (exam.id || exam.examId || '').toString().trim()
-            };
-            const d = typeof window !== 'undefined' ? btoa(JSON.stringify(paramObj)) : '';
-            return `https://beu-bih.ac.in/result-two/${encodeURIComponent(exam.examName)}?d=${encodeURIComponent(d)}`;
-        } catch {
-            return 'https://beu-bih.ac.in/result-one';
-        }
-    };
 
     const filteredExams = allExams.filter(exam => {
         const matchesCourse = activeFilter === 'all' || exam.courseid.toString() === activeFilter;
@@ -265,7 +251,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 Available Examinations ({filteredExams.length})
                             </h2>
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                                Click any exam to check result on portal or open the direct official university link.
+                                Click any exam to check and download your official format marksheet directly.
                             </p>
                         </div>
                         <a
@@ -354,40 +340,17 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                             </span>
                                         </div>
 
-                                        <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.25rem' }}>
+                                        <div style={{ marginTop: '0.6rem' }}>
                                             <button
                                                 className="premium-btn"
-                                                style={{ flex: 1, padding: '0.55rem 0.8rem', fontSize: '0.8rem' }}
+                                                style={{ width: '100%', padding: '0.65rem 1rem', fontSize: '0.85rem', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     onSelectSemester(exam);
                                                 }}
                                             >
-                                                Check Result
+                                                <Lucide.GraduationCap size={16} /> Check Result
                                             </button>
-                                            <a
-                                                href={getOfficialUrl(exam)}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                onClick={(e) => e.stopPropagation()}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    padding: '0.55rem 0.85rem',
-                                                    fontSize: '0.78rem',
-                                                    fontWeight: 600,
-                                                    textDecoration: 'none',
-                                                    color: 'var(--text-main)',
-                                                    background: 'rgba(255,255,255,0.06)',
-                                                    border: '1px solid rgba(255,255,255,0.12)',
-                                                    borderRadius: '0.75rem',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                title="Open official BEU university page in new tab"
-                                            >
-                                                <Lucide.ExternalLink size={14} style={{ marginRight: '0.3rem' }} /> Official
-                                            </a>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -395,38 +358,22 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         </AnimatePresence>
                     </div>
 
-                    {/* Official BEU Results Directory Table (result-one Mirror) */}
+                    {/* Examination Results Directory Table */}
                     <div id="all-results" className="glass" style={{ marginBottom: '4rem', padding: '2rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.08)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                                     <h2 style={{ fontSize: '1.4rem', color: 'var(--text-main)', fontWeight: 800 }}>
-                                        Official Examination Results Directory
+                                        Examination Results Directory
                                     </h2>
                                     <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.7rem', borderRadius: '1rem', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--primary)', fontWeight: 700, border: '1px solid rgba(99, 102, 241, 0.3)' }}>
-                                        result-one Live Mirror
+                                        All Published Exams
                                     </span>
                                 </div>
                                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.35rem' }}>
-                                    Every link below is mapped directly to both this portal and the official university server.
+                                    Select any examination below to search and view complete student marksheet.
                                 </p>
                             </div>
-                            <a
-                                href="https://beu-bih.ac.in/result-one"
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '0.4rem',
-                                    fontSize: '0.85rem',
-                                    color: 'var(--primary)',
-                                    textDecoration: 'none',
-                                    fontWeight: 700
-                                }}
-                            >
-                                Open beu-bih.ac.in/result-one <Lucide.ExternalLink size={15} />
-                            </a>
                         </div>
 
                         <div style={{ overflowX: 'auto' }}>
@@ -438,7 +385,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                         <th style={{ padding: '0.85rem 1rem' }}>Batch / Session</th>
                                         <th style={{ padding: '0.85rem 1rem' }}>Exam Held</th>
                                         <th style={{ padding: '0.85rem 1rem' }}>Published Date</th>
-                                        <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Action Links</th>
+                                        <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -467,39 +414,16 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                                 {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                             </td>
                                             <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
-                                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            onSelectSemester(exam);
-                                                        }}
-                                                        className="premium-btn"
-                                                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
-                                                    >
-                                                        Portal
-                                                    </button>
-                                                    <a
-                                                        href={getOfficialUrl(exam)}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        style={{
-                                                            display: 'inline-flex',
-                                                            alignItems: 'center',
-                                                            gap: '0.3rem',
-                                                            padding: '0.35rem 0.75rem',
-                                                            borderRadius: '0.5rem',
-                                                            background: 'rgba(255,255,255,0.05)',
-                                                            color: 'var(--text-main)',
-                                                            textDecoration: 'none',
-                                                            border: '1px solid rgba(255,255,255,0.1)',
-                                                            fontSize: '0.75rem'
-                                                        }}
-                                                        title="Open directly on official BEU server"
-                                                    >
-                                                        Official <Lucide.ExternalLink size={12} />
-                                                    </a>
-                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onSelectSemester(exam);
+                                                    }}
+                                                    className="premium-btn"
+                                                    style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                                                >
+                                                    <Lucide.Search size={13} /> View Result
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
