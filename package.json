@@ -2,11 +2,13 @@
   "name": "beu-result",
   "private": true,
   "version": "0.1.0",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "scrape": "node scrape-results.js"
   },
   "dependencies": {
     "axios": "^1.16.0",
