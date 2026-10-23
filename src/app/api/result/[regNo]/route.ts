@@ -36,7 +36,7 @@ export async function GET(
     }
 
     let result = await Result.findOne(query);
-    if (!result) {
+    if (!result && !semester) {
       result = await Result.findOne({ regNo });
     }
 

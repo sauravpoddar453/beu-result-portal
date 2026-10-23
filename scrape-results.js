@@ -33,7 +33,7 @@ const Result = mongoose.models.Result || mongoose.model('Result', resultSchema);
 /**
  * Fetch official exam metadata directly from BEU
  */
-async function fetchExamDetails(targetSem, targetCourseName = 'B.Tech') {
+async function fetchExamDetails(targetSem, targetCourseName = 'B.Tech', targetExamName = null, isSuppl = false) {
   return new Promise((resolve, reject) => {
     https.get('https://beu-bih.ac.in/backend/v1/result/sem-get', { rejectUnauthorized: false }, res => {
       let data = '';
@@ -43,11 +43,23 @@ async function fetchExamDetails(targetSem, targetCourseName = 'B.Tech') {
           const json = JSON.parse(data);
           const course = json.find(c => c.courseName.toLowerCase().includes(targetCourseName.toLowerCase())) || json[0];
           
-          // Match regular exam first (exclude supplementary/special if regular exists)
+          if (targetExamName) {
+            const exactMatch = course.exams.find(e => 
+              e.examName.toLowerCase().includes(targetExamName.toLowerCase())
+            );
+            if (exactMatch) return resolve(exactMatch);
+          }
+
           const semNum = parseInt(targetSem);
           const matchingExams = course.exams.filter(e => e.semId === semNum);
           
-          let selected = matchingExams.find(e => !e.examName.toLowerCase().includes('suppl') && !e.examName.toLowerCase().includes('(s)'));
+          let selected;
+          if (isSuppl) {
+            selected = matchingExams.find(e => e.examName.toLowerCase().includes('suppl') || e.examName.toLowerCase().includes('(s)'));
+          } else {
+            selected = matchingExams.find(e => !e.examName.toLowerCase().includes('suppl') && !e.examName.toLowerCase().includes('(s)'));
+          }
+
           if (!selected && matchingExams.length > 0) {
             selected = matchingExams[0];
           }
@@ -89,11 +101,14 @@ async function run() {
   const startRoll = parseInt(cliArgs.start || process.env.SCRAPE_START || '1');
   const endRoll = parseInt(cliArgs.end || process.env.SCRAPE_END || '30');
   const courseName = cliArgs.course || process.env.SCRAPE_COURSE || 'B.Tech';
+  const examNameArg = cliArgs.exam || process.env.SCRAPE_EXAM || null;
+  const isSuppl = Boolean(cliArgs.suppl || process.env.SCRAPE_SUPPL);
 
   console.log("==========================================================");
   console.log("🚀 BEU Result Portal - Automated Results Scraper");
   console.log("==========================================================");
-  console.log(`🔍 Course: ${courseName} | Semester: ${semester}`);
+  console.log(`🔍 Course: ${courseName} | Semester: ${semester} | Suppl: ${isSuppl}`);
+  if (examNameArg) console.log(`📋 Target Exam Name: ${examNameArg}`);
   console.log(`🎯 Roll Prefix: ${rollPrefix} | Range: ${startRoll} to ${endRoll}`);
   console.log("==========================================================");
 
@@ -101,7 +116,7 @@ async function run() {
   let exam;
   try {
     console.log("📡 Fetching official exam details from BEU...");
-    exam = await fetchExamDetails(semester, courseName);
+    exam = await fetchExamDetails(semester, courseName, examNameArg, isSuppl);
     console.log(`✅ Exam Selected: ${exam.examName}`);
     console.log(`   Session: ${exam.batchYear} | Exam Held: ${exam.examHeld} | Exam ID: ${exam.examId || exam.id}`);
   } catch (err) {

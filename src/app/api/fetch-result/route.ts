@@ -64,7 +64,7 @@ export async function GET(request: Request) {
     try {
       await dbConnect();
       dbConnected = true;
-      // 1. Try querying our local database first (cached copy) with flexible semester format
+      // 1. Query local database strictly for the requested semester
       cachedResult = await Result.findOne({
         regNo,
         $or: [
@@ -76,10 +76,6 @@ export async function GET(request: Request) {
           { semester: new RegExp(`(^|\\b)${normalizedSemester}(\\b|th|st|nd|rd)`, 'i') }
         ]
       });
-
-      if (!cachedResult) {
-        cachedResult = await Result.findOne({ regNo });
-      }
     } catch (dbErr: any) {
       console.warn(`[Proxy Database Warning] DB connection/query failed: ${dbErr.message}. Bypassing cache...`);
     }
@@ -123,8 +119,9 @@ export async function GET(request: Request) {
 
     console.log(`[Proxy Cache MISS] regNo: ${regNo}, semester: ${semester}. Fetching from official BEU API via HTTPS...`);
 
+    const examNameParam = searchParams.get('exam_name') || searchParams.get('examName');
     const encodedExamHeld = encodeURIComponent(examHeld || '');
-    const encodedExamName = encodeURIComponent('B.Tech 1st Semester Examination 2025');
+    const encodedExamName = encodeURIComponent(examNameParam || `B.Tech ${semesterNum}th Semester Examination ${year || '2026'}`);
 
     // 2. Setup headers exactly mimicking the successful standalone script
     const headers = {

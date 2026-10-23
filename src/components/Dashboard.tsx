@@ -72,8 +72,9 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
             // Official BEU API Call
             // Note: In a production app, this might need a proxy for CORS, but we'll attempt direct fetch
 
-            const examId = currentExam?.id || '';
-            const url = `/api/fetch-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}&exam_id=${examId}`;
+            const examId = currentExam?.examId || currentExam?.id || '';
+            const examName = encodeURIComponent(currentExam?.examName || currentExam?.name || '');
+            const url = `/api/fetch-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}&exam_id=${examId}&exam_name=${examName}`;
 
             const response = await fetch(url);
 
