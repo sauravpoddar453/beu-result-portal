@@ -23,7 +23,7 @@ async function audit() {
 
   pceDocs.forEach(d => {
     const batch = d.regNo.slice(0, 2);
-    const branch = d.regNo.slice(5, 8);
+    const branch = d.regNo.slice(2, 5);
     const sem = (d.semester || '1').toString().replace(/[^0-9]/g, '') || '1';
 
     branchesFound.add(branch);
@@ -42,9 +42,18 @@ async function audit() {
     console.log(`   - Batch ${b}: ${rolls.length} unique students (Roll range: ${rolls[0] || 'N/A'} to ${rolls[rolls.length - 1] || 'N/A'})`);
   }
 
+  const branchNames = {
+    '101': 'Civil Engineering',
+    '102': 'Mechanical Engineering',
+    '103': 'Electrical Engineering',
+    '104': 'Electronics & Communication Engineering',
+    '105': 'Computer Science & Engineering',
+    '151': 'CSE (Artificial Intelligence)'
+  };
+
   console.log('\n2. BRANCHES DETECTED IN PCE:');
-  branchesFound.forEach(br => {
-    console.log(`   - Branch Code ${br}: ${br === '131' ? 'CSE (Artificial Intelligence & Data Science)' : br === '101' ? 'Civil' : br === '102' ? 'Mechanical' : br === '105' ? 'CSE' : 'Other'}`);
+  Array.from(branchesFound).sort().forEach(br => {
+    console.log(`   - Branch Code ${br}: ${branchNames[br] || 'Other'}`);
   });
 
   console.log('\n3. SEMESTER-WISE COMPLETION MATRIX FOR EACH BATCH:');
