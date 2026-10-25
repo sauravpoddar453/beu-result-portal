@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "scrape": "node scrape-results.js"
+    "scrape": "node scrape-results.js",
+    "scrape:pce": "node src/scripts/scrape_pce.cjs",
+    "scrape:all": "node src/scripts/scrape_all_pce.cjs"
   },
   "dependencies": {
     "axios": "^1.16.0",
