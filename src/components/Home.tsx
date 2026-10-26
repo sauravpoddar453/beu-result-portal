@@ -104,149 +104,88 @@ interface ExamCardProps {
 }
 
 const ExamCard: React.FC<ExamCardProps> = ({ exam, index, batchKey, onSelectSemester }) => {
-    const cardRef = useRef<HTMLDivElement>(null);
-    const [tilt, setTilt] = useState({ rx: 0, ry: 0, glareX: 50, glareY: 50, isHovered: false });
-
-    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!cardRef.current) return;
-        if (typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-            const rect = cardRef.current.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const rx = ((y - centerY) / centerY) * -6; // 6deg max subtle tilt
-            const ry = ((x - centerX) / centerX) * 6;
-            const glareX = (x / rect.width) * 100;
-            const glareY = (y / rect.height) * 100;
-            setTilt({ rx, ry, glareX, glareY, isHovered: true });
-        }
-    };
-
-    const handleMouseLeave = () => {
-        setTilt({ rx: 0, ry: 0, glareX: 50, glareY: 50, isHovered: false });
-    };
-
     return (
         <motion.div
             layout
-            ref={cardRef}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0, scale: 0.96 }}
             transition={{
-                delay: Math.min(index * 0.02, 0.2),
-                duration: 0.35,
-                layout: { duration: 0.28 }
+                delay: Math.min(index * 0.02, 0.18),
+                duration: 0.3,
+                layout: { duration: 0.25 }
             }}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
             onClick={() => onSelectSemester(exam)}
-            className="glass exam-card"
-            style={{
-                padding: '1.25rem',
-                cursor: 'pointer',
-                border: tilt.isHovered ? '1px solid var(--primary)' : '1px solid var(--border)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.85rem',
-                position: 'relative',
-                overflow: 'hidden',
-                borderRadius: '1rem',
-                transformStyle: 'preserve-3d',
-                transform: tilt.isHovered
-                    ? `perspective(800px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) translateY(-4px)`
-                    : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)',
-                boxShadow: tilt.isHovered
-                    ? '0 16px 36px -8px var(--primary-glow), 0 0 12px -2px var(--primary-glow)'
-                    : 'var(--glass-shadow)',
-                transition: tilt.isHovered
-                    ? 'box-shadow 0.2s ease, border-color 0.2s ease'
-                    : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease'
-            }}
+            className="exam-card"
         >
-            {/* Cursor-following Light Glare */}
-            {tilt.isHovered && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        pointerEvents: 'none',
-                        background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(255,255,255,0.12) 0%, transparent 65%)`,
-                        zIndex: 2,
-                        borderRadius: '1rem'
-                    }}
-                />
-            )}
-
-            {/* Corner Year/Batch Badge with Primary styling */}
+            {/* Top-Right Corner Batch Badge: translucent gold, no solid fill */}
             <div style={{
                 position: 'absolute',
                 top: 0,
                 right: 0,
-                padding: '0.3rem 0.8rem',
-                background: 'linear-gradient(135deg, var(--primary), var(--primary-hover))',
-                color: 'var(--btn-text)',
+                padding: '0.3rem 0.75rem',
+                background: 'rgba(245, 179, 1, 0.12)',
+                borderBottomLeftRadius: '0.75rem',
+                borderLeft: '1px solid rgba(245, 179, 1, 0.22)',
+                borderBottom: '1px solid rgba(245, 179, 1, 0.22)',
+                color: '#F5B301',
                 fontSize: '0.72rem',
-                fontWeight: 800,
-                borderBottomLeftRadius: '0.85rem',
+                fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.3rem',
-                boxShadow: '0 2px 8px -1px var(--primary-glow)',
-                zIndex: 3
+                letterSpacing: '0.02em',
+                zIndex: 2
             }}>
                 <span>Batch {batchKey}</span>
-                <span style={{ opacity: 0.85 }}>({exam.session})</span>
+                <span style={{ opacity: 0.82 }}>({exam.session})</span>
             </div>
 
+            {/* Accent Cyan Icon and Course/Semester Label */}
             <div style={{
-                color: 'var(--primary)',
+                color: '#38BDF8',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.45rem',
                 fontSize: '0.82rem',
                 fontWeight: 600
             }}>
-                <Lucide.GraduationCap size={16} />
-                {exam.courseName || 'B.Tech'} • Sem {exam.semId}
+                <Lucide.GraduationCap size={15} color="#38BDF8" />
+                <span>{exam.courseName || 'B.Tech'} • Sem {exam.semId}</span>
             </div>
 
-            <h3 style={{ fontSize: '1.02rem', fontWeight: 700, lineHeight: 1.35, color: 'var(--text-main)', minHeight: '2.75rem' }}>
+            {/* Exam Title: Pure White & Bold */}
+            <h3 style={{
+                fontSize: '1.02rem',
+                fontWeight: 700,
+                lineHeight: 1.4,
+                color: '#FFFFFF',
+                minHeight: '2.85rem'
+            }}>
                 {exam.examName}
             </h3>
 
-            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+            {/* Date / Meta Text: Muted #94A3B8 & Verified Green */}
+            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#94A3B8', fontSize: '0.76rem' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Lucide.Calendar size={12} /> {exam.examHeld}
+                        <Lucide.Calendar size={13} color="#94A3B8" /> {exam.examHeld}
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--secondary)', fontWeight: 600 }}>
-                        <Lucide.CheckCircle size={12} /> {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#10B981', fontWeight: 600 }}>
+                        <Lucide.CheckCircle size={13} color="#10B981" /> {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </span>
                 </div>
 
-                <div style={{ marginTop: '0.4rem' }}>
-                    <button
-                        className="premium-btn"
-                        style={{
-                            width: '100%',
-                            padding: '0.55rem 0.9rem',
-                            fontSize: '0.82rem',
-                            justifyContent: 'center',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.45rem',
-                            borderRadius: '0.75rem'
-                        }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectSemester(exam);
-                        }}
-                    >
-                        <Lucide.GraduationCap size={15} /> Check Result
-                    </button>
-                </div>
+                {/* Outline / Ghost Check Result Button: 40px height, full-width, white text */}
+                <button
+                    className="check-result-btn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectSemester(exam);
+                    }}
+                >
+                    <Lucide.GraduationCap size={15} /> Check Result
+                </button>
             </div>
         </motion.div>
     );
@@ -451,16 +390,16 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             gap: '0.45rem',
                             padding: '0.35rem 0.95rem',
                             borderRadius: '2rem',
-                            background: 'rgba(var(--primary-rgb), 0.12)',
-                            border: '1px solid rgba(var(--primary-rgb), 0.35)',
-                            color: 'var(--primary)',
+                            background: 'rgba(56, 189, 248, 0.1)',
+                            border: '1px solid rgba(56, 189, 248, 0.25)',
+                            color: '#38BDF8',
                             fontSize: '0.8rem',
                             fontWeight: 700,
                             marginBottom: '1rem',
                             letterSpacing: '0.02em'
                         }}
                     >
-                        <Lucide.GraduationCap size={15} /> B.Tech Examination Portal
+                        <Lucide.GraduationCap size={15} color="#38BDF8" /> B.Tech Examination Portal
                     </motion.div>
 
                     <motion.h1
@@ -536,7 +475,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 background: 'rgba(255,255,255,0.02)'
                             }}
                         >
-                            <Lucide.Search className="search-pulse-icon" size={20} color="var(--primary)" />
+                            <Lucide.Search className="search-pulse-icon" size={20} color="#38BDF8" />
                             <input
                                 type="text"
                                 placeholder={searchQuery ? '' : placeholderText}
@@ -777,8 +716,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                                         e.stopPropagation();
                                                         onSelectSemester(exam);
                                                     }}
-                                                    className="premium-btn"
-                                                    style={{ padding: '0.4rem 0.9rem', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                                                    className="check-result-btn"
+                                                    style={{ height: '32px', padding: '0 0.85rem', fontSize: '0.78rem', width: 'auto', display: 'inline-flex', margin: '0 auto' }}
                                                 >
                                                     <Lucide.Search size={13} /> View Result
                                                 </button>
