@@ -109,16 +109,29 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
         fetchNotices();
     }, []);
 
+    const getExamBatch = (session: string): string => {
+        if (!session) return 'Other';
+        const match = session.match(/20\d{2}/);
+        if (match) {
+            const start = parseInt(match[0]);
+            return `${start}-${(start + 4).toString().slice(-2)}`;
+        }
+        return 'Arrear';
+    };
+
     const allExams: Exam[] = courses.flatMap(c => (c.exams || []).map(e => ({ ...e, courseName: c.courseName })));
 
-    const availableSemesters = [8, 7, 6, 5, 4, 3, 2, 1].filter(sem => 
-        allExams.some(e => e.semId === sem)
-    );
+    // Order of batches preferred by students
+    const preferredOrder = ['2022-26', '2023-27', '2024-28', '2025-29', '2021-25', '2020-24', '2019-23', 'Arrear'];
+    const uniqueBatchesInExams = Array.from(new Set(allExams.map(e => getExamBatch(e.session))));
+    const availableBatches = preferredOrder.filter(b => uniqueBatchesInExams.includes(b))
+        .concat(uniqueBatchesInExams.filter(b => !preferredOrder.includes(b)));
 
     const filteredExams = allExams.filter(exam => {
-        const matchesSemester = activeFilter === 'all' || exam.semId.toString() === activeFilter;
+        const batchKey = getExamBatch(exam.session);
+        const matchesBatch = activeFilter === 'all' || batchKey === activeFilter;
         const q = searchQuery.toLowerCase().trim();
-        if (!q) return matchesSemester;
+        if (!q) return matchesBatch;
         const matchesQuery = 
             exam.examName.toLowerCase().includes(q) ||
             exam.session.toLowerCase().includes(q) ||
@@ -126,7 +139,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             (exam.courseName || '').toLowerCase().includes(q) ||
             `sem ${exam.semId}`.toLowerCase().includes(q) ||
             `${exam.semId}th`.toLowerCase().includes(q);
-        return matchesSemester && matchesQuery;
+        return matchesBatch && matchesQuery;
     });
 
     return (
@@ -167,7 +180,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 </div>
             ) : (
                 <>
-                    {/* Search & Semester Filter Section */}
+                    {/* Search & Batch Filter Section */}
                     <div style={{ maxWidth: '850px', margin: '0 auto 3rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         {/* Live Search Input */}
                         <div className="glass" style={{
@@ -182,7 +195,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             <Lucide.Search size={22} color="var(--primary)" />
                             <input
                                 type="text"
-                                placeholder={`Search all ${allExams.length} B.Tech examinations (e.g. 8th Sem, 6th Sem, 2026, Supplementary)...`}
+                                placeholder={`Search all ${allExams.length} B.Tech examinations (e.g. 2022-26, 8th Sem, 2026, Supplementary)...`}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 style={{
@@ -204,7 +217,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             )}
                         </div>
 
-                        {/* B.Tech Semester Filter Pills */}
+                        {/* B.Tech Batch Filter Pills */}
                         <div style={{
                             display: 'flex',
                             justifyContent: 'center',
@@ -226,15 +239,16 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                     transition: 'all 0.2s ease'
                                 }}
                             >
-                                All B.Tech ({allExams.length})
+                                All Batches ({allExams.length})
                             </button>
-                            {availableSemesters.map((sem) => {
-                                const semCount = allExams.filter(e => e.semId === sem).length;
-                                const isSelected = activeFilter === sem.toString();
+                            {availableBatches.map((batch) => {
+                                const batchCount = allExams.filter(e => getExamBatch(e.session) === batch).length;
+                                const isSelected = activeFilter === batch;
+                                const label = batch === 'Arrear' ? 'Arrear / Special' : `Batch ${batch}`;
                                 return (
                                     <button
-                                        key={`sem-${sem}`}
-                                        onClick={() => setActiveFilter(sem.toString())}
+                                        key={`batch-${batch}`}
+                                        onClick={() => setActiveFilter(batch)}
                                         style={{
                                             padding: '0.6rem 1.25rem',
                                             borderRadius: '2rem',
@@ -248,7 +262,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                             transition: 'all 0.2s ease'
                                         }}
                                     >
-                                        Sem {sem} ({semCount})
+                                        {label} ({batchCount})
                                     </button>
                                 );
                             })}
