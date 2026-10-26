@@ -31,3 +31,6 @@ build/
 .vercel
 tsc.txt
 tsc_error.log
+.puppeteer_profile/
+*.tsbuildinfo
+src/scripts/statewide_progress.json
