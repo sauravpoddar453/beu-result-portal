@@ -101,6 +101,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     ? data.practicalSubjects
                     : (data.subjects ? data.subjects.filter((s: any) => s.code?.endsWith('P')) : []);
 
+                const activeSemNum = currentExam?.semId || 1;
+                const semIdx = activeSemNum - 1;
+                const activeSgpa = Array.isArray(data.sgpa)
+                    ? (data.sgpa[semIdx] || data.sgpa[data.sgpa.length - 1] || 'N/A')
+                    : (typeof data.sgpa === 'string' && data.sgpa.includes(',') ? (data.sgpa.split(',')[semIdx] || data.sgpa) : (data.sgpa || 'N/A'));
+                const activeAllSgpa = Array.isArray(data.allSgpa)
+                    ? data.allSgpa
+                    : (Array.isArray(data.sgpa) ? data.sgpa : (typeof data.sgpa === 'string' && data.sgpa.includes(',') ? data.sgpa.split(',') : [data.sgpa]));
+
                 // Map official data to our UI structure
                 setResult({
                     name: data.name,
@@ -110,8 +119,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     college: data.college || data.college_name,
                     course: data.course || 'B.Tech',
                     semester: data.semester || `${currentExam?.semId}th Semester`,
-                    sgpa: data.sgpa || 'N/A',
-                    allSgpa: data.allSgpa || (data.sgpa ? [data.sgpa] : []),
+                    sgpa: activeSgpa,
+                    allSgpa: activeAllSgpa,
                     cgpa: data.cgpa || 'N/A',
                     status: data.status || data.fail_any || 'PASSED',
                     theorySubjects: theory?.map((d: any) => ({
@@ -153,6 +162,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 ? dbData.practicalSubjects
                                 : (dbData.subjects ? dbData.subjects.filter((s: any) => s.code?.endsWith('P')) : []);
 
+                            const activeSemNum = currentExam?.semId || (overrideExam || selectedExam)?.semId || 1;
+                            const semIdx = activeSemNum - 1;
+                            const activeDbSgpa = Array.isArray(dbData.sgpa)
+                                ? (dbData.sgpa[semIdx] || dbData.sgpa[dbData.sgpa.length - 1] || 'N/A')
+                                : (typeof dbData.sgpa === 'string' && dbData.sgpa.includes(',') ? (dbData.sgpa.split(',')[semIdx] || dbData.sgpa) : (dbData.sgpa ? dbData.sgpa.toString() : 'N/A'));
+                            const activeDbAllSgpa = Array.isArray(dbData.allSgpa)
+                                ? dbData.allSgpa
+                                : (Array.isArray(dbData.sgpa) ? dbData.sgpa : (typeof dbData.sgpa === 'string' && dbData.sgpa.includes(',') ? dbData.sgpa.split(',') : (dbData.sgpa ? [dbData.sgpa.toString()] : [])));
+
                             setResult({
                                 name: dbData.name,
                                 rollNo: dbData.regNo,
@@ -161,8 +179,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 college: dbData.college,
                                 course: dbData.course || 'Computer Science and Engineering',
                                 semester: dbData.semester || `${(overrideExam || selectedExam)?.semId || 6}th Semester`,
-                                sgpa: dbData.sgpa?.toString() || 'N/A',
-                                allSgpa: dbData.allSgpa || (dbData.sgpa ? [dbData.sgpa.toString()] : []),
+                                sgpa: activeDbSgpa,
+                                allSgpa: activeDbAllSgpa,
                                 cgpa: dbData.cgpa?.toString() || 'N/A',
                                 status: dbData.status || 'PASSED',
                                 theorySubjects: dbTheory.map((s: any) => ({
@@ -222,6 +240,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         ? dbData.practicalSubjects
                         : (dbData.subjects ? dbData.subjects.filter((s: any) => s.code?.endsWith('P')) : []);
 
+                    const activeSemNum = currentExam?.semId || (overrideExam || selectedExam)?.semId || 1;
+                    const semIdx = activeSemNum - 1;
+                    const activeDbSgpa = Array.isArray(dbData.sgpa)
+                        ? (dbData.sgpa[semIdx] || dbData.sgpa[dbData.sgpa.length - 1] || 'N/A')
+                        : (typeof dbData.sgpa === 'string' && dbData.sgpa.includes(',') ? (dbData.sgpa.split(',')[semIdx] || dbData.sgpa) : (dbData.sgpa ? dbData.sgpa.toString() : 'N/A'));
+                    const activeDbAllSgpa = Array.isArray(dbData.allSgpa)
+                        ? dbData.allSgpa
+                        : (Array.isArray(dbData.sgpa) ? dbData.sgpa : (typeof dbData.sgpa === 'string' && dbData.sgpa.includes(',') ? dbData.sgpa.split(',') : (dbData.sgpa ? [dbData.sgpa.toString()] : [])));
+
                     setResult({
                         name: dbData.name,
                         rollNo: dbData.regNo,
@@ -230,8 +257,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         college: dbData.college,
                         course: dbData.course || 'Computer Science and Engineering',
                         semester: dbData.semester || `${(overrideExam || selectedExam)?.semId || 6}th Semester`,
-                        sgpa: dbData.sgpa?.toString() || 'N/A',
-                        allSgpa: dbData.allSgpa || (dbData.sgpa ? [dbData.sgpa.toString()] : []),
+                        sgpa: activeDbSgpa,
+                        allSgpa: activeDbAllSgpa,
                         cgpa: dbData.cgpa?.toString() || 'N/A',
                         status: dbData.status || 'PASSED',
                         theorySubjects: dbTheory.map((s: any) => ({
