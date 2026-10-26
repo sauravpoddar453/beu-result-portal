@@ -145,6 +145,8 @@ async function probeAndFetchLE(targetReg = '23105131901') {
         console.log(`  📊 SGPA: ${JSON.stringify(data.sgpa)}`);
         console.log(`  📈 CGPA: ${JSON.stringify(data.cgpa)}`);
         console.log(`  📝 Status: ${data.status || 'PASS'}`);
+        console.log(`  📖 Theory Subjects found: ${(data.theorySubjects || data.theory_subject || []).length}`);
+        console.log(`  🔬 Practical Subjects found: ${(data.practicalSubjects || data.practical_subject || []).length}`);
 
         // Save to MongoDB
         const semNumStr = ex.semId.toString();
@@ -163,9 +165,37 @@ async function probeAndFetchLE(targetReg = '23105131901') {
           cgpa: data.cgpa || 'N/A',
           allSgpa: Array.isArray(data.sgpa) ? data.sgpa : [],
           status: data.status || 'PASS',
-          theorySubjects: data.theory_subject || [],
-          practicalSubjects: data.practical_subject || [],
-          subjects: [...(data.theory_subject || []), ...(data.practical_subject || [])],
+          theorySubjects: (data.theorySubjects || data.theory_subject || []).map(s => ({
+            code: s.code || s.subject_code || '',
+            name: s.name || s.subject_name || '',
+            ese: s.ese || 'N/A',
+            ia: s.ia || 'N/A',
+            total: s.total || (s.point !== undefined ? s.point.toString() : 'N/A'),
+            grade: s.grade || '',
+            credit: s.credit || ''
+          })),
+          practicalSubjects: (data.practicalSubjects || data.practical_subject || []).map(s => ({
+            code: s.code || s.subject_code || '',
+            name: s.name || s.subject_name || '',
+            ese: s.ese || 'N/A',
+            ia: s.ia || 'N/A',
+            total: s.total || (s.point !== undefined ? s.point.toString() : 'N/A'),
+            grade: s.grade || '',
+            credit: s.credit || ''
+          })),
+          subjects: [
+            ...(data.theorySubjects || data.theory_subject || []),
+            ...(data.practicalSubjects || data.practical_subject || [])
+          ].map(s => ({
+            code: s.code || s.subject_code || '',
+            name: s.name || s.subject_name || '',
+            ese: s.ese || 'N/A',
+            ia: s.ia || 'N/A',
+            total: s.total || (s.point !== undefined ? s.point.toString() : 'N/A'),
+            point: parseFloat(s.total || s.point) || 0,
+            grade: s.grade || '',
+            credit: s.credit || ''
+          })),
           examHeld: ex.examHeld,
           examName: ex.examName,
           lastUpdated: new Date()
