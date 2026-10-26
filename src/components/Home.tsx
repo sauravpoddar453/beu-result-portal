@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Lucide from 'lucide-react';
 import Link from 'next/link';
@@ -28,16 +28,285 @@ interface HomeProps {
     onSelectSemester: (exam: Exam) => void;
 }
 
+/**
+ * Animated number counter that counts up smoothly when visible
+ */
+const AnimatedCounter: React.FC<{ value: number; duration?: number }> = ({ value, duration = 800 }) => {
+    const [displayVal, setDisplayVal] = useState(value);
+    const prevValRef = useRef(value);
+
+    useEffect(() => {
+        let startTime: number | null = null;
+        let animationFrame: number;
+        const startVal = prevValRef.current;
+        const diff = value - startVal;
+
+        const animate = (timestamp: number) => {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            setDisplayVal(Math.round(startVal + diff * easeOut));
+
+            if (progress < 1) {
+                animationFrame = requestAnimationFrame(animate);
+            } else {
+                setDisplayVal(value);
+                prevValRef.current = value;
+            }
+        };
+
+        animationFrame = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(animationFrame);
+    }, [value, duration]);
+
+    return <span>{displayVal}</span>;
+};
+
+/**
+ * Skeleton shimmer cards shown while exam data is loading
+ */
+const SkeletonCards: React.FC = () => (
+    <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 360px))',
+        gap: '1.25rem',
+        marginBottom: '3.5rem'
+    }}>
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="glass" style={{
+                padding: '1.25rem',
+                borderRadius: '1rem',
+                height: '190px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.85rem',
+                border: '1px solid var(--border)'
+            }}>
+                <div className="skeleton-bar" style={{ width: '45%', height: '16px', borderRadius: '4px' }} />
+                <div className="skeleton-bar" style={{ width: '85%', height: '22px', borderRadius: '4px', marginTop: '0.2rem' }} />
+                <div className="skeleton-bar" style={{ width: '60%', height: '14px', borderRadius: '4px' }} />
+                <div style={{ marginTop: 'auto' }}>
+                    <div className="skeleton-bar" style={{ width: '100%', height: '36px', borderRadius: '8px' }} />
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
+/**
+ * Interactive Exam Card with 3D tilt, cursor light glare & hover lift
+ */
+interface ExamCardProps {
+    exam: Exam;
+    index: number;
+    batchKey: string;
+    onSelectSemester: (exam: Exam) => void;
+}
+
+const ExamCard: React.FC<ExamCardProps> = ({ exam, index, batchKey, onSelectSemester }) => {
+    const cardRef = useRef<HTMLDivElement>(null);
+    const [tilt, setTilt] = useState({ rx: 0, ry: 0, glareX: 50, glareY: 50, isHovered: false });
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!cardRef.current) return;
+        if (typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+            const rect = cardRef.current.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rx = ((y - centerY) / centerY) * -6; // 6deg max subtle tilt
+            const ry = ((x - centerX) / centerX) * 6;
+            const glareX = (x / rect.width) * 100;
+            const glareY = (y / rect.height) * 100;
+            setTilt({ rx, ry, glareX, glareY, isHovered: true });
+        }
+    };
+
+    const handleMouseLeave = () => {
+        setTilt({ rx: 0, ry: 0, glareX: 50, glareY: 50, isHovered: false });
+    };
+
+    return (
+        <motion.div
+            layout
+            ref={cardRef}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{
+                delay: Math.min(index * 0.02, 0.2),
+                duration: 0.35,
+                layout: { duration: 0.28 }
+            }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            onClick={() => onSelectSemester(exam)}
+            className="glass exam-card"
+            style={{
+                padding: '1.25rem',
+                cursor: 'pointer',
+                border: tilt.isHovered ? '1px solid var(--primary)' : '1px solid var(--border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.85rem',
+                position: 'relative',
+                overflow: 'hidden',
+                borderRadius: '1rem',
+                transformStyle: 'preserve-3d',
+                transform: tilt.isHovered
+                    ? `perspective(800px) rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) translateY(-4px)`
+                    : 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)',
+                boxShadow: tilt.isHovered
+                    ? '0 16px 36px -8px var(--primary-glow), 0 0 12px -2px var(--primary-glow)'
+                    : 'var(--glass-shadow)',
+                transition: tilt.isHovered
+                    ? 'box-shadow 0.2s ease, border-color 0.2s ease'
+                    : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease'
+            }}
+        >
+            {/* Cursor-following Light Glare */}
+            {tilt.isHovered && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        pointerEvents: 'none',
+                        background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(255,255,255,0.12) 0%, transparent 65%)`,
+                        zIndex: 2,
+                        borderRadius: '1rem'
+                    }}
+                />
+            )}
+
+            {/* Corner Year/Batch Badge with Primary styling */}
+            <div style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                padding: '0.3rem 0.8rem',
+                background: 'linear-gradient(135deg, var(--primary), var(--primary-hover))',
+                color: 'var(--btn-text)',
+                fontSize: '0.72rem',
+                fontWeight: 800,
+                borderBottomLeftRadius: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                boxShadow: '0 2px 8px -1px var(--primary-glow)',
+                zIndex: 3
+            }}>
+                <span>Batch {batchKey}</span>
+                <span style={{ opacity: 0.85 }}>({exam.session})</span>
+            </div>
+
+            <div style={{
+                color: 'var(--primary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                fontSize: '0.82rem',
+                fontWeight: 600
+            }}>
+                <Lucide.GraduationCap size={16} />
+                {exam.courseName || 'B.Tech'} • Sem {exam.semId}
+            </div>
+
+            <h3 style={{ fontSize: '1.02rem', fontWeight: 700, lineHeight: 1.35, color: 'var(--text-main)', minHeight: '2.75rem' }}>
+                {exam.examName}
+            </h3>
+
+            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Lucide.Calendar size={12} /> {exam.examHeld}
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--secondary)', fontWeight: 600 }}>
+                        <Lucide.CheckCircle size={12} /> {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </span>
+                </div>
+
+                <div style={{ marginTop: '0.4rem' }}>
+                    <button
+                        className="premium-btn"
+                        style={{
+                            width: '100%',
+                            padding: '0.55rem 0.9rem',
+                            fontSize: '0.82rem',
+                            justifyContent: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.45rem',
+                            borderRadius: '0.75rem'
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectSemester(exam);
+                        }}
+                    >
+                        <Lucide.GraduationCap size={15} /> Check Result
+                    </button>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
 const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+    const [, setSelectedCourseId] = useState<number | null>(null);
     const [activeFilter, setActiveFilter] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [notices, setNotices] = useState<any[]>([]);
     const [noticesLoading, setNoticesLoading] = useState(true);
     const [isSubscribed, setIsSubscribed] = useState(false);
+
+    // Typewriter Rotating Placeholder State
+    const rotatingPlaceholders = [
+        "Search 8th Sem Examination...",
+        "Search B.Tech 2026...",
+        "Search Batch 2022-26...",
+        "Search Supplementary results...",
+        "Search 1st, 2nd, 3rd, 4th Sem...",
+        "Search 28 B.Tech examinations..."
+    ];
+    const [placeholderText, setPlaceholderText] = useState(rotatingPlaceholders[0]);
+
+    useEffect(() => {
+        let index = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let timeoutId: any;
+
+        const type = () => {
+            const currentFull = rotatingPlaceholders[index];
+            if (isDeleting) {
+                setPlaceholderText(currentFull.substring(0, charIndex - 1));
+                charIndex--;
+                if (charIndex <= 0) {
+                    isDeleting = false;
+                    index = (index + 1) % rotatingPlaceholders.length;
+                    timeoutId = setTimeout(type, 500);
+                    return;
+                }
+                timeoutId = setTimeout(type, 35);
+            } else {
+                setPlaceholderText(currentFull.substring(0, charIndex + 1));
+                charIndex++;
+                if (charIndex >= currentFull.length) {
+                    isDeleting = true;
+                    timeoutId = setTimeout(type, 2200);
+                    return;
+                }
+                timeoutId = setTimeout(type, 70);
+            }
+        };
+
+        timeoutId = setTimeout(type, 1000);
+        return () => clearTimeout(timeoutId);
+    }, []);
 
     // Load subscription status from localStorage
     useEffect(() => {
@@ -57,6 +326,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
         setIsSubscribed(newStatus);
         localStorage.setItem('beu_notifications_enabled', String(newStatus));
     };
+
     useEffect(() => {
         const fetchExams = async () => {
             try {
@@ -153,57 +423,88 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     });
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-            {/* Hero Section */}
-            <header style={{ textAlign: 'center', marginBottom: '2.5rem', marginTop: '1.5rem' }}>
+        <div style={{ padding: '2rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+            {/* Hero Section with Staggered Fade-Up & Text Shimmer */}
+            <header style={{ textAlign: 'center', marginBottom: '2.5rem', marginTop: '1.25rem' }}>
                 <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: { opacity: 0 },
+                        visible: {
+                            opacity: 1,
+                            transition: {
+                                staggerChildren: 0.12,
+                                delayChildren: 0.05
+                            }
+                        }
+                    }}
                 >
-                    <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.45rem',
-                        padding: '0.35rem 0.9rem',
-                        borderRadius: '2rem',
-                        background: 'rgba(99, 102, 241, 0.12)',
-                        border: '1px solid rgba(99, 102, 241, 0.3)',
-                        color: 'var(--primary)',
-                        fontSize: '0.8rem',
-                        fontWeight: 700,
-                        marginBottom: '1rem',
-                        letterSpacing: '0.02em'
-                    }}>
+                    <motion.div
+                        variants={{
+                            hidden: { opacity: 0, y: -15 },
+                            visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+                        }}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.45rem',
+                            padding: '0.35rem 0.95rem',
+                            borderRadius: '2rem',
+                            background: 'rgba(var(--primary-rgb), 0.12)',
+                            border: '1px solid rgba(var(--primary-rgb), 0.35)',
+                            color: 'var(--primary)',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            marginBottom: '1rem',
+                            letterSpacing: '0.02em'
+                        }}
+                    >
                         <Lucide.GraduationCap size={15} /> B.Tech Examination Portal
-                    </div>
+                    </motion.div>
 
-                    <h1 style={{
-                        fontSize: 'clamp(2rem, 3.5vw, 2.75rem)',
-                        fontWeight: 800,
-                        color: 'var(--text-main)',
-                        lineHeight: 1.2,
-                        letterSpacing: '-0.02em',
-                        margin: 0
-                    }}>
-                        BEU <span style={{ color: 'var(--primary)' }}>Results</span> Portal
-                    </h1>
-                    <p style={{
-                        color: 'var(--text-muted)',
-                        fontSize: '1rem',
-                        maxWidth: '560px',
-                        margin: '0.75rem auto 0',
-                        lineHeight: 1.5
-                    }}>
+                    <motion.h1
+                        variants={{
+                            hidden: { opacity: 0, y: 15 },
+                            visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+                        }}
+                        style={{
+                            fontSize: 'clamp(2rem, 3.5vw, 2.75rem)',
+                            fontWeight: 800,
+                            color: 'var(--text-main)',
+                            lineHeight: 1.2,
+                            letterSpacing: '-0.02em',
+                            margin: 0
+                        }}
+                    >
+                        BEU <span className="shimmer-text">RESULTS</span> Portal
+                    </motion.h1>
+
+                    <motion.p
+                        variants={{
+                            hidden: { opacity: 0, y: 15 },
+                            visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+                        }}
+                        style={{
+                            color: 'var(--text-muted)',
+                            fontSize: '1rem',
+                            maxWidth: '560px',
+                            margin: '0.75rem auto 0',
+                            lineHeight: 1.5
+                        }}
+                    >
                         Instant access to official Bihar Engineering University semester results and marksheet records.
-                    </p>
+                    </motion.p>
                 </motion.div>
             </header>
 
             {loading ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '4rem' }}>
-                    <Lucide.Loader2 className="animate-spin" size={48} color="var(--primary)" />
-                    <p style={{ color: 'var(--text-muted)' }}>Fetching official B.Tech exam list from BEU server...</p>
+                <div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', padding: '2rem 0' }}>
+                        <Lucide.Loader2 className="animate-spin" size={36} color="var(--primary)" />
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Fetching official B.Tech exam list from BEU server...</p>
+                    </div>
+                    <SkeletonCards />
                 </div>
             ) : error ? (
                 <div className="glass" style={{ padding: '3rem', textAlign: 'center', border: '1px solid var(--accent)' }}>
@@ -212,7 +513,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     <p style={{ color: 'var(--text-muted)' }}>{error}</p>
                     <button
                         className="premium-btn"
-                        style={{ marginTop: '1.5rem', background: 'var(--accent)' }}
+                        style={{ marginTop: '1.5rem', background: 'var(--accent)', color: '#fff' }}
                         onClick={() => window.location.reload()}
                     >
                         Retry Connection
@@ -222,20 +523,23 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 <>
                     {/* Search & Batch Filter Section */}
                     <div style={{ maxWidth: '850px', margin: '0 auto 3rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                        {/* Live Search Input */}
-                        <div className="glass" style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.75rem',
-                            padding: '0.9rem 1.25rem',
-                            borderRadius: '1.25rem',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            background: 'rgba(255,255,255,0.03)'
-                        }}>
-                            <Lucide.Search size={22} color="var(--primary)" />
+                        {/* Live Search Input with Glowing Focus & Pulsing Icon */}
+                        <div
+                            className="glass search-input-wrapper"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.75rem',
+                                padding: '0.85rem 1.25rem',
+                                borderRadius: '1.25rem',
+                                border: '1px solid var(--border)',
+                                background: 'rgba(255,255,255,0.02)'
+                            }}
+                        >
+                            <Lucide.Search className="search-pulse-icon" size={20} color="var(--primary)" />
                             <input
                                 type="text"
-                                placeholder={`Search all ${allExams.length} B.Tech examinations (e.g. 2022-26, 8th Sem, 2026, Supplementary)...`}
+                                placeholder={searchQuery ? '' : placeholderText}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 style={{
@@ -250,71 +554,109 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery('')}
-                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                                    title="Clear search"
                                 >
                                     <Lucide.X size={18} />
                                 </button>
                             )}
                         </div>
 
-                        {/* B.Tech Batch Filter Pills */}
+                        {/* B.Tech Batch Filter Chips with Sliding Active Pill */}
                         <div style={{
                             display: 'flex',
                             justifyContent: 'center',
                             gap: '0.5rem',
                             flexWrap: 'wrap'
                         }}>
-                            <button
+                            <motion.button
                                 onClick={() => setActiveFilter('all')}
+                                whileHover={{ scale: 1.04 }}
+                                whileTap={{ scale: 0.96 }}
                                 style={{
-                                    padding: '0.45rem 1.05rem',
+                                    position: 'relative',
+                                    padding: '0.45rem 1.1rem',
                                     borderRadius: '2rem',
                                     border: '1px solid',
-                                    borderColor: activeFilter === 'all' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                                    background: activeFilter === 'all' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                    color: 'var(--text-main)',
+                                    borderColor: activeFilter === 'all' ? 'var(--primary)' : 'var(--border)',
+                                    background: 'transparent',
+                                    color: activeFilter === 'all' ? 'var(--btn-text)' : 'var(--text-main)',
                                     fontWeight: 700,
                                     cursor: 'pointer',
                                     fontSize: '0.82rem',
-                                    transition: 'all 0.2s ease'
+                                    transition: 'color 0.2s ease, border-color 0.2s ease',
+                                    zIndex: 1,
+                                    overflow: 'hidden'
                                 }}
                             >
-                                All Batches ({allExams.length})
-                            </button>
+                                {activeFilter === 'all' && (
+                                    <motion.div
+                                        layoutId="activeFilterPill"
+                                        style={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            background: 'var(--primary)',
+                                            borderRadius: '2rem',
+                                            zIndex: -1
+                                        }}
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                    />
+                                )}
+                                All Batches (<AnimatedCounter value={allExams.length} />)
+                            </motion.button>
+
                             {availableBatches.map((batch) => {
                                 const batchCount = allExams.filter(e => getExamBatch(e.session) === batch).length;
                                 const isSelected = activeFilter === batch;
                                 const meta = batchMetadata[batch];
                                 return (
-                                    <button
+                                    <motion.button
                                         key={`batch-${batch}`}
                                         onClick={() => setActiveFilter(batch)}
                                         title={meta ? `${meta.label} (${meta.session})` : `Batch ${batch}`}
+                                        whileHover={{ scale: 1.04 }}
+                                        whileTap={{ scale: 0.96 }}
                                         style={{
-                                            padding: '0.45rem 1.05rem',
+                                            position: 'relative',
+                                            padding: '0.45rem 1.1rem',
                                             borderRadius: '2rem',
                                             border: '1px solid',
-                                            borderColor: isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                                            background: isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                            color: 'var(--text-main)',
+                                            borderColor: isSelected ? 'var(--primary)' : 'var(--border)',
+                                            background: 'transparent',
+                                            color: isSelected ? 'var(--btn-text)' : 'var(--text-main)',
                                             fontWeight: 700,
                                             cursor: 'pointer',
                                             fontSize: '0.82rem',
-                                            transition: 'all 0.2s ease'
+                                            transition: 'color 0.2s ease, border-color 0.2s ease',
+                                            zIndex: 1,
+                                            overflow: 'hidden'
                                         }}
                                     >
-                                        Batch {batch} ({batchCount})
-                                    </button>
+                                        {isSelected && (
+                                            <motion.div
+                                                layoutId="activeFilterPill"
+                                                style={{
+                                                    position: 'absolute',
+                                                    inset: 0,
+                                                    background: 'var(--primary)',
+                                                    borderRadius: '2rem',
+                                                    zIndex: -1
+                                                }}
+                                                transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                            />
+                                        )}
+                                        Batch {batch} (<AnimatedCounter value={batchCount} />)
+                                    </motion.button>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* Section Header */}
+                    {/* Section Header with Animated Counter & Sliding Arrow Link */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <div>
                             <h2 style={{ fontSize: '1.6rem', color: 'var(--text-main)', fontWeight: 800 }}>
-                                Available B.Tech Examinations ({filteredExams.length})
+                                Available B.Tech Examinations (<AnimatedCounter value={filteredExams.length} />)
                             </h2>
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
                                 Click any exam to check and download your official format marksheet directly.
@@ -322,21 +664,26 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         </div>
                         <a
                             href="#all-results"
+                            className="hover-arrow-link"
                             style={{
                                 color: 'var(--primary)',
                                 textDecoration: 'none',
                                 fontSize: '0.85rem',
                                 fontWeight: 700,
-                                display: 'flex',
+                                display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '0.4rem'
+                                gap: '0.4rem',
+                                transition: 'color 0.2s ease'
                             }}
                         >
-                            View Directory Table <Lucide.ArrowDown size={14} />
+                            <span>View Directory Table</span>
+                            <span className="arrow-icon" style={{ display: 'inline-flex', transition: 'transform 0.2s ease' }}>
+                                <Lucide.ArrowDown size={14} />
+                            </span>
                         </a>
                     </div>
 
-                    {/* Exams Grid */}
+                    {/* Compact Exams Grid with 3D Tilt, Glare & Hover Highlights */}
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 360px))',
@@ -345,98 +692,26 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     }}>
                         <AnimatePresence mode="popLayout">
                             {filteredExams.map((exam, index) => (
-                                <motion.div
+                                <ExamCard
                                     key={`${exam.id}-${index}`}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    transition={{ delay: Math.min(index * 0.02, 0.2), duration: 0.3 }}
-                                    whileHover={{ scale: 1.02, translateY: -3 }}
-                                    className="glass"
-                                    onClick={() => onSelectSemester(exam)}
-                                    style={{
-                                        padding: '1.25rem',
-                                        cursor: 'pointer',
-                                        border: '1px solid rgba(255,255,255,0.06)',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '0.85rem',
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        borderRadius: '1rem'
-                                    }}
-                                >
-                                    <div style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        right: 0,
-                                        padding: '0.25rem 0.75rem',
-                                        background: 'linear-gradient(135deg, var(--primary), #4f46e5)',
-                                        color: '#fff',
-                                        fontSize: '0.7rem',
-                                        fontWeight: 800,
-                                        borderBottomLeftRadius: '0.85rem',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.3rem'
-                                    }}>
-                                        <span>Batch {getExamBatch(exam.session)}</span>
-                                        <span style={{ opacity: 0.85 }}>({exam.session})</span>
-                                    </div>
-
-                                    <div style={{
-                                        color: 'var(--primary)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.45rem',
-                                        fontSize: '0.82rem',
-                                        fontWeight: 600
-                                    }}>
-                                        <Lucide.GraduationCap size={16} />
-                                        {exam.courseName || 'B.Tech'} • Sem {exam.semId}
-                                    </div>
-
-                                    <h3 style={{ fontSize: '1.02rem', fontWeight: 700, lineHeight: 1.35, color: 'var(--text-main)', minHeight: '2.75rem' }}>
-                                        {exam.examName}
-                                    </h3>
-
-                                    <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                                <Lucide.Calendar size={12} /> {exam.examHeld}
-                                            </span>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--secondary)', fontWeight: 600 }}>
-                                                <Lucide.CheckCircle size={12} /> {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                                            </span>
-                                        </div>
-
-                                        <div style={{ marginTop: '0.4rem' }}>
-                                            <button
-                                                className="premium-btn"
-                                                style={{ width: '100%', padding: '0.55rem 0.9rem', fontSize: '0.82rem', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.45rem', borderRadius: '0.75rem' }}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onSelectSemester(exam);
-                                                }}
-                                            >
-                                                <Lucide.GraduationCap size={15} /> Check Result
-                                            </button>
-                                        </div>
-                                    </div>
-                                </motion.div>
+                                    exam={exam}
+                                    index={index}
+                                    batchKey={getExamBatch(exam.session)}
+                                    onSelectSemester={onSelectSemester}
+                                />
                             ))}
                         </AnimatePresence>
                     </div>
 
                     {/* Examination Results Directory Table */}
-                    <div id="all-results" className="glass" style={{ marginBottom: '4rem', padding: '2rem', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div id="all-results" className="glass" style={{ marginBottom: '4rem', padding: '2rem', borderRadius: '1.25rem', border: '1px solid var(--border)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                                     <h2 style={{ fontSize: '1.4rem', color: 'var(--text-main)', fontWeight: 800 }}>
                                         B.Tech Examination Results Directory
                                     </h2>
-                                    <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.7rem', borderRadius: '1rem', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--primary)', fontWeight: 700, border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+                                    <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', borderRadius: '1rem', background: 'rgba(var(--primary-rgb), 0.15)', color: 'var(--primary)', fontWeight: 700, border: '1px solid rgba(var(--primary-rgb), 0.3)' }}>
                                         All Published B.Tech Exams
                                     </span>
                                 </div>
@@ -449,7 +724,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left', color: 'var(--text-muted)' }}>
+                                    <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)' }}>
                                         <th style={{ padding: '0.85rem 1rem' }}>Examinations Name</th>
                                         <th style={{ padding: '0.85rem 1rem' }}>Course</th>
                                         <th style={{ padding: '0.85rem 1rem' }}>Batch / Session</th>
@@ -463,8 +738,9 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                         <tr
                                             key={`dir-${exam.id}-${i}`}
                                             style={{
-                                                borderBottom: '1px solid rgba(255,255,255,0.04)',
-                                                cursor: 'pointer'
+                                                borderBottom: '1px solid var(--border)',
+                                                cursor: 'pointer',
+                                                transition: 'background 0.2s ease'
                                             }}
                                             onClick={() => onSelectSemester(exam)}
                                         >
@@ -479,7 +755,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                                     display: 'inline-block',
                                                     padding: '0.2rem 0.55rem',
                                                     borderRadius: '0.5rem',
-                                                    background: 'rgba(99, 102, 241, 0.12)',
+                                                    background: 'rgba(var(--primary-rgb), 0.12)',
                                                     color: 'var(--primary)',
                                                     fontWeight: 700,
                                                     fontSize: '0.78rem',
@@ -534,9 +810,9 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 className="premium-btn"
                                 style={{
                                     padding: '0.5rem 1rem', fontSize: '0.75rem', borderRadius: '2rem',
-                                    background: isSubscribed ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.1)',
+                                    background: isSubscribed ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.06)',
                                     color: isSubscribed ? 'var(--secondary)' : 'var(--text-main)',
-                                    boxShadow: 'none', border: `1px solid ${isSubscribed ? 'var(--secondary)' : 'rgba(255,255,255,0.2)'}`
+                                    boxShadow: 'none', border: `1px solid ${isSubscribed ? 'var(--secondary)' : 'var(--border)'}`
                                 }}
                             >
                                 {isSubscribed ? (
@@ -563,7 +839,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                         padding: '1rem',
                                         borderRadius: '0.75rem',
                                         background: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        border: '1px solid var(--border)',
                                         transition: 'all 0.2s ease'
                                     }}
                                 >
@@ -579,7 +855,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     </div>
                     <button
                         onClick={() => window.open('https://beu-bih.ac.in/notice/notice-board', '_blank')}
-                        style={{ width: '100%', marginTop: '1.5rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', padding: '0.75rem', borderRadius: '0.75rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
+                        style={{ width: '100%', marginTop: '1.5rem', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)', padding: '0.75rem', borderRadius: '0.75rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
                     >
                         View All Updates
                     </button>
@@ -587,7 +863,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
 
                 {/* Quick Access Sidebar */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    <div className="glass" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), transparent)' }}>
+                    <div className="glass" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), transparent)' }}>
                         <h3 style={{ color: 'var(--text-main)', marginBottom: '1.25rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <Lucide.Link2 size={20} color="var(--primary)" />
                             Quick Links
@@ -600,7 +876,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 { name: 'TPO Portal', url: 'https://beu-bih.ac.in/tpo/Overview', icon: <Lucide.Briefcase size={16} /> }
                             ].map((link, i) => (
                                 <a key={i} href={link.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                                    <div style={{ padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.05)', color: 'var(--text-main)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div style={{ padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(255,255,255,0.04)', color: 'var(--text-main)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--border)' }}>
                                         {link.icon} {link.name}
                                     </div>
                                 </a>
@@ -608,7 +884,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         </div>
                     </div>
 
-                    <div className="glass" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.05), transparent)' }}>
+                    <div className="glass" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08), transparent)' }}>
                         <h3 style={{ color: 'var(--text-main)', marginBottom: '1rem', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <Lucide.LifeBuoy size={20} color="var(--accent)" />
                             Student Support
@@ -629,9 +905,9 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             </div>
 
             {/* SEO Content Section */}
-            <div className="glass" id="seo-content" style={{ marginTop: '4rem', padding: '3rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="glass" id="seo-content" style={{ marginTop: '4rem', padding: '3rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
                 <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                    <img src="/result.png" alt="BEU result check portal" style={{ width: '100%', maxWidth: '600px', borderRadius: '1rem', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)' }} />
+                    <img src="/result.png" alt="BEU result check portal" style={{ width: '100%', maxWidth: '600px', borderRadius: '1rem', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', border: '1px solid var(--border)' }} />
                 </div>
                 <h1 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '0.5rem', fontWeight: 800 }}>
                     BEU Result
@@ -651,8 +927,6 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     <p>
                         Bihar Engineering University (BEU) releases semester examination results for BTech students every year. Many students face difficulty finding the correct result link quickly. This BEU Result Portal helps students easily access their Bihar Engineering University results online.
                     </p>
-
-
                 </div>
                 
                 <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', marginTop: '3rem', marginBottom: '1.5rem', fontWeight: 800 }}>
@@ -662,7 +936,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     <p>Students searching for the following terms can use this portal to check their results:</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1rem' }}>
                         {['BEU Result', 'Bihar Engineering University Result', 'BEU BTech Result', 'BEU Semester Result', 'BEU Result Portal'].map(keyword => (
-                            <span key={keyword} style={{ padding: '0.4rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '2rem', border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.85rem', color: 'var(--secondary)' }}>
+                            <span key={keyword} style={{ padding: '0.4rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '2rem', border: '1px solid var(--border)', fontSize: '0.85rem', color: 'var(--secondary)' }}>
                                 {keyword}
                             </span>
                         ))}
@@ -670,10 +944,10 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 </div>
 
                 {/* Internal Linking Section */}
-                <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
                     <h3 style={{ color: 'var(--text-main)', fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 700 }}>Quick Result Access 🔗</h3>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'center' }}>
-                        <a href="/beu-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '1rem', fontWeight: 800, padding: '0.4rem 1rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '0.75rem' }}>Check BEU Result 🔥</a>
+                        <a href="/beu-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '1rem', fontWeight: 800, padding: '0.4rem 1rem', background: 'rgba(var(--primary-rgb), 0.1)', borderRadius: '0.75rem' }}>Check BEU Result 🔥</a>
                         <a href="/beu-4th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>4th Sem Result</a>
                         <a href="/beu-6th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>6th Sem Result</a>
                         <a href="/beu-notification" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>BEU News</a>
@@ -686,8 +960,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 marginTop: '4rem', 
                 padding: '3rem', 
                 borderRadius: '1rem', 
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05), transparent)', 
-                border: '1px solid rgba(255,255,255,0.05)',
+                background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.05), transparent)', 
+                border: '1px solid var(--border)',
                 position: 'relative',
                 overflow: 'hidden'
             }}>
@@ -707,13 +981,13 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         width: '120px', 
                         height: '120px', 
                         borderRadius: '2rem', 
-                        background: 'linear-gradient(135deg, var(--primary), #a855f7)', 
+                        background: 'linear-gradient(135deg, var(--primary), var(--accent))', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center', 
                         fontSize: '3rem', 
                         fontWeight: 900, 
-                        color: 'white',
+                        color: 'var(--btn-text)',
                         boxShadow: '0 10px 25px var(--primary-glow)',
                         transform: 'rotate(-5deg)'
                     }}>
@@ -736,14 +1010,14 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             <a href="https://github.com/sauravpoddar453" target="_blank" rel="noreferrer" className="premium-btn" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}>
                                 <Lucide.Github size={18} /> GitHub
                             </a>
-                            <a href="https://instagram.com/spcreative453" target="_blank" rel="noreferrer" className="premium-btn" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2338 75%, #bc1888 100%)' }}>
+                            <a href="https://instagram.com/spcreative453" target="_blank" rel="noreferrer" className="premium-btn" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2338 75%, #bc1888 100%)', color: '#fff' }}>
                                 <Lucide.Instagram size={18} /> Instagram
                             </a>
                             <div style={{ 
                                 padding: '0.6rem 1.2rem', 
-                                background: 'rgba(255,255,255,0.05)', 
+                                background: 'rgba(255,255,255,0.04)', 
                                 borderRadius: '0.75rem', 
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                border: '1px solid var(--border)',
                                 color: 'var(--text-muted)',
                                 fontSize: '0.85rem',
                                 display: 'flex',
@@ -764,7 +1038,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             </div>
 
             {/* Footer */}
-            <footer style={{ marginTop: '6rem', padding: '4rem 0 2rem 0', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center' }}>
+            <footer style={{ marginTop: '6rem', padding: '4rem 0 2rem 0', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', letterSpacing: '0.05em' }}>
                     © {new Date().getFullYear()} BEU PORTAL • DIRECT API SYNC WITH BEU BIHAR
                 </p>
