@@ -913,6 +913,25 @@ p, span, input, button, select, textarea, table {
   border-bottom: 1px solid var(--border);
 }
 
+/* Official Marksheet Container Reset */
+.marksheet-card-paper {
+  background: #ffffff !important;
+  color: #000000 !important;
+  box-sizing: border-box !important;
+  max-width: 850px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  overflow: hidden !important;
+  transform: none !important;
+}
+
+.marksheet-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #ffffff;
+}
+
 /* Accessibility & Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *,
