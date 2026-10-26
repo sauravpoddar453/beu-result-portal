@@ -906,9 +906,6 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
 
             {/* SEO Content Section */}
             <div className="glass" id="seo-content" style={{ marginTop: '4rem', padding: '3rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
-                <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                    <img src="/result.png" alt="BEU result check portal" style={{ width: '100%', maxWidth: '600px', borderRadius: '1rem', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', border: '1px solid var(--border)' }} />
-                </div>
                 <h1 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '0.5rem', fontWeight: 800 }}>
                     BEU Result
                 </h1>
