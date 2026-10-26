@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 interface DashboardProps {
     selectedExam?: any;
     onBack?: () => void;
-    onOpenCalculator?: (score?: string | number) => void;
+    onOpenCalculator?: (options?: any) => void;
 }
 
 const toRoman = (num: number): string => {
@@ -907,27 +907,53 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalcu
                                             </button>
 
                                             {onOpenCalculator && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onOpenCalculator(result.cgpa)}
-                                                    style={{
-                                                        padding: '0.45rem 0.95rem',
-                                                        borderRadius: '2rem',
-                                                        background: 'rgba(56, 189, 248, 0.15)',
-                                                        border: '1px solid #38BDF8',
-                                                        color: '#38BDF8',
-                                                        fontSize: '0.78rem',
-                                                        fontWeight: 700,
-                                                        cursor: 'pointer',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '0.35rem'
-                                                    }}
-                                                    className="hover-scale"
-                                                    title="Open Calculator Modal"
-                                                >
-                                                    <Lucide.Calculator size={14} /> Full Calculator
-                                                </button>
+                                                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onOpenCalculator({ score: result.cgpa, tab: 'cgpa' })}
+                                                        style={{
+                                                            padding: '0.45rem 0.95rem',
+                                                            borderRadius: '2rem',
+                                                            background: 'rgba(56, 189, 248, 0.15)',
+                                                            border: '1px solid #38BDF8',
+                                                            color: '#38BDF8',
+                                                            fontSize: '0.78rem',
+                                                            fontWeight: 700,
+                                                            cursor: 'pointer',
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.35rem'
+                                                        }}
+                                                        className="hover-scale"
+                                                        title="Open Percentage Calculator"
+                                                    >
+                                                        <Lucide.Calculator size={14} /> Full Calculator
+                                                    </button>
+
+                                                    {result?.allSgpa && result.allSgpa.some((s: any) => s && s !== '-') && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => onOpenCalculator({ tab: 'sgpa-to-cgpa', allSgpa: result?.allSgpa })}
+                                                            style={{
+                                                                padding: '0.45rem 0.95rem',
+                                                                borderRadius: '2rem',
+                                                                background: 'rgba(245, 179, 1, 0.15)',
+                                                                border: '1px solid #F5B301',
+                                                                color: '#F5B301',
+                                                                fontSize: '0.78rem',
+                                                                fontWeight: 700,
+                                                                cursor: 'pointer',
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '0.35rem'
+                                                            }}
+                                                            className="hover-scale"
+                                                            title="Calculate Overall CGPA from Semester SGPAs"
+                                                        >
+                                                            <Lucide.Layers size={14} /> SGPA ➔ CGPA
+                                                        </button>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -957,7 +983,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalcu
                                             type="button"
                                             onClick={() => {
                                                 const score = (result?.cgpa && result.cgpa !== 'NA' && result.cgpa !== 'N/A') ? result.cgpa : result?.sgpa;
-                                                onOpenCalculator(score);
+                                                onOpenCalculator({ score, allSgpa: result?.allSgpa, tab: 'cgpa' });
                                             }}
                                             style={{
                                                 display: 'inline-flex',
@@ -978,6 +1004,37 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalcu
                                         >
                                             <Lucide.Calculator size={18} />
                                             Calculate Percentage {result?.cgpa && result.cgpa !== 'NA' && result.cgpa !== 'N/A' && !isNaN(parseFloat(result.cgpa)) ? `(${(parseFloat(result.cgpa) * 10).toFixed(1)}%)` : ''}
+                                        </button>
+                                    )}
+
+                                    {onOpenCalculator && result?.allSgpa && result.allSgpa.some((s: any) => s && s !== '-') && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                onOpenCalculator({
+                                                    tab: 'sgpa-to-cgpa',
+                                                    allSgpa: result?.allSgpa
+                                                });
+                                            }}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.6rem',
+                                                padding: '0.75rem 1.6rem',
+                                                fontSize: '0.95rem',
+                                                fontWeight: 600,
+                                                borderRadius: '2rem',
+                                                background: 'rgba(245, 179, 1, 0.12)',
+                                                border: '1px solid #F5B301',
+                                                color: '#F5B301',
+                                                boxShadow: '0 4px 16px rgba(245, 179, 1, 0.2)',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                            className="hover-scale"
+                                        >
+                                            <Lucide.Layers size={18} />
+                                            SGPA ➔ CGPA Calculator
                                         </button>
                                     )}
                                 </div>

@@ -5,10 +5,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Lucide from 'lucide-react';
 import toast from 'react-hot-toast';
 
+export type CalculatorTab = 'cgpa' | 'sgpa-to-cgpa' | 'sgpa' | 'marks' | 'info';
+
+export interface SemesterEntry {
+    sem: number;
+    sgpa: string;
+    credits: string;
+}
+
 interface PercentageCalculatorProps {
     isOpen: boolean;
     onClose: () => void;
     initialCgpa?: string | number | null;
+    initialTab?: CalculatorTab;
+    initialAllSgpa?: (string | null | undefined)[] | null;
 }
 
 export type ConversionFormula = 'beu' | 'aicte' | 'ugc';
@@ -16,13 +26,28 @@ export type ConversionFormula = 'beu' | 'aicte' | 'ugc';
 export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
     isOpen,
     onClose,
-    initialCgpa = ''
+    initialCgpa = '',
+    initialTab = 'cgpa',
+    initialAllSgpa = null
 }) => {
-    const [activeTab, setActiveTab] = useState<'cgpa' | 'sgpa' | 'marks' | 'info'>('cgpa');
+    const [activeTab, setActiveTab] = useState<CalculatorTab>(initialTab || 'cgpa');
     
     // CGPA Tab State
     const [cgpa, setCgpa] = useState<string>('');
     const [cgpaFormula, setCgpaFormula] = useState<ConversionFormula>('beu');
+
+    // SGPA to CGPA Tab State
+    const [semesters, setSemesters] = useState<SemesterEntry[]>([
+        { sem: 1, sgpa: '', credits: '20' },
+        { sem: 2, sgpa: '', credits: '20' },
+        { sem: 3, sgpa: '', credits: '20' },
+        { sem: 4, sgpa: '', credits: '20' },
+        { sem: 5, sgpa: '', credits: '20' },
+        { sem: 6, sgpa: '', credits: '20' },
+        { sem: 7, sgpa: '', credits: '20' },
+        { sem: 8, sgpa: '', credits: '20' },
+    ]);
+    const [useCreditWeights, setUseCreditWeights] = useState<boolean>(false);
     
     // SGPA Tab State
     const [sgpa, setSgpa] = useState<string>('');
@@ -31,6 +56,26 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
     // Marks Tab State
     const [obtainedMarks, setObtainedMarks] = useState<string>('');
     const [totalMarks, setTotalMarks] = useState<string>('750');
+
+    // Sync tab when initialTab changes
+    useEffect(() => {
+        if (isOpen && initialTab) {
+            setActiveTab(initialTab);
+        }
+    }, [isOpen, initialTab]);
+
+    // Populate initial allSgpa when provided
+    useEffect(() => {
+        if (isOpen && initialAllSgpa && Array.isArray(initialAllSgpa) && initialAllSgpa.length > 0) {
+            setSemesters(prev => prev.map((s, idx) => {
+                const val = initialAllSgpa[idx];
+                if (val && val !== '-' && val !== 'NA' && val !== 'N/A' && !isNaN(parseFloat(val))) {
+                    return { ...s, sgpa: parseFloat(val).toFixed(2) };
+                }
+                return s;
+            }));
+        }
+    }, [isOpen, initialAllSgpa]);
 
     // Populate initial CGPA when modal opens
     useEffect(() => {
@@ -103,6 +148,39 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
     const totNum = parseFloat(totalMarks);
     const marksPct = (!isNaN(obtNum) && !isNaN(totNum) && totNum > 0) ? (obtNum / totNum) * 100 : 0;
     const marksDivision = getDivision(marksPct);
+
+    // Computed SGPA to CGPA calculation
+    const validSemesters = semesters.filter(s => {
+        const val = parseFloat(s.sgpa);
+        return !isNaN(val) && val > 0 && val <= 10;
+    });
+    const semCount = validSemesters.length;
+    let computedCgpa = 0;
+    let totalCredits = 0;
+    let sgpaToCgpaStep = '';
+
+    if (semCount > 0) {
+        if (useCreditWeights) {
+            let totalWeightedPoints = 0;
+            let credSum = 0;
+            validSemesters.forEach(s => {
+                const sgpaVal = parseFloat(s.sgpa);
+                const credVal = parseFloat(s.credits) || 20;
+                totalWeightedPoints += sgpaVal * credVal;
+                credSum += credVal;
+            });
+            computedCgpa = credSum > 0 ? totalWeightedPoints / credSum : 0;
+            totalCredits = credSum;
+            sgpaToCgpaStep = `∑(SGPA × Credits) / ∑Credits = ${totalWeightedPoints.toFixed(2)} / ${credSum} = ${computedCgpa.toFixed(2)} CGPA`;
+        } else {
+            const sum = validSemesters.reduce((acc, s) => acc + parseFloat(s.sgpa), 0);
+            computedCgpa = sum / semCount;
+            sgpaToCgpaStep = `(${validSemesters.map(s => parseFloat(s.sgpa).toFixed(2)).join(' + ')}) / ${semCount} = ${computedCgpa.toFixed(2)} CGPA`;
+        }
+    }
+
+    const sgpaToCgpaPercentage = computedCgpa * 10;
+    const sgpaToCgpaDivision = getDivision(sgpaToCgpaPercentage);
 
     // Copy to clipboard
     const handleCopy = (text: string) => {
@@ -229,6 +307,7 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                     }}>
                         {[
                             { id: 'cgpa', label: 'CGPA to %', icon: Lucide.Award },
+                            { id: 'sgpa-to-cgpa', label: 'SGPA to CGPA', icon: Lucide.Calculator },
                             { id: 'sgpa', label: 'SGPA to %', icon: Lucide.TrendingUp },
                             { id: 'marks', label: 'Marks to %', icon: Lucide.Percent },
                             { id: 'info', label: 'BEU Guidelines', icon: Lucide.Info },
@@ -442,6 +521,339 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                             <Lucide.Copy size={15} /> Copy Calculation Breakdown
                                         </button>
                                     </motion.div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB: SGPA to CGPA */}
+                        {activeTab === 'sgpa-to-cgpa' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                {/* Top Controls / Info Banner */}
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
+                                    gap: '0.75rem',
+                                    padding: '0.75rem 1rem',
+                                    borderRadius: '0.75rem',
+                                    background: 'rgba(56, 189, 248, 0.08)',
+                                    border: '1px solid rgba(56, 189, 248, 0.25)'
+                                }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                                            Calculate Overall CGPA from Semester SGPAs
+                                        </div>
+                                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                            Enter SGPA for your completed semesters (blank semesters are ignored)
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSemesters([
+                                                    { sem: 1, sgpa: '7.20', credits: '20' },
+                                                    { sem: 2, sgpa: '7.60', credits: '20' },
+                                                    { sem: 3, sgpa: '8.10', credits: '20' },
+                                                    { sem: 4, sgpa: '8.40', credits: '20' },
+                                                    { sem: 5, sgpa: '', credits: '20' },
+                                                    { sem: 6, sgpa: '', credits: '20' },
+                                                    { sem: 7, sgpa: '', credits: '20' },
+                                                    { sem: 8, sgpa: '', credits: '20' },
+                                                ]);
+                                                toast.success('Sample SGPAs loaded!');
+                                            }}
+                                            style={{
+                                                padding: '0.3rem 0.65rem',
+                                                fontSize: '0.72rem',
+                                                fontWeight: 600,
+                                                borderRadius: '0.45rem',
+                                                background: 'rgba(255, 255, 255, 0.08)',
+                                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                color: 'var(--text-main)',
+                                                cursor: 'pointer'
+                                            }}
+                                            className="hover-scale"
+                                        >
+                                            Sample
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSemesters(prev => prev.map(s => ({ ...s, sgpa: '' })));
+                                                toast('Cleared all semester inputs', { icon: '🧹' });
+                                            }}
+                                            style={{
+                                                padding: '0.3rem 0.65rem',
+                                                fontSize: '0.72rem',
+                                                fontWeight: 600,
+                                                borderRadius: '0.45rem',
+                                                background: 'rgba(239, 68, 68, 0.1)',
+                                                border: '1px solid rgba(239, 68, 68, 0.25)',
+                                                color: '#EF4444',
+                                                cursor: 'pointer'
+                                            }}
+                                            className="hover-scale"
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Calculation Mode Toggle */}
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                                        Calculation Mode:
+                                    </label>
+                                    <div style={{ display: 'flex', gap: '0.3rem', background: 'rgba(0, 0, 0, 0.25)', padding: '3px', borderRadius: '0.6rem', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setUseCreditWeights(false)}
+                                            style={{
+                                                padding: '0.35rem 0.7rem',
+                                                fontSize: '0.74rem',
+                                                fontWeight: 700,
+                                                borderRadius: '0.45rem',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                background: !useCreditWeights ? '#38BDF8' : 'transparent',
+                                                color: !useCreditWeights ? '#0A1128' : 'var(--text-muted)',
+                                                transition: 'all 0.15s ease'
+                                            }}
+                                        >
+                                            Equal Credits (Simple Avg)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setUseCreditWeights(true)}
+                                            style={{
+                                                padding: '0.35rem 0.7rem',
+                                                fontSize: '0.74rem',
+                                                fontWeight: 700,
+                                                borderRadius: '0.45rem',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                background: useCreditWeights ? '#38BDF8' : 'transparent',
+                                                color: useCreditWeights ? '#0A1128' : 'var(--text-muted)',
+                                                transition: 'all 0.15s ease'
+                                            }}
+                                        >
+                                            Weighted (Credits)
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Semesters Input Grid */}
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(115px, 1fr))',
+                                    gap: '0.65rem'
+                                }}>
+                                    {semesters.map((s, idx) => (
+                                        <div
+                                            key={s.sem}
+                                            style={{
+                                                padding: '0.65rem',
+                                                borderRadius: '0.75rem',
+                                                background: s.sgpa ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                                                border: `1px solid ${s.sgpa ? 'rgba(56, 189, 248, 0.35)' : 'rgba(255, 255, 255, 0.08)'}`,
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '0.35rem',
+                                                transition: 'all 0.15s ease'
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: s.sgpa ? '#38BDF8' : 'var(--text-main)' }}>
+                                                    Sem {s.sem}
+                                                </span>
+                                                {s.sgpa && (
+                                                    <span style={{ fontSize: '0.65rem', color: '#10B981', fontWeight: 700 }}>✓</span>
+                                                )}
+                                            </div>
+
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="10"
+                                                step="0.01"
+                                                placeholder="SGPA"
+                                                value={s.sgpa}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setSemesters(prev => prev.map((item, i) => i === idx ? { ...item, sgpa: val } : item));
+                                                }}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.45rem 0.55rem',
+                                                    borderRadius: '0.5rem',
+                                                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                                                    background: 'rgba(255, 255, 255, 0.04)',
+                                                    color: 'var(--text-main)',
+                                                    fontSize: '0.95rem',
+                                                    fontWeight: 700,
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box',
+                                                    textAlign: 'center'
+                                                }}
+                                            />
+
+                                            {useCreditWeights && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.1rem' }}>
+                                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Cr:</span>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        step="0.5"
+                                                        placeholder="Credits"
+                                                        value={s.credits}
+                                                        onChange={(e) => {
+                                                            const val = e.target.value;
+                                                            setSemesters(prev => prev.map((item, i) => i === idx ? { ...item, credits: val } : item));
+                                                        }}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '0.25rem 0.35rem',
+                                                            borderRadius: '0.4rem',
+                                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                            background: 'rgba(255, 255, 255, 0.03)',
+                                                            color: 'var(--text-main)',
+                                                            fontSize: '0.75rem',
+                                                            fontWeight: 600,
+                                                            outline: 'none',
+                                                            textAlign: 'center'
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Results Box */}
+                                {semCount > 0 ? (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        style={{
+                                            padding: '1.25rem',
+                                            borderRadius: '1rem',
+                                            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(245, 179, 1, 0.08) 100%)',
+                                            border: '1px solid rgba(56, 189, 248, 0.38)',
+                                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '0.85rem'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
+                                            <div>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+                                                    Cumulative Grade Point Average (CGPA)
+                                                </span>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', marginTop: '0.2rem' }}>
+                                                    <span style={{ fontSize: '2.5rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1 }}>
+                                                        {computedCgpa.toFixed(2)}
+                                                    </span>
+                                                    <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#F5B301' }}>
+                                                        ➔ {sgpaToCgpaPercentage.toFixed(2)}%
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.35rem' }}>
+                                                <span style={{
+                                                    fontSize: '0.75rem',
+                                                    padding: '0.35rem 0.75rem',
+                                                    borderRadius: '2rem',
+                                                    fontWeight: 700,
+                                                    color: sgpaToCgpaDivision.color,
+                                                    background: sgpaToCgpaDivision.badgeBg,
+                                                    border: `1px solid ${sgpaToCgpaDivision.color}`
+                                                }}>
+                                                    ★ {sgpaToCgpaDivision.label}
+                                                </span>
+                                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                                    Based on {semCount} Semester{semCount > 1 ? 's' : ''} {useCreditWeights ? `(${totalCredits} Credits)` : ''}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.6rem' }}>
+                                            Formula: <code style={{ color: 'var(--text-main)', fontWeight: 600 }}>{sgpaToCgpaStep}</code>
+                                        </div>
+
+                                        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const text = `BEU Cumulative Result:\n${validSemesters.map(s => `Sem ${s.sem} SGPA: ${parseFloat(s.sgpa).toFixed(2)}`).join('\n')}\nOverall CGPA: ${computedCgpa.toFixed(2)}\nEquivalent Percentage: ${sgpaToCgpaPercentage.toFixed(2)}%\nDivision: ${sgpaToCgpaDivision.label}\nRule: BEU Standard (CGPA × 10)`;
+                                                    handleCopy(text);
+                                                }}
+                                                style={{
+                                                    flex: 1,
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '0.45rem',
+                                                    padding: '0.55rem 1rem',
+                                                    borderRadius: '0.65rem',
+                                                    background: 'rgba(56, 189, 248, 0.15)',
+                                                    border: '1px solid rgba(56, 189, 248, 0.35)',
+                                                    color: '#38BDF8',
+                                                    fontSize: '0.82rem',
+                                                    fontWeight: 700,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                                className="hover-scale"
+                                            >
+                                                <Lucide.Copy size={15} /> Copy CGPA Breakdown
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setCgpa(computedCgpa.toFixed(2));
+                                                    setActiveTab('cgpa');
+                                                    toast.success(`CGPA ${computedCgpa.toFixed(2)} transferred to CGPA to % calculator!`);
+                                                }}
+                                                style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '0.45rem',
+                                                    padding: '0.55rem 1rem',
+                                                    borderRadius: '0.65rem',
+                                                    background: 'rgba(245, 179, 1, 0.15)',
+                                                    border: '1px solid rgba(245, 179, 1, 0.35)',
+                                                    color: '#F5B301',
+                                                    fontSize: '0.82rem',
+                                                    fontWeight: 700,
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                                className="hover-scale"
+                                                title="View in CGPA to Percentage converter"
+                                            >
+                                                View in % Tab ➔
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    <div style={{
+                                        padding: '1.5rem',
+                                        textAlign: 'center',
+                                        borderRadius: '0.85rem',
+                                        border: '1px dashed rgba(255, 255, 255, 0.15)',
+                                        color: 'var(--text-muted)',
+                                        fontSize: '0.84rem'
+                                    }}>
+                                        Enter SGPA in any of the semester boxes above to calculate your cumulative CGPA.
+                                    </div>
                                 )}
                             </div>
                         )}

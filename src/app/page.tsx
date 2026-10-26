@@ -54,10 +54,19 @@ const App: React.FC = () => {
   const [selectedExam, setSelectedExam] = useState<any>(null);
   const [showCalculator, setShowCalculator] = useState(false);
   const [calcScore, setCalcScore] = useState<string | number | null>(null);
+  const [calcTab, setCalcTab] = useState<'cgpa' | 'sgpa-to-cgpa' | 'sgpa' | 'marks' | 'info'>('cgpa');
+  const [calcAllSgpa, setCalcAllSgpa] = useState<(string | null | undefined)[] | null>(null);
 
-  const handleOpenCalculator = (score?: string | number) => {
-    if (score !== undefined) {
-      setCalcScore(score);
+  const handleOpenCalculator = (options?: { score?: string | number; tab?: 'cgpa' | 'sgpa-to-cgpa' | 'sgpa' | 'marks' | 'info'; allSgpa?: (string | null | undefined)[] } | string | number) => {
+    if (typeof options === 'string' || typeof options === 'number') {
+      setCalcScore(options);
+      setCalcTab('cgpa');
+    } else if (options && typeof options === 'object') {
+      if (options.score !== undefined) setCalcScore(options.score);
+      if (options.tab) setCalcTab(options.tab);
+      if (options.allSgpa) setCalcAllSgpa(options.allSgpa);
+    } else {
+      setCalcTab('cgpa');
     }
     setShowCalculator(true);
   };
@@ -134,8 +143,11 @@ const App: React.FC = () => {
         onClose={() => {
           setShowCalculator(false);
           setCalcScore(null);
+          setCalcAllSgpa(null);
         }}
         initialCgpa={calcScore}
+        initialTab={calcTab}
+        initialAllSgpa={calcAllSgpa}
       />
 
       <footer style={{

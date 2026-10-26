@@ -26,7 +26,7 @@ interface Course {
 
 interface HomeProps {
     onSelectSemester: (exam: Exam) => void;
-    onOpenCalculator?: () => void;
+    onOpenCalculator?: (options?: any) => void;
 }
 
 /**
@@ -168,10 +168,13 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
     const [noticesLoading, setNoticesLoading] = useState(true);
     const [isSubscribed, setIsSubscribed] = useState(false);
 
-    // Quick Percentage Calculator State on Homepage
+    // Quick Percentage & CGPA Calculator State on Homepage
+    const [homeCalcMode, setHomeCalcMode] = useState<'cgpa-to-pct' | 'sgpa-to-cgpa'>('cgpa-to-pct');
     const [homeCgpa, setHomeCgpa] = useState<string>('');
     const [homeFormula, setHomeFormula] = useState<'beu' | 'aicte'>('beu');
+    const [homeSemSgpas, setHomeSemSgpas] = useState<string[]>(['', '', '', '', '', '', '', '']);
 
+    // Computed for CGPA to %
     const parsedHomeCgpa = parseFloat(homeCgpa);
     const isHomeCgpaValid = !isNaN(parsedHomeCgpa) && parsedHomeCgpa > 0 && parsedHomeCgpa <= 10;
     const homePercentage = isHomeCgpaValid
@@ -182,6 +185,15 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
             ? `${parsedHomeCgpa.toFixed(2)} × 10 = ${homePercentage.toFixed(2)}%`
             : `(${parsedHomeCgpa.toFixed(2)} - 0.75) × 10 = ${homePercentage.toFixed(2)}%`)
         : '';
+
+    // Computed for SGPA to CGPA
+    const validHomeSems = homeSemSgpas
+        .map((val, idx) => ({ sem: idx + 1, val: parseFloat(val) }))
+        .filter(item => !isNaN(item.val) && item.val > 0 && item.val <= 10);
+    const homeSemCount = validHomeSems.length;
+    const homeSgpaSum = validHomeSems.reduce((acc, curr) => acc + curr.val, 0);
+    const homeComputedCgpa = homeSemCount > 0 ? homeSgpaSum / homeSemCount : 0;
+    const homeComputedPct = homeComputedCgpa * 10;
 
     const getDivisionInfo = (pct: number) => {
         if (pct >= 75) return { label: 'First Class with Distinction', color: '#10B981', bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)' };
@@ -493,187 +505,420 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
                                 </div>
                             </div>
 
-                            {/* Input & Formula Selector Row */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.6rem', alignItems: 'center' }}>
-                                <div style={{ position: 'relative' }}>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="10"
-                                        step="0.01"
-                                        placeholder="Enter CGPA (e.g. 7.82)"
-                                        value={homeCgpa}
-                                        onChange={(e) => setHomeCgpa(e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.65rem 0.9rem',
-                                            borderRadius: '0.7rem',
-                                            border: '1px solid rgba(255, 255, 255, 0.14)',
-                                            background: 'rgba(255, 255, 255, 0.04)',
-                                            color: 'var(--text-main)',
-                                            fontSize: '0.98rem',
-                                            fontWeight: 700,
-                                            outline: 'none',
-                                            boxSizing: 'border-box'
-                                        }}
-                                    />
-                                    {homeCgpa && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setHomeCgpa('')}
-                                            style={{
-                                                position: 'absolute',
-                                                right: '0.6rem',
-                                                top: '50%',
-                                                transform: 'translateY(-50%)',
-                                                background: 'transparent',
-                                                border: 'none',
-                                                color: 'var(--text-muted)',
-                                                cursor: 'pointer',
-                                                padding: '0.2rem'
-                                            }}
-                                        >
-                                            <Lucide.X size={15} />
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Formula Choice */}
-                                <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(0, 0, 0, 0.25)', padding: '3px', borderRadius: '0.6rem', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setHomeFormula('beu')}
-                                        style={{
-                                            padding: '0.38rem 0.65rem',
-                                            fontSize: '0.72rem',
-                                            fontWeight: 700,
-                                            borderRadius: '0.45rem',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            background: homeFormula === 'beu' ? '#38BDF8' : 'transparent',
-                                            color: homeFormula === 'beu' ? '#0A1128' : 'var(--text-muted)',
-                                            transition: 'all 0.15s ease'
-                                        }}
-                                        title="BEU Standard: CGPA × 10"
-                                    >
-                                        BEU (×10)
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setHomeFormula('aicte')}
-                                        style={{
-                                            padding: '0.38rem 0.65rem',
-                                            fontSize: '0.72rem',
-                                            fontWeight: 700,
-                                            borderRadius: '0.45rem',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            background: homeFormula === 'aicte' ? '#38BDF8' : 'transparent',
-                                            color: homeFormula === 'aicte' ? '#0A1128' : 'var(--text-muted)',
-                                            transition: 'all 0.15s ease'
-                                        }}
-                                        title="AICTE: (CGPA - 0.75) × 10"
-                                    >
-                                        AICTE
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Quick Presets */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.55rem', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>Presets:</span>
-                                {['6.50', '7.00', '7.50', '7.82', '8.00', '8.50', '9.00'].map((preset) => (
-                                    <button
-                                        key={preset}
-                                        type="button"
-                                        onClick={() => setHomeCgpa(preset)}
-                                        style={{
-                                            padding: '0.18rem 0.5rem',
-                                            fontSize: '0.72rem',
-                                            borderRadius: '0.4rem',
-                                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                                            background: homeCgpa === preset ? 'rgba(56, 189, 248, 0.22)' : 'rgba(255, 255, 255, 0.03)',
-                                            color: homeCgpa === preset ? '#38BDF8' : 'var(--text-muted)',
-                                            cursor: 'pointer',
-                                            fontWeight: 600,
-                                            transition: 'all 0.15s ease'
-                                        }}
-                                        className="hover-scale"
-                                    >
-                                        {preset}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Live Result Box */}
-                            {isHomeCgpaValid && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 6 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.2 }}
+                            {/* Mode Switcher Tabs */}
+                            <div style={{
+                                display: 'flex',
+                                gap: '0.35rem',
+                                marginBottom: '0.85rem',
+                                background: 'rgba(0, 0, 0, 0.25)',
+                                padding: '3px',
+                                borderRadius: '0.75rem',
+                                border: '1px solid rgba(255, 255, 255, 0.08)'
+                            }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setHomeCalcMode('cgpa-to-pct')}
                                     style={{
-                                        marginTop: '0.85rem',
-                                        padding: '0.85rem 1.1rem',
-                                        borderRadius: '0.85rem',
-                                        background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(245, 179, 1, 0.08) 100%)',
-                                        border: '1px solid rgba(56, 189, 248, 0.35)',
-                                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-                                        display: 'flex',
+                                        flex: 1,
+                                        padding: '0.42rem 0.75rem',
+                                        fontSize: '0.78rem',
+                                        fontWeight: 700,
+                                        borderRadius: '0.55rem',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        background: homeCalcMode === 'cgpa-to-pct' ? 'var(--primary)' : 'transparent',
+                                        color: homeCalcMode === 'cgpa-to-pct' ? 'var(--btn-text)' : 'var(--text-muted)',
+                                        display: 'inline-flex',
                                         alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        flexWrap: 'wrap',
-                                        gap: '0.75rem'
+                                        justifyContent: 'center',
+                                        gap: '0.35rem',
+                                        transition: 'all 0.18s ease'
                                     }}
                                 >
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.65rem' }}>
-                                            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1 }}>
-                                                {homePercentage.toFixed(2)}%
-                                            </span>
-                                            <span style={{
-                                                fontSize: '0.72rem',
-                                                fontWeight: 700,
-                                                padding: '0.2rem 0.55rem',
-                                                borderRadius: '1rem',
-                                                color: getDivisionInfo(homePercentage).color,
-                                                background: getDivisionInfo(homePercentage).bg,
-                                                border: `1px solid ${getDivisionInfo(homePercentage).border}`
-                                            }}>
-                                                ★ {getDivisionInfo(homePercentage).label}
-                                            </span>
+                                    <Lucide.Award size={14} /> CGPA to %
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setHomeCalcMode('sgpa-to-cgpa')}
+                                    style={{
+                                        flex: 1,
+                                        padding: '0.42rem 0.75rem',
+                                        fontSize: '0.78rem',
+                                        fontWeight: 700,
+                                        borderRadius: '0.55rem',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        background: homeCalcMode === 'sgpa-to-cgpa' ? 'var(--primary)' : 'transparent',
+                                        color: homeCalcMode === 'sgpa-to-cgpa' ? 'var(--btn-text)' : 'var(--text-muted)',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.35rem',
+                                        transition: 'all 0.18s ease'
+                                    }}
+                                >
+                                    <Lucide.Calculator size={14} /> SGPA to CGPA
+                                </button>
+                            </div>
+
+                            {/* MODE 1: CGPA to Percentage */}
+                            {homeCalcMode === 'cgpa-to-pct' && (
+                                <>
+                                    {/* Input & Formula Selector Row */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.6rem', alignItems: 'center' }}>
+                                        <div style={{ position: 'relative' }}>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="10"
+                                                step="0.01"
+                                                placeholder="Enter CGPA (e.g. 7.82)"
+                                                value={homeCgpa}
+                                                onChange={(e) => setHomeCgpa(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.65rem 0.9rem',
+                                                    borderRadius: '0.7rem',
+                                                    border: '1px solid rgba(255, 255, 255, 0.14)',
+                                                    background: 'rgba(255, 255, 255, 0.04)',
+                                                    color: 'var(--text-main)',
+                                                    fontSize: '0.98rem',
+                                                    fontWeight: 700,
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box'
+                                                }}
+                                            />
+                                            {homeCgpa && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setHomeCgpa('')}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        right: '0.6rem',
+                                                        top: '50%',
+                                                        transform: 'translateY(-50%)',
+                                                        background: 'transparent',
+                                                        border: 'none',
+                                                        color: 'var(--text-muted)',
+                                                        cursor: 'pointer',
+                                                        padding: '0.2rem'
+                                                    }}
+                                                >
+                                                    <Lucide.X size={15} />
+                                                </button>
+                                            )}
                                         </div>
-                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
-                                            Calculation: <code style={{ color: 'var(--text-main)', fontWeight: 600 }}>{homeFormulaText}</code>
+
+                                        {/* Formula Choice */}
+                                        <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(0, 0, 0, 0.25)', padding: '3px', borderRadius: '0.6rem', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setHomeFormula('beu')}
+                                                style={{
+                                                    padding: '0.38rem 0.65rem',
+                                                    fontSize: '0.72rem',
+                                                    fontWeight: 700,
+                                                    borderRadius: '0.45rem',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    background: homeFormula === 'beu' ? '#38BDF8' : 'transparent',
+                                                    color: homeFormula === 'beu' ? '#0A1128' : 'var(--text-muted)',
+                                                    transition: 'all 0.15s ease'
+                                                }}
+                                                title="BEU Standard: CGPA × 10"
+                                            >
+                                                BEU (×10)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setHomeFormula('aicte')}
+                                                style={{
+                                                    padding: '0.38rem 0.65rem',
+                                                    fontSize: '0.72rem',
+                                                    fontWeight: 700,
+                                                    borderRadius: '0.45rem',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    background: homeFormula === 'aicte' ? '#38BDF8' : 'transparent',
+                                                    color: homeFormula === 'aicte' ? '#0A1128' : 'var(--text-muted)',
+                                                    transition: 'all 0.15s ease'
+                                                }}
+                                                title="AICTE: (CGPA - 0.75) × 10"
+                                            >
+                                                AICTE
+                                            </button>
                                         </div>
                                     </div>
 
-                                    <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(`BEU B.Tech Result:\nCGPA: ${parsedHomeCgpa.toFixed(2)}\nPercentage: ${homePercentage.toFixed(2)}%\nDivision: ${getDivisionInfo(homePercentage).label}\nFormula: ${homeFormulaText}`);
-                                                toast.success('Calculation copied to clipboard!');
-                                            }}
-                                            style={{
-                                                padding: '0.42rem 0.75rem',
-                                                borderRadius: '0.5rem',
-                                                background: 'rgba(255, 255, 255, 0.08)',
-                                                border: '1px solid rgba(255, 255, 255, 0.14)',
-                                                color: 'var(--text-main)',
-                                                fontSize: '0.74rem',
-                                                fontWeight: 600,
-                                                cursor: 'pointer',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '0.35rem'
-                                            }}
-                                            className="hover-scale"
-                                            title="Copy Result"
-                                        >
-                                            <Lucide.Copy size={13} /> Copy
-                                        </button>
+                                    {/* Quick Presets */}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.55rem', flexWrap: 'wrap' }}>
+                                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>Presets:</span>
+                                        {['6.50', '7.00', '7.50', '7.82', '8.00', '8.50', '9.00'].map((preset) => (
+                                            <button
+                                                key={preset}
+                                                type="button"
+                                                onClick={() => setHomeCgpa(preset)}
+                                                style={{
+                                                    padding: '0.18rem 0.5rem',
+                                                    fontSize: '0.72rem',
+                                                    borderRadius: '0.4rem',
+                                                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                                                    background: homeCgpa === preset ? 'rgba(56, 189, 248, 0.22)' : 'rgba(255, 255, 255, 0.03)',
+                                                    color: homeCgpa === preset ? '#38BDF8' : 'var(--text-muted)',
+                                                    cursor: 'pointer',
+                                                    fontWeight: 600,
+                                                    transition: 'all 0.15s ease'
+                                                }}
+                                                className="hover-scale"
+                                            >
+                                                {preset}
+                                            </button>
+                                        ))}
                                     </div>
-                                </motion.div>
+
+                                    {/* Live Result Box */}
+                                    {isHomeCgpaValid && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            style={{
+                                                marginTop: '0.85rem',
+                                                padding: '0.85rem 1.1rem',
+                                                borderRadius: '0.85rem',
+                                                background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(245, 179, 1, 0.08) 100%)',
+                                                border: '1px solid rgba(56, 189, 248, 0.35)',
+                                                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                flexWrap: 'wrap',
+                                                gap: '0.75rem'
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.65rem' }}>
+                                                    <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1 }}>
+                                                        {homePercentage.toFixed(2)}%
+                                                    </span>
+                                                    <span style={{
+                                                        fontSize: '0.72rem',
+                                                        fontWeight: 700,
+                                                        padding: '0.2rem 0.55rem',
+                                                        borderRadius: '1rem',
+                                                        color: getDivisionInfo(homePercentage).color,
+                                                        background: getDivisionInfo(homePercentage).bg,
+                                                        border: `1px solid ${getDivisionInfo(homePercentage).border}`
+                                                    }}>
+                                                        ★ {getDivisionInfo(homePercentage).label}
+                                                    </span>
+                                                </div>
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                                                    Calculation: <code style={{ color: 'var(--text-main)', fontWeight: 600 }}>{homeFormulaText}</code>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(`BEU B.Tech Result:\nCGPA: ${parsedHomeCgpa.toFixed(2)}\nPercentage: ${homePercentage.toFixed(2)}%\nDivision: ${getDivisionInfo(homePercentage).label}\nFormula: ${homeFormulaText}`);
+                                                        toast.success('Calculation copied to clipboard!');
+                                                    }}
+                                                    style={{
+                                                        padding: '0.42rem 0.75rem',
+                                                        borderRadius: '0.5rem',
+                                                        background: 'rgba(255, 255, 255, 0.08)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.14)',
+                                                        color: 'var(--text-main)',
+                                                        fontSize: '0.74rem',
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.35rem'
+                                                    }}
+                                                    className="hover-scale"
+                                                    title="Copy Result"
+                                                >
+                                                    <Lucide.Copy size={13} /> Copy
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* MODE 2: SGPA to CGPA */}
+                            {homeCalcMode === 'sgpa-to-cgpa' && (
+                                <div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                                            Enter SGPAs (blank semesters ignored):
+                                        </span>
+                                        <div style={{ display: 'flex', gap: '0.35rem' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setHomeSemSgpas(['7.20', '7.60', '8.10', '8.40', '', '', '', '']);
+                                                    toast.success('Sample 4 semesters loaded!');
+                                                }}
+                                                style={{
+                                                    padding: '0.15rem 0.5rem',
+                                                    fontSize: '0.68rem',
+                                                    borderRadius: '0.35rem',
+                                                    background: 'rgba(255, 255, 255, 0.08)',
+                                                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                    color: 'var(--text-main)',
+                                                    cursor: 'pointer'
+                                                }}
+                                                className="hover-scale"
+                                            >
+                                                Sample
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setHomeSemSgpas(['', '', '', '', '', '', '', ''])}
+                                                style={{
+                                                    padding: '0.15rem 0.5rem',
+                                                    fontSize: '0.68rem',
+                                                    borderRadius: '0.35rem',
+                                                    background: 'rgba(239, 68, 68, 0.1)',
+                                                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                                                    color: '#EF4444',
+                                                    cursor: 'pointer'
+                                                }}
+                                                className="hover-scale"
+                                            >
+                                                Clear
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* 8 Semester Mini-Inputs Grid */}
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(4, 1fr)',
+                                        gap: '0.45rem'
+                                    }}>
+                                        {[1, 2, 3, 4, 5, 6, 7, 8].map((semNum, idx) => (
+                                            <div
+                                                key={`home-sem-${semNum}`}
+                                                style={{
+                                                    padding: '0.35rem 0.45rem',
+                                                    borderRadius: '0.5rem',
+                                                    background: homeSemSgpas[idx] ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                                                    border: `1px solid ${homeSemSgpas[idx] ? 'rgba(56, 189, 248, 0.35)' : 'rgba(255, 255, 255, 0.08)'}`,
+                                                    textAlign: 'center'
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: homeSemSgpas[idx] ? '#38BDF8' : 'var(--text-muted)', display: 'block', marginBottom: '0.15rem' }}>
+                                                    Sem {semNum}
+                                                </span>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max="10"
+                                                    step="0.01"
+                                                    placeholder="SGPA"
+                                                    value={homeSemSgpas[idx]}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        setHomeSemSgpas(prev => prev.map((item, i) => i === idx ? val : item));
+                                                    }}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '0.3rem 0.2rem',
+                                                        borderRadius: '0.35rem',
+                                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                        background: 'rgba(255, 255, 255, 0.04)',
+                                                        color: 'var(--text-main)',
+                                                        fontSize: '0.85rem',
+                                                        fontWeight: 700,
+                                                        outline: 'none',
+                                                        boxSizing: 'border-box',
+                                                        textAlign: 'center'
+                                                    }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Live Result Box for SGPA to CGPA */}
+                                    {homeSemCount > 0 ? (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            style={{
+                                                marginTop: '0.85rem',
+                                                padding: '0.85rem 1.1rem',
+                                                borderRadius: '0.85rem',
+                                                background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(245, 179, 1, 0.08) 100%)',
+                                                border: '1px solid rgba(56, 189, 248, 0.35)',
+                                                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                flexWrap: 'wrap',
+                                                gap: '0.75rem'
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.65rem' }}>
+                                                    <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1 }}>
+                                                        {homeComputedCgpa.toFixed(2)} CGPA
+                                                    </span>
+                                                    <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#F5B301' }}>
+                                                        ➔ {homeComputedPct.toFixed(2)}%
+                                                    </span>
+                                                </div>
+                                                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                                                    Based on {homeSemCount} Semester{homeSemCount > 1 ? 's' : ''} • <span style={{ color: getDivisionInfo(homeComputedPct).color, fontWeight: 700 }}>★ {getDivisionInfo(homeComputedPct).label}</span>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(`BEU SGPA to CGPA Result:\n${validHomeSems.map(s => `Sem ${s.sem}: ${s.val.toFixed(2)}`).join(', ')}\nCumulative CGPA: ${homeComputedCgpa.toFixed(2)}\nPercentage: ${homeComputedPct.toFixed(2)}%\nDivision: ${getDivisionInfo(homeComputedPct).label}`);
+                                                        toast.success('CGPA summary copied!');
+                                                    }}
+                                                    style={{
+                                                        padding: '0.42rem 0.75rem',
+                                                        borderRadius: '0.5rem',
+                                                        background: 'rgba(255, 255, 255, 0.08)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.14)',
+                                                        color: 'var(--text-main)',
+                                                        fontSize: '0.74rem',
+                                                        fontWeight: 600,
+                                                        cursor: 'pointer',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.35rem'
+                                                    }}
+                                                    className="hover-scale"
+                                                    title="Copy Result"
+                                                >
+                                                    <Lucide.Copy size={13} /> Copy
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    ) : (
+                                        <div style={{
+                                            marginTop: '0.65rem',
+                                            padding: '0.75rem',
+                                            textAlign: 'center',
+                                            borderRadius: '0.55rem',
+                                            border: '1px dashed rgba(255, 255, 255, 0.12)',
+                                            color: 'var(--text-muted)',
+                                            fontSize: '0.75rem'
+                                        }}>
+                                            Enter any semester SGPA above to see your calculated cumulative CGPA instantly.
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </motion.div>
                     )}
