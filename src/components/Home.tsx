@@ -915,14 +915,13 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 
                 <div style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <p style={{ fontWeight: 600, color: 'var(--primary)', borderLeft: '4px solid var(--primary)', paddingLeft: '1rem' }}>
-                        BEU result check karne ke liye is portal ka use kare. 
-                        Yaha aapko semester wise result, latest updates aur direct result links milenge.
+                        Use this dedicated student portal to check Bihar Engineering University (BEU) semester results, access real-time university notifications, and view authentic marksheets directly.
                     </p>
                     <p style={{ fontWeight: 500, color: 'var(--text-main)' }}>
-                        Yaha se aap BEU result, semester wise result aur latest updates check kar sakte hai.
+                        Instant access to official B.Tech examination scorecards, branch performance statistics, and verified university results across Bihar engineering colleges.
                     </p>
                     <p>
-                        Bihar Engineering University (BEU) releases semester examination results for BTech students every year. Many students face difficulty finding the correct result link quickly. This BEU Result Portal helps students easily access their Bihar Engineering University results online.
+                        Bihar Engineering University (BEU), Patna releases semester examination results for undergraduate engineering students throughout the academic year. This portal provides an accelerated, mobile-optimized platform ensuring students can easily check, verify, and print their official marksheet records online without server interruptions.
                     </p>
                 </div>
                 

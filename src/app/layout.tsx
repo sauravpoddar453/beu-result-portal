@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: 'BEU Result | Bihar Engineering University Result Portal',
-  description: 'Check BEU Result for all semesters. Bihar Engineering University ke sabhi results yaha check kare. Fast result portal.',
+  description: 'Check official BEU Results for all semesters. Instant access to Bihar Engineering University B.Tech scorecards, marksheet downloads, and university notifications.',
   keywords: 'BEU Result, Bihar Engineering University, BEU BTech Result, BEU Result Portal',
 };
 
