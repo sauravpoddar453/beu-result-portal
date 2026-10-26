@@ -494,8 +494,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         </div>
                     </div>
 
-                    {/* Section Header with Animated Counter & Sliding Arrow Link */}
-                    <div style={{ marginBottom: '2rem' }}>
+                    {/* Section Header with Animated Counter */}
+                    <div id="all-results" style={{ marginBottom: '2rem' }}>
                         <div>
                             <h2 className="section-header-title">
                                 Available B.Tech Examinations (<AnimatedCounter value={filteredExams.length} />)
@@ -519,93 +519,6 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 />
                             ))}
                         </AnimatePresence>
-                    </div>
-
-                    {/* Examination Results Directory Table */}
-                    <div id="all-results" className="glass responsive-table-box">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                            <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                                    <h2 style={{ fontSize: '1.4rem', color: 'var(--text-main)', fontWeight: 800 }}>
-                                        B.Tech Examination Results Directory
-                                    </h2>
-                                    <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', borderRadius: '1rem', background: 'rgba(var(--primary-rgb), 0.15)', color: 'var(--primary)', fontWeight: 700, border: '1px solid rgba(var(--primary-rgb), 0.3)' }}>
-                                        All Published B.Tech Exams
-                                    </span>
-                                </div>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.35rem' }}>
-                                    Select any examination below to search and view complete student marksheet.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                                <thead>
-                                    <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--text-muted)' }}>
-                                        <th style={{ padding: '0.85rem 1rem' }}>Examinations Name</th>
-                                        <th style={{ padding: '0.85rem 1rem' }}>Course</th>
-                                        <th style={{ padding: '0.85rem 1rem' }}>Batch / Session</th>
-                                        <th style={{ padding: '0.85rem 1rem' }}>Exam Held</th>
-                                        <th style={{ padding: '0.85rem 1rem' }}>Published Date</th>
-                                        <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredExams.map((exam, i) => (
-                                        <tr
-                                            key={`dir-${exam.id}-${i}`}
-                                            style={{
-                                                borderBottom: '1px solid var(--border)',
-                                                cursor: 'pointer',
-                                                transition: 'background 0.2s ease'
-                                            }}
-                                            onClick={() => onSelectSemester(exam)}
-                                        >
-                                            <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                                                {exam.examName}
-                                            </td>
-                                            <td style={{ padding: '0.85rem 1rem', color: 'var(--primary)', fontWeight: 600 }}>
-                                                {exam.courseName} (Sem {exam.semId})
-                                            </td>
-                                            <td style={{ padding: '0.85rem 1rem' }}>
-                                                <span style={{ 
-                                                    display: 'inline-block',
-                                                    padding: '0.2rem 0.55rem',
-                                                    borderRadius: '0.5rem',
-                                                    background: 'rgba(var(--primary-rgb), 0.12)',
-                                                    color: 'var(--primary)',
-                                                    fontWeight: 700,
-                                                    fontSize: '0.78rem',
-                                                    marginRight: '0.4rem'
-                                                }}>
-                                                    Batch {getExamBatch(exam.session)}
-                                                </span>
-                                                <span style={{ color: 'var(--text-muted)' }}>{exam.session}</span>
-                                            </td>
-                                            <td style={{ padding: '0.85rem 1rem', color: 'var(--text-muted)' }}>
-                                                {exam.examHeld}
-                                            </td>
-                                            <td style={{ padding: '0.85rem 1rem', color: 'var(--secondary)', fontWeight: 500 }}>
-                                                {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                                            </td>
-                                            <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onSelectSemester(exam);
-                                                    }}
-                                                    className="check-result-btn"
-                                                    style={{ height: '32px', padding: '0 0.85rem', fontSize: '0.78rem', width: 'auto', display: 'inline-flex', margin: '0 auto' }}
-                                                >
-                                                    <Lucide.Search size={13} /> View Result
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </>
             )}
