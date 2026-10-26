@@ -839,7 +839,13 @@ p, span, input, button, select, textarea, table {
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 1.25rem 1rem;
+  padding: 1.25rem 0.65rem;
+}
+
+@media (min-width: 640px) {
+  .dashboard-container {
+    padding: 1.5rem 1rem;
+  }
 }
 
 @media (min-width: 768px) {

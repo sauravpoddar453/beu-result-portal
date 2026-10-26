@@ -437,96 +437,139 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 )}
 
                 {result && !loading && (
-                    <motion.div ref={pdfRef} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="student-card marksheet-container" style={{ background: '#fff', color: '#000', borderRadius: '4px', border: '1px solid #000', padding: '1.5rem', fontFamily: 'Arial, "Segoe UI", sans-serif', maxWidth: '850px', margin: '0 auto', position: 'relative', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
-                        <style>{`
-                            @media print {
-                                @page {
-                                    size: A4 portrait;
-                                    margin: 8mm;
-                                }
-                                body {
-                                    background: #fff !important;
-                                    color: #000 !important;
-                                    margin: 0 !important;
-                                    padding: 0 !important;
-                                }
-                                .no-print {
-                                    display: none !important;
-                                }
-                                .marksheet-container {
-                                    border: 1px solid #000 !important;
-                                    box-shadow: none !important;
-                                    padding: 10mm !important;
-                                    width: 100% !important;
-                                    max-width: 100% !important;
-                                    margin: 0 !important;
-                                }
-                                .official-table th, .official-table td {
-                                    border: 1px solid #000 !important;
-                                }
-                                .bg-secondary-beu {
-                                    background-color: #6c757d !important;
-                                    -webkit-print-color-adjust: exact !important;
-                                    print-color-adjust: exact !important;
-                                    color: #fff !important;
-                                }
-                                .text-danger-beu {
-                                    color: #dc3545 !important;
-                                    -webkit-print-color-adjust: exact !important;
-                                    print-color-adjust: exact !important;
-                                }
-                                .watermark-wrapper {
-                                    opacity: 0.08 !important;
-                                    -webkit-print-color-adjust: exact !important;
-                                    print-color-adjust: exact !important;
-                                }
-                            }
-
-                            .official-table { width: 100%; border-collapse: collapse; margin-bottom: 0.85rem; font-size: 0.82rem; color: #000; }
-                            .official-table th, .official-table td { border: 1px solid #000; padding: 0.32rem 0.45rem; text-align: left; }
-                            .official-table th { text-align: center; font-weight: bold; background: #f8f9fa; color: #000; }
-                            .official-table .center { text-align: center; }
-                            .bg-secondary-beu { background-color: #6c757d; color: #fff; font-weight: 700; padding: 0.35rem 0.5rem; margin: 0.75rem 0 0 0; font-size: 0.82rem; letter-spacing: 0.5px; }
-                            .text-danger-beu { color: #dc3545; font-weight: 700; }
-                            .watermark-overlay { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 55px; color: rgba(200, 0, 0, 0.08); z-index: 0; pointer-events: none; user-select: none; font-weight: 900; letter-spacing: 4px; }
-                            .watermark-wrapper { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); z-index: 0; text-align: center; opacity: 0.08; pointer-events: none; user-select: none; width: 80%; }
-                            .watermark-logo { border-radius: 50%; width: 130px; margin: 0 auto 0.5rem auto; display: block; }
-                            .watermark-text { color: #dc3545; font-weight: 900; font-size: 1.3rem; white-space: nowrap; text-transform: uppercase; margin: 0; }
-                        `}</style>
-
-                        {/* Top Watermark Overlay */}
-                        <div className="watermark-overlay no-print">WEB COPY</div>
-
-                        {/* Background Watermark */}
-                        <div className="watermark-wrapper">
-                            <img src="/beu-logo.jpg" alt="" className="watermark-logo" />
-                            <h1 className="watermark-text">BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
+                    <div className="marksheet-scroll-wrapper">
+                        <div className="mobile-scroll-hint no-print">
+                            <Lucide.ArrowLeftRight size={14} /> Swipe horizontally to view full marksheet table
                         </div>
+                        <motion.div ref={pdfRef} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="student-card marksheet-container" style={{ background: '#fff', color: '#000', borderRadius: '4px', border: '1px solid #000', padding: '1.5rem', fontFamily: 'Arial, "Segoe UI", sans-serif', maxWidth: '850px', margin: '0 auto', position: 'relative', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}>
+                            <style>{`
+                                @media print {
+                                    @page {
+                                        size: A4 portrait;
+                                        margin: 8mm;
+                                    }
+                                    body {
+                                        background: #fff !important;
+                                        color: #000 !important;
+                                        margin: 0 !important;
+                                        padding: 0 !important;
+                                    }
+                                    .no-print {
+                                        display: none !important;
+                                    }
+                                    .marksheet-scroll-wrapper {
+                                        overflow: visible !important;
+                                        width: 100% !important;
+                                        padding: 0 !important;
+                                    }
+                                    .marksheet-container {
+                                        border: 1px solid #000 !important;
+                                        box-shadow: none !important;
+                                        padding: 10mm !important;
+                                        width: 100% !important;
+                                        max-width: 100% !important;
+                                        min-width: 100% !important;
+                                        margin: 0 !important;
+                                    }
+                                    .official-table th, .official-table td {
+                                        border: 1px solid #000 !important;
+                                    }
+                                    .bg-secondary-beu {
+                                        background-color: #6c757d !important;
+                                        -webkit-print-color-adjust: exact !important;
+                                        print-color-adjust: exact !important;
+                                        color: #fff !important;
+                                    }
+                                    .text-danger-beu {
+                                        color: #dc3545 !important;
+                                        -webkit-print-color-adjust: exact !important;
+                                        print-color-adjust: exact !important;
+                                    }
+                                    .watermark-wrapper {
+                                        opacity: 0.08 !important;
+                                        -webkit-print-color-adjust: exact !important;
+                                        print-color-adjust: exact !important;
+                                    }
+                                }
 
-                        {/* Official Header */}
-                        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '2px solid #000', paddingBottom: '0.75rem' }}>
-                            <img src="/beu-logo.jpg" alt="BEU Logo" style={{ width: '95px', height: '95px', objectFit: 'contain', flexShrink: 0 }} />
-                            <div style={{ textAlign: 'center', width: '100%', padding: '0 0.5rem' }}>
-                                <h1 style={{ fontSize: '1.45rem', fontWeight: 800, margin: '0', color: '#000', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                                    Bihar Engineering University, Patna
-                                </h1>
-                                <h2 className="text-danger-beu" style={{ fontSize: '1.05rem', margin: '0.3rem 0 0 0', fontWeight: 700 }}>
-                                    {selectedExam?.examName || `${result.course || 'B.Tech.'} ${result.semester || '6th Semester'} Examination`}
-                                </h2>
+                                .marksheet-scroll-wrapper {
+                                    width: 100%;
+                                    overflow-x: auto;
+                                    -webkit-overflow-scrolling: touch;
+                                    padding-bottom: 0.75rem;
+                                }
+                                @media screen and (max-width: 640px) {
+                                    .marksheet-container {
+                                        min-width: 620px !important;
+                                        padding: 1.15rem 0.85rem !important;
+                                    }
+                                    .mobile-scroll-hint {
+                                        display: flex !important;
+                                        align-items: center;
+                                        justify-content: center;
+                                        gap: 0.4rem;
+                                        font-size: 0.78rem;
+                                        color: var(--primary);
+                                        background: rgba(var(--primary-rgb), 0.1);
+                                        border: 1px solid rgba(var(--primary-rgb), 0.25);
+                                        border-radius: 2rem;
+                                        padding: 0.35rem 0.9rem;
+                                        margin: 0 auto 0.85rem;
+                                        width: fit-content;
+                                        font-weight: 600;
+                                    }
+                                }
+                                @media screen and (min-width: 641px) {
+                                    .mobile-scroll-hint {
+                                        display: none !important;
+                                    }
+                                }
+
+                                .official-table { width: 100%; border-collapse: collapse; margin-bottom: 0.85rem; font-size: 0.82rem; color: #000; table-layout: fixed; }
+                                .official-table th, .official-table td { border: 1px solid #000; padding: 0.32rem 0.45rem; text-align: left; word-break: break-word; overflow-wrap: break-word; }
+                                .official-table th { text-align: center; font-weight: bold; background: #f8f9fa; color: #000; }
+                                .official-table .center { text-align: center; }
+                                .bg-secondary-beu { background-color: #6c757d; color: #fff; font-weight: 700; padding: 0.35rem 0.5rem; margin: 0.75rem 0 0 0; font-size: 0.82rem; letter-spacing: 0.5px; }
+                                .text-danger-beu { color: #dc3545; font-weight: 700; }
+                                .watermark-overlay { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 55px; color: rgba(200, 0, 0, 0.08); z-index: 0; pointer-events: none; user-select: none; font-weight: 900; letter-spacing: 4px; white-space: nowrap; }
+                                .watermark-wrapper { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); z-index: 0; text-align: center; opacity: 0.08; pointer-events: none; user-select: none; width: 80%; }
+                                .watermark-logo { border-radius: 50%; width: 130px; margin: 0 auto 0.5rem auto; display: block; }
+                                .watermark-text { color: #dc3545; font-weight: 900; font-size: 1.3rem; white-space: nowrap; text-transform: uppercase; margin: 0; }
+                            `}</style>
+
+                            {/* Top Watermark Overlay */}
+                            <div className="watermark-overlay no-print">WEB COPY</div>
+
+                            {/* Background Watermark */}
+                            <div className="watermark-wrapper">
+                                <img src="/beu-logo.jpg" alt="" className="watermark-logo" />
+                                <h1 className="watermark-text">BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
                             </div>
-                            <div style={{ width: '95px', flexShrink: 0 }} /> {/* Spacer for balance */}
-                        </div>
 
-                        {/* Details Table */}
-                        <div style={{ position: 'relative', zIndex: 1 }}>
-                            <table className="official-table">
-                                <tbody>
-                                    <tr>
-                                        <td style={{ width: '25%' }}><strong>Semester:</strong></td>
-                                        <td style={{ width: '25%' }}>{toRoman(result?.semester ? parseInt(result.semester) : (selectedExam?.semId || 6))}</td>
-                                        <td style={{ width: '25%' }}><strong>Examination (Month/Year):</strong></td>
-                                        <td style={{ width: '25%' }}>{result.examHeld || selectedExam?.examHeld || 'November/2025'}</td>
-                                    </tr>
+                            {/* Official Header */}
+                            <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '2px solid #000', paddingBottom: '0.75rem' }}>
+                                <img src="/beu-logo.jpg" alt="BEU Logo" style={{ width: '85px', height: '85px', objectFit: 'contain', flexShrink: 0 }} />
+                                <div style={{ textAlign: 'center', width: '100%', padding: '0 0.5rem' }}>
+                                    <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0', color: '#000', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                                        Bihar Engineering University, Patna
+                                    </h1>
+                                    <h2 className="text-danger-beu" style={{ fontSize: '1.02rem', margin: '0.3rem 0 0 0', fontWeight: 700 }}>
+                                        {selectedExam?.examName || `${result.course || 'B.Tech.'} ${result.semester || '6th Semester'} Examination`}
+                                    </h2>
+                                </div>
+                                <div style={{ width: '85px', flexShrink: 0 }} /> {/* Spacer for balance */}
+                            </div>
+
+                            {/* Details Table */}
+                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                <table className="official-table">
+                                    <tbody>
+                                        <tr>
+                                            <td style={{ width: '22%' }}><strong>Semester:</strong></td>
+                                            <td style={{ width: '18%' }}>{toRoman(result?.semester ? parseInt(result.semester) : (selectedExam?.semId || 6))}</td>
+                                            <td style={{ width: '38%' }}><strong>Examination (Month/Year):</strong></td>
+                                            <td style={{ width: '22%' }}>{result.examHeld || selectedExam?.examHeld || 'November/2025'}</td>
+                                        </tr>
                                     <tr>
                                         <td><strong>Registration No:</strong></td>
                                         <td colSpan={3} style={{ fontWeight: 700 }}>{result.rollNo}</td>
@@ -695,6 +738,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             </div>
                         </div>
                     </motion.div>
+                </div>
                 )}
 
                 {/* Branch Analytics & Peer Leaderboard (Only SGPA & CGPA) */}
