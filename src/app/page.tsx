@@ -31,7 +31,7 @@ const App: React.FC = () => {
         <section style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
             <h1>BEU Result</h1>
             <p>
-                Check Bihar Engineering University (BEU) result for all semesters. 
+                Check Bihar Engineering University (BEU) B.Tech result for all semesters. 
                 Fast and easy result portal.
             </p>
         </section>

@@ -64,7 +64,7 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
             </div>
 
             <div className="nav-links-container" style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-                <a href="#all-results" onClick={onGoHome} style={{ textDecoration: 'none', color: 'var(--text-main)', fontSize: '0.8rem', fontWeight: 700 }}>All Results (90+)</a>
+                <a href="#all-results" onClick={onGoHome} style={{ textDecoration: 'none', color: 'var(--text-main)', fontSize: '0.8rem', fontWeight: 700 }}>B.Tech Results</a>
                 <a href="https://beu.intelliexams.com/beuexams/LoginScreens/frmStudentLoginPage.aspx" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>ERP</a>
                 
                 <a 

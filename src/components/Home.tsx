@@ -63,10 +63,14 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 const response = await fetch('/api/proxy?url=' + encodeURIComponent('https://beu-bih.ac.in/backend/v1/result/sem-get'));
                 if (!response.ok) throw new Error('Failed to fetch exams');
                 const data = await response.json();
-                setCourses(data);
-                if (data.length > 0) {
-                    const btech = data.find((c: any) => c.courseName.includes('B.Tech'));
-                    const targetCourse = btech || data[0];
+                
+                // Strictly filter for B.Tech courses only (removes M.Tech, B.Arch, MBA, etc.)
+                const btechCourses = (Array.isArray(data) ? data : []).filter((c: any) => 
+                    c.courseName && c.courseName.toLowerCase().includes('b.tech')
+                );
+                setCourses(btechCourses);
+                if (btechCourses.length > 0) {
+                    const targetCourse = btechCourses[0];
                     setSelectedCourseId(targetCourse.courseid);
 
                     if (targetCourse.exams && targetCourse.exams.length > 0) {
@@ -107,11 +111,14 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
 
     const allExams: Exam[] = courses.flatMap(c => (c.exams || []).map(e => ({ ...e, courseName: c.courseName })));
 
+    const availableSemesters = [8, 7, 6, 5, 4, 3, 2, 1].filter(sem => 
+        allExams.some(e => e.semId === sem)
+    );
 
     const filteredExams = allExams.filter(exam => {
-        const matchesCourse = activeFilter === 'all' || exam.courseid.toString() === activeFilter;
+        const matchesSemester = activeFilter === 'all' || exam.semId.toString() === activeFilter;
         const q = searchQuery.toLowerCase().trim();
-        if (!q) return matchesCourse;
+        if (!q) return matchesSemester;
         const matchesQuery = 
             exam.examName.toLowerCase().includes(q) ||
             exam.session.toLowerCase().includes(q) ||
@@ -119,7 +126,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             (exam.courseName || '').toLowerCase().includes(q) ||
             `sem ${exam.semId}`.toLowerCase().includes(q) ||
             `${exam.semId}th`.toLowerCase().includes(q);
-        return matchesCourse && matchesQuery;
+        return matchesSemester && matchesQuery;
     });
 
     return (
@@ -132,10 +139,10 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     transition={{ duration: 0.6 }}
                 >
                     <h1 style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--text-main)', lineHeight: 1.1 }}>
-                        BEU <span style={{ color: 'var(--primary)' }}>RESULTS</span> PORTAL
+                        BEU <span style={{ color: 'var(--primary)' }}>B.TECH RESULTS</span> PORTAL
                     </h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginTop: '1rem', maxWidth: '650px', margin: '1rem auto' }}>
-                        Access all 90+ official Bihar Engineering University results with real-time official server synchronization.
+                        Access official Bihar Engineering University B.Tech results with real-time official server synchronization.
                     </p>
                 </motion.div>
             </header>
@@ -143,7 +150,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             {loading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '4rem' }}>
                     <Lucide.Loader2 className="animate-spin" size={48} color="var(--primary)" />
-                    <p style={{ color: 'var(--text-muted)' }}>Fetching official exam list from BEU server...</p>
+                    <p style={{ color: 'var(--text-muted)' }}>Fetching official B.Tech exam list from BEU server...</p>
                 </div>
             ) : error ? (
                 <div className="glass" style={{ padding: '3rem', textAlign: 'center', border: '1px solid var(--accent)' }}>
@@ -160,7 +167,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                 </div>
             ) : (
                 <>
-                    {/* Search & Course Filter Section */}
+                    {/* Search & Semester Filter Section */}
                     <div style={{ maxWidth: '850px', margin: '0 auto 3rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         {/* Live Search Input */}
                         <div className="glass" style={{
@@ -175,7 +182,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             <Lucide.Search size={22} color="var(--primary)" />
                             <input
                                 type="text"
-                                placeholder={`Search all ${allExams.length} BEU examinations (e.g. 8th Sem, B.Tech, 2026, MBA, Supplementary)...`}
+                                placeholder={`Search all ${allExams.length} B.Tech examinations (e.g. 8th Sem, 6th Sem, 2026, Supplementary)...`}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 style={{
@@ -197,7 +204,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             )}
                         </div>
 
-                        {/* Course Filter Pills */}
+                        {/* B.Tech Semester Filter Pills */}
                         <div style={{
                             display: 'flex',
                             justifyContent: 'center',
@@ -219,28 +226,32 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                     transition: 'all 0.2s ease'
                                 }}
                             >
-                                All Results ({allExams.length})
+                                All B.Tech ({allExams.length})
                             </button>
-                            {courses.map((course) => (
-                                <button
-                                    key={course.courseid}
-                                    onClick={() => setActiveFilter(course.courseid.toString())}
-                                    style={{
-                                        padding: '0.6rem 1.25rem',
-                                        borderRadius: '2rem',
-                                        border: '1px solid',
-                                        borderColor: activeFilter === course.courseid.toString() ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
-                                        background: activeFilter === course.courseid.toString() ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                        color: 'var(--text-main)',
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem',
-                                        transition: 'all 0.2s ease'
-                                    }}
-                                >
-                                    {course.courseName} ({course.exams.length})
-                                </button>
-                            ))}
+                            {availableSemesters.map((sem) => {
+                                const semCount = allExams.filter(e => e.semId === sem).length;
+                                const isSelected = activeFilter === sem.toString();
+                                return (
+                                    <button
+                                        key={`sem-${sem}`}
+                                        onClick={() => setActiveFilter(sem.toString())}
+                                        style={{
+                                            padding: '0.6rem 1.25rem',
+                                            borderRadius: '2rem',
+                                            border: '1px solid',
+                                            borderColor: isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                                            background: isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                                            color: 'var(--text-main)',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            fontSize: '0.85rem',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                    >
+                                        Sem {sem} ({semCount})
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -248,7 +259,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <div>
                             <h2 style={{ fontSize: '1.6rem', color: 'var(--text-main)', fontWeight: 800 }}>
-                                Available Examinations ({filteredExams.length})
+                                Available B.Tech Examinations ({filteredExams.length})
                             </h2>
                             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
                                 Click any exam to check and download your official format marksheet directly.
@@ -364,10 +375,10 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                                     <h2 style={{ fontSize: '1.4rem', color: 'var(--text-main)', fontWeight: 800 }}>
-                                        Examination Results Directory
+                                        B.Tech Examination Results Directory
                                     </h2>
                                     <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.7rem', borderRadius: '1rem', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--primary)', fontWeight: 700, border: '1px solid rgba(99, 102, 241, 0.3)' }}>
-                                        All Published Exams
+                                        All Published B.Tech Exams
                                     </span>
                                 </div>
                                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.35rem' }}>
