@@ -145,17 +145,47 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             {/* Hero Section */}
-            <header style={{ textAlign: 'center', marginBottom: '3rem', marginTop: '2rem' }}>
+            <header style={{ textAlign: 'center', marginBottom: '2.5rem', marginTop: '1.5rem' }}>
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
                 >
-                    <h1 style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--text-main)', lineHeight: 1.1 }}>
-                        BEU <span style={{ color: 'var(--primary)' }}>B.TECH RESULTS</span> PORTAL
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.45rem',
+                        padding: '0.35rem 0.9rem',
+                        borderRadius: '2rem',
+                        background: 'rgba(99, 102, 241, 0.12)',
+                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        color: 'var(--primary)',
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                        marginBottom: '1rem',
+                        letterSpacing: '0.02em'
+                    }}>
+                        <Lucide.GraduationCap size={15} /> B.Tech Examination Portal
+                    </div>
+
+                    <h1 style={{
+                        fontSize: 'clamp(2rem, 3.5vw, 2.75rem)',
+                        fontWeight: 800,
+                        color: 'var(--text-main)',
+                        lineHeight: 1.2,
+                        letterSpacing: '-0.02em',
+                        margin: 0
+                    }}>
+                        BEU <span style={{ color: 'var(--primary)' }}>Results</span> Portal
                     </h1>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginTop: '1rem', maxWidth: '650px', margin: '1rem auto' }}>
-                        Access official Bihar Engineering University B.Tech results with real-time official server synchronization.
+                    <p style={{
+                        color: 'var(--text-muted)',
+                        fontSize: '1rem',
+                        maxWidth: '560px',
+                        margin: '0.75rem auto 0',
+                        lineHeight: 1.5
+                    }}>
+                        Instant access to official Bihar Engineering University semester results and marksheet records.
                     </p>
                 </motion.div>
             </header>
