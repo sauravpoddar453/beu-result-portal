@@ -58,19 +58,25 @@ async function getTurnstileToken(page, url, isFirst = false) {
           await sleep(1500);
         } catch (e) {}
       } else {
-        await page.evaluate(() => {
-          if (window.turnstile) {
-            try { window.turnstile.reset(); } catch (e) {}
-          }
-        });
+        try {
+          await page.evaluate(() => {
+            if (window.turnstile) {
+              try { window.turnstile.reset(); } catch (e) {}
+            }
+          });
+        } catch (e) {}
       }
     }
 
     for (let i = 0; i < 20; i++) {
-      captcha = await page.evaluate(() => {
-        const el = document.querySelector('[name="cf-turnstile-response"]');
-        return (el && el.value && el.value.length > 10) ? el.value : null;
-      });
+      try {
+        captcha = await page.evaluate(() => {
+          const el = document.querySelector('[name="cf-turnstile-response"]');
+          return (el && el.value && el.value.length > 10) ? el.value : null;
+        });
+      } catch (e) {
+        captcha = null;
+      }
       if (captcha) break;
       await sleep(350);
     }
@@ -78,16 +84,20 @@ async function getTurnstileToken(page, url, isFirst = false) {
 
   if (!captcha) return null;
 
-  const tokenObj = await page.evaluate(async (cap) => {
-    try {
-      const res = await fetch('https://beu-bih.ac.in/backend/v1/result/token?captcha=' + encodeURIComponent(cap));
-      return await res.json();
-    } catch (e) {
-      return { error: e.message };
-    }
-  }, captcha);
+  try {
+    const tokenObj = await page.evaluate(async (cap) => {
+      try {
+        const res = await fetch('https://beu-bih.ac.in/backend/v1/result/token?captcha=' + encodeURIComponent(cap));
+        return await res.json();
+      } catch (e) {
+        return { error: e.message };
+      }
+    }, captcha);
 
-  return tokenObj?.token || null;
+    return tokenObj?.token || null;
+  } catch (e) {
+    return null;
+  }
 }
 
 // Complete directory of all Bihar Engineering University (BEU) affiliated colleges
@@ -432,15 +442,21 @@ async function scrapeStatewideBEU() {
               continue;
             }
 
-            const res = await page.evaluate(async (yr, reg, sem, held, exId, tok) => {
-              const u = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${encodeURIComponent(yr)}&redg_no=${reg}&semester=${sem}&exam_held=${encodeURIComponent(held)}&exam_id=${exId}&token=${tok}`;
-              try {
-                const resp = await fetch(u);
-                return { status: resp.status, json: await resp.json() };
-              } catch (e) {
-                return { error: e.message };
-              }
-            }, batchYear, regNo, semRoman, examHeld, examId, token);
+            let res = null;
+            try {
+              res = await page.evaluate(async (yr, reg, sem, held, exId, tok) => {
+                const u = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${encodeURIComponent(yr)}&redg_no=${reg}&semester=${sem}&exam_held=${encodeURIComponent(held)}&exam_id=${exId}&token=${tok}`;
+                try {
+                  const resp = await fetch(u);
+                  return { status: resp.status, json: await resp.json() };
+                } catch (e) {
+                  return { error: e.message };
+                }
+              }, batchYear, regNo, semRoman, examHeld, examId, token);
+            } catch (evalErr) {
+              console.warn('⚠️ Query evaluation note:', evalErr.message);
+              continue;
+            }
 
             if (res?.json?.status === 200 && res.json.data) {
               const data = res.json.data;
@@ -528,15 +544,21 @@ async function scrapeStatewideBEU() {
               const token = await getTurnstileToken(page, url);
               if (!token) continue;
 
-              const res = await page.evaluate(async (yr, reg, sem, held, exId, tok) => {
-                const u = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${encodeURIComponent(yr)}&redg_no=${reg}&semester=${sem}&exam_held=${encodeURIComponent(held)}&exam_id=${exId}&token=${tok}`;
-                try {
-                  const resp = await fetch(u);
-                  return { status: resp.status, json: await resp.json() };
-                } catch (e) {
-                  return { error: e.message };
-                }
-              }, batchYear, regNo, semRoman, examHeld, examId, token);
+              let res = null;
+              try {
+                res = await page.evaluate(async (yr, reg, sem, held, exId, tok) => {
+                  const u = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${encodeURIComponent(yr)}&redg_no=${reg}&semester=${sem}&exam_held=${encodeURIComponent(held)}&exam_id=${exId}&token=${tok}`;
+                  try {
+                    const resp = await fetch(u);
+                    return { status: resp.status, json: await resp.json() };
+                  } catch (e) {
+                    return { error: e.message };
+                  }
+                }, batchYear, regNo, semRoman, examHeld, examId, token);
+              } catch (evalErr) {
+                console.warn('⚠️ LE evaluation note:', evalErr.message);
+                continue;
+              }
 
               if (res?.json?.status === 200 && res.json.data) {
                 const data = res.json.data;

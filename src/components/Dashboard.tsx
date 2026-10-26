@@ -30,7 +30,30 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         ? `20${regNumber.substring(0, 2)}` 
         : selectedExam?.batchYear;
 
+    const [branchData, setBranchData] = useState<any>(null);
+    const [loadingBranch, setLoadingBranch] = useState(false);
+    const [branchSearch, setBranchSearch] = useState('');
+    const [branchSort, setBranchSort] = useState<'rank' | 'cgpa' | 'roll'>('rank');
 
+    const fetchBranchStats = async (targetReg: string, semNum: number | string) => {
+        try {
+            setLoadingBranch(true);
+            const res = await fetch(`/api/branch-leaderboard?regNo=${encodeURIComponent(targetReg)}&semester=${encodeURIComponent(semNum.toString())}`);
+            if (res.ok) {
+                const json = await res.json();
+                if (json.status === 200) {
+                    setBranchData(json);
+                } else {
+                    setBranchData(null);
+                }
+            }
+        } catch (e) {
+            console.error('Leaderboard error:', e);
+            setBranchData(null);
+        } finally {
+            setLoadingBranch(false);
+        }
+    };
 
     const handleSearch = async (overrideRegNo?: string | React.MouseEvent | React.KeyboardEvent, overrideExam?: any) => {
         const targetRegNo = typeof overrideRegNo === 'string' ? overrideRegNo : regNumber;
@@ -112,6 +135,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     })) || []
                 });
 
+                fetchBranchStats(targetRegNo, currentExam?.semId || 1);
                 setShowNotFound(false);
                 toast.success('Result Found!', { id: searchToast });
                 return;
@@ -161,6 +185,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     credit: s.credit
                                 }))
                             });
+                            fetchBranchStats(targetRegNo, currentExam?.semId || (overrideExam || selectedExam)?.semId || 1);
                             setShowNotFound(false);
                             toast.success('Result loaded from database backup!', { id: searchToast });
                             return;
@@ -220,6 +245,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             credit: s.credit
                         }))
                     });
+                    fetchBranchStats(targetRegNo, currentExam?.semId || (overrideExam || selectedExam)?.semId || 1);
                     setShowNotFound(false);
                     toast.success('Result loaded from database backup!', { id: searchToast });
                     return;
@@ -274,6 +300,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                         practicalSubjects: []
                     });
                 }
+                fetchBranchStats(targetRegNo, fallbackSem);
                 setShowNotFound(false);
                 toast.success('Result Fetched Successfully!', { id: searchToast });
             } else {
@@ -674,6 +701,391 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 </button>
                             </div>
                         </div>
+                    </motion.div>
+                )}
+
+                {/* Branch Analytics & Peer Leaderboard (Only SGPA & CGPA) */}
+                {result && !loading && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.1 }}
+                        className="no-print"
+                        style={{ maxWidth: '850px', margin: '2.5rem auto 0 auto' }}
+                    >
+                        {loadingBranch && (
+                            <div className="glass" style={{ padding: '2rem', textAlign: 'center', borderRadius: '1.25rem', marginBottom: '2rem' }}>
+                                <Lucide.Loader2 className="animate-spin" size={32} style={{ margin: '0 auto 0.75rem auto', color: 'var(--primary)' }} />
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: 0 }}>
+                                    Loading Branch Leaderboard & Classmate Standing...
+                                </p>
+                            </div>
+                        )}
+
+                        {branchData && branchData.branchInfo && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                
+                                {/* Header Card */}
+                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '1.25rem', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
+                                                <div style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)', padding: '0.45rem', borderRadius: '0.6rem', display: 'flex', color: 'white' }}>
+                                                    <Lucide.Trophy size={20} />
+                                                </div>
+                                                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+                                                    Branch Standing & Peer Analytics
+                                                </h2>
+                                            </div>
+                                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>
+                                                <strong style={{ color: 'var(--text-main)' }}>{branchData.branchInfo.course}</strong> &bull; {branchData.branchInfo.college} &bull; Semester {branchData.branchInfo.semester}
+                                            </p>
+                                        </div>
+
+                                        {/* Current Student Standing Badge */}
+                                        {branchData.currentStudent && (
+                                            <div style={{
+                                                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(168, 85, 247, 0.15))',
+                                                border: '1px solid rgba(59, 130, 246, 0.35)',
+                                                borderRadius: '1rem',
+                                                padding: '0.75rem 1.25rem',
+                                                textAlign: 'right'
+                                            }}>
+                                                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+                                                    Your Branch Standing
+                                                </div>
+                                                <div style={{ fontSize: '1.35rem', fontWeight: 900, color: 'var(--primary)' }}>
+                                                    Rank #{branchData.currentStudent.rank} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>of {branchData.currentStudent.total}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Stats Grid */}
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                                        gap: '0.75rem',
+                                        marginTop: '1.25rem',
+                                        paddingTop: '1.25rem',
+                                        borderTop: '1px solid var(--glass-border)'
+                                    }}>
+                                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem', borderRadius: '0.75rem', textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Class Strength</div>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '0.2rem' }}>{branchData.branchInfo.totalStudents}</div>
+                                        </div>
+                                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem', borderRadius: '0.75rem', textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Average SGPA</div>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#3b82f6', marginTop: '0.2rem' }}>{branchData.branchInfo.avgSgpa}</div>
+                                        </div>
+                                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem', borderRadius: '0.75rem', textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Branch Highest SGPA</div>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#10b981', marginTop: '0.2rem' }}>{branchData.branchInfo.highestSgpa}</div>
+                                        </div>
+                                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem', borderRadius: '0.75rem', textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Branch Lowest SGPA</div>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f59e0b', marginTop: '0.2rem' }}>{branchData.branchInfo.lowestSgpa}</div>
+                                        </div>
+                                        <div style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.75rem', borderRadius: '0.75rem', textAlign: 'center' }}>
+                                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Pass Rate</div>
+                                            <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#10b981', marginTop: '0.2rem' }}>{branchData.branchInfo.passPercentage}%</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Toppers and Lowest Highlights Row */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.25rem' }}>
+                                    
+                                    {/* 👑 Branch Toppers Card */}
+                                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '1.25rem', border: '1px solid rgba(245, 158, 11, 0.35)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#f59e0b' }}>
+                                            <Lucide.Crown size={20} />
+                                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Branch Toppers (Top SGPA)</h3>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                            {branchData.toppers && branchData.toppers.map((t: any, idx: number) => {
+                                                const medalColor = idx === 0 ? '#f59e0b' : idx === 1 ? '#94a3b8' : '#cd7f32';
+                                                const isCurrent = t.regNo === result.rollNo;
+                                                return (
+                                                    <div
+                                                        key={`topper-${t.regNo}`}
+                                                        onClick={() => handleSearch(t.regNo)}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            padding: '0.65rem 0.9rem',
+                                                            background: isCurrent ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                                                            border: isCurrent ? '1px solid rgba(59, 130, 246, 0.4)' : '1px solid var(--glass-border)',
+                                                            borderRadius: '0.75rem',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s ease'
+                                                        }}
+                                                        title="Click to view full marksheet"
+                                                    >
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                            <span style={{
+                                                                width: '26px',
+                                                                height: '26px',
+                                                                borderRadius: '50%',
+                                                                background: medalColor,
+                                                                color: '#000',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontWeight: 800,
+                                                                fontSize: '0.8rem'
+                                                            }}>
+                                                                {idx + 1}
+                                                            </span>
+                                                            <div>
+                                                                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                                                                    {t.name} {isCurrent && <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600 }}> (You)</span>}
+                                                                </div>
+                                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.regNo}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ textAlign: 'right' }}>
+                                                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#10b981' }}>
+                                                                SGPA: {t.sgpa}
+                                                            </div>
+                                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                                CGPA: {t.cgpa}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* 📉 Lowest Scorers Card */}
+                                    <div className="glass" style={{ padding: '1.25rem', borderRadius: '1.25rem', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#ef4444' }}>
+                                            <Lucide.TrendingDown size={20} />
+                                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Lower SGPA Range</h3>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                            {branchData.lowest && branchData.lowest.map((l: any, idx: number) => {
+                                                const isCurrent = l.regNo === result.rollNo;
+                                                return (
+                                                    <div
+                                                        key={`lowest-${l.regNo}`}
+                                                        onClick={() => handleSearch(l.regNo)}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'space-between',
+                                                            padding: '0.65rem 0.9rem',
+                                                            background: isCurrent ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                                                            border: isCurrent ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid var(--glass-border)',
+                                                            borderRadius: '0.75rem',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s ease'
+                                                        }}
+                                                        title="Click to view full marksheet"
+                                                    >
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                            <span style={{
+                                                                width: '26px',
+                                                                height: '26px',
+                                                                borderRadius: '50%',
+                                                                background: 'rgba(239, 68, 68, 0.2)',
+                                                                color: '#ef4444',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontWeight: 700,
+                                                                fontSize: '0.75rem'
+                                                            }}>
+                                                                #{l.rank}
+                                                            </span>
+                                                            <div>
+                                                                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                                                                    {l.name} {isCurrent && <span style={{ fontSize: '0.7rem', color: '#ef4444', fontWeight: 600 }}> (You)</span>}
+                                                                </div>
+                                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{l.regNo}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ textAlign: 'right' }}>
+                                                            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#ef4444' }}>
+                                                                SGPA: {l.sgpa}
+                                                            </div>
+                                                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                                CGPA: {l.cgpa}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 📋 All Branch Students List (ONLY SGPA & CGPA) */}
+                                <div className="glass" style={{ padding: '1.5rem', borderRadius: '1.25rem', border: '1px solid var(--glass-border)' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+                                        <div>
+                                            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Lucide.Users size={18} color="var(--primary)" />
+                                                All Branch Students (SGPA & CGPA Only)
+                                            </h3>
+                                            <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: '0.2rem 0 0 0' }}>
+                                                Showing {branchData.students.length} students &bull; Click any student to view their marksheet
+                                            </p>
+                                        </div>
+
+                                        {/* Filter & Sort Controls */}
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                            <div style={{ position: 'relative', minWidth: '200px' }}>
+                                                <Lucide.Search size={14} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Filter name or roll..."
+                                                    value={branchSearch}
+                                                    onChange={(e) => setBranchSearch(e.target.value)}
+                                                    style={{
+                                                        padding: '0.45rem 0.75rem 0.45rem 2rem',
+                                                        borderRadius: '0.6rem',
+                                                        border: '1px solid var(--glass-border)',
+                                                        background: 'rgba(255, 255, 255, 0.05)',
+                                                        color: 'var(--text-main)',
+                                                        fontSize: '0.82rem',
+                                                        outline: 'none',
+                                                        width: '100%'
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <select
+                                                value={branchSort}
+                                                onChange={(e: any) => setBranchSort(e.target.value)}
+                                                style={{
+                                                    padding: '0.45rem 0.75rem',
+                                                    borderRadius: '0.6rem',
+                                                    border: '1px solid var(--glass-border)',
+                                                    background: 'rgba(255, 255, 255, 0.05)',
+                                                    color: 'var(--text-main)',
+                                                    fontSize: '0.82rem',
+                                                    outline: 'none'
+                                                }}
+                                            >
+                                                <option value="rank">Sort by SGPA (Rank)</option>
+                                                <option value="cgpa">Sort by CGPA</option>
+                                                <option value="roll">Sort by Roll Number</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Table */}
+                                    <div style={{ overflowX: 'auto' }}>
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                            <thead>
+                                                <tr style={{ borderBottom: '1px solid var(--glass-border)', color: 'var(--text-muted)', textAlign: 'left' }}>
+                                                    <th style={{ padding: '0.6rem 0.75rem', width: '8%', textAlign: 'center' }}>Rank</th>
+                                                    <th style={{ padding: '0.6rem 0.75rem', width: '22%' }}>Reg. No</th>
+                                                    <th style={{ padding: '0.6rem 0.75rem', width: '30%' }}>Student Name</th>
+                                                    <th style={{ padding: '0.6rem 0.75rem', width: '13%', textAlign: 'center' }}>SGPA</th>
+                                                    <th style={{ padding: '0.6rem 0.75rem', width: '13%', textAlign: 'center' }}>CGPA</th>
+                                                    <th style={{ padding: '0.6rem 0.75rem', width: '14%', textAlign: 'center' }}>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {branchData.students
+                                                    .filter((s: any) => {
+                                                        if (!branchSearch) return true;
+                                                        const q = branchSearch.toLowerCase();
+                                                        return s.name.toLowerCase().includes(q) || s.regNo.toLowerCase().includes(q);
+                                                    })
+                                                    .sort((a: any, b: any) => {
+                                                        if (branchSort === 'cgpa') {
+                                                            return (b.numericCgpa || 0) - (a.numericCgpa || 0);
+                                                        }
+                                                        if (branchSort === 'roll') {
+                                                            return a.regNo.localeCompare(b.regNo);
+                                                        }
+                                                        return a.rank - b.rank;
+                                                    })
+                                                    .map((s: any) => {
+                                                        const isCurrent = s.regNo === result.rollNo;
+                                                        const isPassed = (s.status || '').toUpperCase() === 'PASSED' || (s.status || '').toUpperCase() === 'PASS';
+                                                        return (
+                                                            <tr
+                                                                key={`row-${s.regNo}`}
+                                                                onClick={() => handleSearch(s.regNo)}
+                                                                style={{
+                                                                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                                                                    background: isCurrent ? 'rgba(59, 130, 246, 0.12)' : 'transparent',
+                                                                    cursor: 'pointer',
+                                                                    transition: 'background 0.15s ease'
+                                                                }}
+                                                                title="Click to view marksheet"
+                                                            >
+                                                                <td style={{ padding: '0.65rem 0.75rem', textAlign: 'center', fontWeight: 700 }}>
+                                                                    {s.rank <= 3 ? (
+                                                                        <span style={{
+                                                                            background: s.rank === 1 ? '#f59e0b' : s.rank === 2 ? '#94a3b8' : '#cd7f32',
+                                                                            color: '#000',
+                                                                            borderRadius: '50%',
+                                                                            width: '20px',
+                                                                            height: '20px',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            fontSize: '0.75rem'
+                                                                        }}>
+                                                                            {s.rank}
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span style={{ color: 'var(--text-muted)' }}>#{s.rank}</span>
+                                                                    )}
+                                                                </td>
+                                                                <td style={{ padding: '0.65rem 0.75rem', fontFamily: 'monospace', color: isCurrent ? 'var(--primary)' : 'var(--text-main)', fontWeight: isCurrent ? 700 : 500 }}>
+                                                                    {s.regNo}
+                                                                </td>
+                                                                <td style={{ padding: '0.65rem 0.75rem', fontWeight: isCurrent ? 700 : 500, color: 'var(--text-main)' }}>
+                                                                    {s.name}
+                                                                    {isCurrent && (
+                                                                        <span style={{
+                                                                            marginLeft: '0.5rem',
+                                                                            background: 'var(--primary)',
+                                                                            color: 'white',
+                                                                            fontSize: '0.65rem',
+                                                                            padding: '0.15rem 0.4rem',
+                                                                            borderRadius: '1rem',
+                                                                            fontWeight: 700
+                                                                        }}>
+                                                                            You
+                                                                        </span>
+                                                                    )}
+                                                                </td>
+                                                                <td style={{ padding: '0.65rem 0.75rem', textAlign: 'center', fontWeight: 800, color: s.numericSgpa && s.numericSgpa >= 8.0 ? '#10b981' : s.numericSgpa && s.numericSgpa >= 6.5 ? '#3b82f6' : '#f59e0b' }}>
+                                                                    {s.sgpa}
+                                                                </td>
+                                                                <td style={{ padding: '0.65rem 0.75rem', textAlign: 'center', fontWeight: 700, color: 'var(--text-main)' }}>
+                                                                    {s.cgpa}
+                                                                </td>
+                                                                <td style={{ padding: '0.65rem 0.75rem', textAlign: 'center' }}>
+                                                                    <span style={{
+                                                                        fontSize: '0.7rem',
+                                                                        fontWeight: 700,
+                                                                        padding: '0.2rem 0.5rem',
+                                                                        borderRadius: '1rem',
+                                                                        background: isPassed ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                                                        color: isPassed ? '#10b981' : '#ef4444'
+                                                                    }}>
+                                                                        {s.status}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
