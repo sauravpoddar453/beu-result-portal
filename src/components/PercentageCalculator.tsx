@@ -143,37 +143,47 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                     className="glass"
                     style={{
                         width: '100%',
-                        maxWidth: '560px',
+                        maxWidth: '580px',
                         background: 'var(--card)',
-                        border: '1px solid var(--border)',
+                        border: '1px solid rgba(56, 189, 248, 0.3)',
                         borderRadius: '1.25rem',
-                        boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.6)',
+                        boxShadow: '0 25px 70px -10px rgba(0, 0, 0, 0.75), 0 0 35px rgba(56, 189, 248, 0.12)',
                         overflow: 'hidden',
                         display: 'flex',
                         flexDirection: 'column',
-                        maxHeight: '90vh'
+                        maxHeight: '90vh',
+                        position: 'relative'
                     }}
                 >
+                    {/* Top Accent Gradient Bar */}
+                    <div style={{
+                        height: '3px',
+                        width: '100%',
+                        background: 'linear-gradient(90deg, #38BDF8, #F5B301, #38BDF8)',
+                        flexShrink: 0
+                    }} />
+
                     {/* Header */}
                     <div style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '1.25rem 1.5rem',
-                        borderBottom: '1px solid var(--border)',
-                        background: 'rgba(255, 255, 255, 0.02)'
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, transparent 100%)'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <div style={{
-                                width: '38px',
-                                height: '38px',
+                                width: '40px',
+                                height: '40px',
                                 borderRadius: '0.75rem',
-                                background: 'rgba(var(--primary-rgb), 0.15)',
+                                background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(245, 179, 1, 0.15))',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: 'var(--primary)',
-                                border: '1px solid rgba(var(--primary-rgb), 0.3)'
+                                color: '#38BDF8',
+                                border: '1px solid rgba(56, 189, 248, 0.35)',
+                                boxShadow: '0 4px 12px rgba(56, 189, 248, 0.15)'
                             }}>
                                 <Lucide.Calculator size={20} />
                             </div>
@@ -181,7 +191,7 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                 <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, lineHeight: 1.2 }}>
                                     BEU Percentage Calculator
                                 </h2>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
+                                <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: 0 }}>
                                     Official CGPA & SGPA to Percentage Converter
                                 </p>
                             </div>
@@ -373,20 +383,21 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                         animate={{ opacity: 1, y: 0 }}
                                         style={{
                                             padding: '1.25rem',
-                                            borderRadius: '0.85rem',
-                                            background: 'rgba(var(--primary-rgb), 0.08)',
-                                            border: '1px solid rgba(var(--primary-rgb), 0.3)',
+                                            borderRadius: '1rem',
+                                            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(245, 179, 1, 0.08) 100%)',
+                                            border: '1px solid rgba(56, 189, 248, 0.38)',
+                                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '0.75rem'
                                         }}
                                     >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                                             <div>
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
                                                     Calculated Percentage
                                                 </span>
-                                                <div style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1.1, marginTop: '0.2rem' }}>
+                                                <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1.1, marginTop: '0.2rem' }}>
                                                     {cgpaPct.toFixed(2)}%
                                                 </div>
                                             </div>
@@ -400,12 +411,12 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                                 background: cgpaDivision.badgeBg,
                                                 border: `1px solid ${cgpaDivision.color}`
                                             }}>
-                                                {cgpaDivision.label}
+                                                ★ {cgpaDivision.label}
                                             </span>
                                         </div>
 
-                                        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.6rem' }}>
-                                            Step: <code style={{ color: 'var(--text-main)', fontWeight: 600 }}>{cgpaFormulaText}</code>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.6rem' }}>
+                                            Formula Applied: <code style={{ color: 'var(--text-main)', fontWeight: 600 }}>{cgpaFormulaText}</code>
                                         </div>
 
                                         <button
@@ -415,19 +426,20 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 gap: '0.45rem',
-                                                padding: '0.5rem 1rem',
-                                                borderRadius: '0.6rem',
-                                                background: 'rgba(255, 255, 255, 0.06)',
-                                                border: '1px solid var(--border)',
-                                                color: 'var(--text-main)',
-                                                fontSize: '0.8rem',
-                                                fontWeight: 600,
+                                                padding: '0.55rem 1rem',
+                                                borderRadius: '0.65rem',
+                                                background: 'rgba(56, 189, 248, 0.15)',
+                                                border: '1px solid rgba(56, 189, 248, 0.35)',
+                                                color: '#38BDF8',
+                                                fontSize: '0.82rem',
+                                                fontWeight: 700,
                                                 cursor: 'pointer',
-                                                width: '100%'
+                                                width: '100%',
+                                                transition: 'all 0.2s ease'
                                             }}
                                             className="hover-scale"
                                         >
-                                            <Lucide.Copy size={14} /> Copy Calculation
+                                            <Lucide.Copy size={15} /> Copy Calculation Breakdown
                                         </button>
                                     </motion.div>
                                 )}
@@ -513,20 +525,21 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                         animate={{ opacity: 1, y: 0 }}
                                         style={{
                                             padding: '1.25rem',
-                                            borderRadius: '0.85rem',
-                                            background: 'rgba(56, 189, 248, 0.08)',
-                                            border: '1px solid rgba(56, 189, 248, 0.3)',
+                                            borderRadius: '1rem',
+                                            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(245, 179, 1, 0.08) 100%)',
+                                            border: '1px solid rgba(56, 189, 248, 0.38)',
+                                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '0.75rem'
                                         }}
                                     >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                                             <div>
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
                                                     Semester Percentage
                                                 </span>
-                                                <div style={{ fontSize: '2.4rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1.1, marginTop: '0.2rem' }}>
+                                                <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1.1, marginTop: '0.2rem' }}>
                                                     {sgpaPct.toFixed(2)}%
                                                 </div>
                                             </div>
@@ -540,11 +553,11 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                                 background: sgpaDivision.badgeBg,
                                                 border: `1px solid ${sgpaDivision.color}`
                                             }}>
-                                                {sgpaDivision.label}
+                                                ★ {sgpaDivision.label}
                                             </span>
                                         </div>
 
-                                        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.6rem' }}>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.6rem' }}>
                                             Calculation: <code style={{ color: 'var(--text-main)', fontWeight: 600 }}>{sgpaFormulaText}</code>
                                         </div>
 
@@ -555,19 +568,20 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
                                                 gap: '0.45rem',
-                                                padding: '0.5rem 1rem',
-                                                borderRadius: '0.6rem',
-                                                background: 'rgba(255, 255, 255, 0.06)',
-                                                border: '1px solid var(--border)',
-                                                color: 'var(--text-main)',
-                                                fontSize: '0.8rem',
-                                                fontWeight: 600,
+                                                padding: '0.55rem 1rem',
+                                                borderRadius: '0.65rem',
+                                                background: 'rgba(56, 189, 248, 0.15)',
+                                                border: '1px solid rgba(56, 189, 248, 0.35)',
+                                                color: '#38BDF8',
+                                                fontSize: '0.82rem',
+                                                fontWeight: 700,
                                                 cursor: 'pointer',
-                                                width: '100%'
+                                                width: '100%',
+                                                transition: 'all 0.2s ease'
                                             }}
                                             className="hover-scale"
                                         >
-                                            <Lucide.Copy size={14} /> Copy Calculation
+                                            <Lucide.Copy size={15} /> Copy Calculation Breakdown
                                         </button>
                                     </motion.div>
                                 )}
@@ -653,20 +667,21 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                         animate={{ opacity: 1, y: 0 }}
                                         style={{
                                             padding: '1.25rem',
-                                            borderRadius: '0.85rem',
-                                            background: 'rgba(16, 185, 129, 0.08)',
-                                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                                            borderRadius: '1rem',
+                                            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(56, 189, 248, 0.08) 100%)',
+                                            border: '1px solid rgba(16, 185, 129, 0.38)',
+                                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '0.75rem'
                                         }}
                                     >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                                             <div>
-                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 700 }}>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
                                                     Aggregate Percentage
                                                 </span>
-                                                <div style={{ fontSize: '2.4rem', fontWeight: 900, color: '#10B981', lineHeight: 1.1, marginTop: '0.2rem' }}>
+                                                <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#10B981', lineHeight: 1.1, marginTop: '0.2rem' }}>
                                                     {marksPct.toFixed(2)}%
                                                 </div>
                                             </div>
@@ -680,13 +695,36 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                                 background: marksDivision.badgeBg,
                                                 border: `1px solid ${marksDivision.color}`
                                             }}>
-                                                {marksDivision.label}
+                                                ★ {marksDivision.label}
                                             </span>
                                         </div>
 
-                                        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.6rem' }}>
-                                            Formula: ({obtNum} / {totNum}) × 100 = <b>{marksPct.toFixed(2)}%</b>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '0.6rem' }}>
+                                            Formula Applied: <code style={{ color: 'var(--text-main)', fontWeight: 600 }}>({obtNum} / {totNum}) × 100 = {marksPct.toFixed(2)}%</code>
                                         </div>
+
+                                        <button
+                                            onClick={() => handleCopy(`BEU Marks Conversion:\nMarks Obtained: ${obtNum} / ${totNum}\nPercentage: ${marksPct.toFixed(2)}%\nDivision: ${marksDivision.label}`)}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '0.45rem',
+                                                padding: '0.55rem 1rem',
+                                                borderRadius: '0.65rem',
+                                                background: 'rgba(16, 185, 129, 0.15)',
+                                                border: '1px solid rgba(16, 185, 129, 0.35)',
+                                                color: '#10B981',
+                                                fontSize: '0.82rem',
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                width: '100%',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                            className="hover-scale"
+                                        >
+                                            <Lucide.Copy size={15} /> Copy Calculation Breakdown
+                                        </button>
                                     </motion.div>
                                 )}
                             </div>

@@ -817,6 +817,122 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalcu
                                     </ul>
                                 </div>
 
+                                {/* Official BEU Percentage & Division Summary Box */}
+                                {result?.cgpa && result.cgpa !== 'NA' && result.cgpa !== 'N/A' && !isNaN(parseFloat(result.cgpa)) && (
+                                    <div
+                                        className="no-print"
+                                        style={{
+                                            margin: '1.75rem auto 0 auto',
+                                            maxWidth: '720px',
+                                            padding: '1.1rem 1.4rem',
+                                            borderRadius: '1rem',
+                                            background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(245, 179, 1, 0.05) 100%)',
+                                            border: '1px solid rgba(56, 189, 248, 0.3)',
+                                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            flexWrap: 'wrap',
+                                            gap: '1rem'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                                            <div style={{
+                                                width: '42px',
+                                                height: '42px',
+                                                borderRadius: '0.75rem',
+                                                background: 'rgba(56, 189, 248, 0.15)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                color: '#38BDF8',
+                                                border: '1px solid rgba(56, 189, 248, 0.35)'
+                                            }}>
+                                                <Lucide.GraduationCap size={22} />
+                                            </div>
+                                            <div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                    <span style={{ fontSize: '0.74rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', fontWeight: 700 }}>
+                                                        Official Percentage
+                                                    </span>
+                                                    <span style={{
+                                                        fontSize: '0.68rem',
+                                                        padding: '0.15rem 0.5rem',
+                                                        borderRadius: '1rem',
+                                                        background: 'rgba(16, 185, 129, 0.15)',
+                                                        color: '#10B981',
+                                                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                                                        fontWeight: 700
+                                                    }}>
+                                                        BEU Standard (CGPA × 10)
+                                                    </span>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.6rem', marginTop: '0.15rem' }}>
+                                                    <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1 }}>
+                                                        {(parseFloat(result.cgpa) * 10).toFixed(2)}%
+                                                    </span>
+                                                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                                                        {parseFloat(result.cgpa) * 10 >= 75 ? '★ First Class with Distinction' : parseFloat(result.cgpa) * 10 >= 60 ? 'First Division' : 'Second Division'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const pct = (parseFloat(result.cgpa) * 10).toFixed(2);
+                                                    const div = parseFloat(result.cgpa) * 10 >= 75 ? 'First Class with Distinction' : parseFloat(result.cgpa) * 10 >= 60 ? 'First Division' : 'Second Division';
+                                                    navigator.clipboard.writeText(`BEU Marksheet Result:\nReg No: ${result.regNo || ''}\nCGPA: ${result.cgpa}\nOfficial Percentage: ${pct}%\nDivision: ${div}\nRule: BEU CBCS 10-Point (CGPA × 10)`);
+                                                    toast.success('Result percentage copied!');
+                                                }}
+                                                style={{
+                                                    padding: '0.45rem 0.85rem',
+                                                    borderRadius: '2rem',
+                                                    background: 'rgba(255, 255, 255, 0.08)',
+                                                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                    color: 'var(--text-main)',
+                                                    fontSize: '0.78rem',
+                                                    fontWeight: 600,
+                                                    cursor: 'pointer',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.35rem'
+                                                }}
+                                                className="hover-scale"
+                                                title="Copy Result Summary"
+                                            >
+                                                <Lucide.Copy size={13} /> Copy
+                                            </button>
+
+                                            {onOpenCalculator && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onOpenCalculator(result.cgpa)}
+                                                    style={{
+                                                        padding: '0.45rem 0.95rem',
+                                                        borderRadius: '2rem',
+                                                        background: 'rgba(56, 189, 248, 0.15)',
+                                                        border: '1px solid #38BDF8',
+                                                        color: '#38BDF8',
+                                                        fontSize: '0.78rem',
+                                                        fontWeight: 700,
+                                                        cursor: 'pointer',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.35rem'
+                                                    }}
+                                                    className="hover-scale"
+                                                    title="Open Calculator Modal"
+                                                >
+                                                    <Lucide.Calculator size={14} /> Full Calculator
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Print / Download & Percentage Calculator Buttons */}
                                 <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
                                     <button

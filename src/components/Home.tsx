@@ -168,6 +168,29 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
     const [noticesLoading, setNoticesLoading] = useState(true);
     const [isSubscribed, setIsSubscribed] = useState(false);
 
+    // Quick Percentage Calculator State on Homepage
+    const [homeCgpa, setHomeCgpa] = useState<string>('');
+    const [homeFormula, setHomeFormula] = useState<'beu' | 'aicte'>('beu');
+
+    const parsedHomeCgpa = parseFloat(homeCgpa);
+    const isHomeCgpaValid = !isNaN(parsedHomeCgpa) && parsedHomeCgpa > 0 && parsedHomeCgpa <= 10;
+    const homePercentage = isHomeCgpaValid
+        ? (homeFormula === 'beu' ? parsedHomeCgpa * 10 : (parsedHomeCgpa - 0.75) * 10)
+        : 0;
+    const homeFormulaText = isHomeCgpaValid
+        ? (homeFormula === 'beu'
+            ? `${parsedHomeCgpa.toFixed(2)} × 10 = ${homePercentage.toFixed(2)}%`
+            : `(${parsedHomeCgpa.toFixed(2)} - 0.75) × 10 = ${homePercentage.toFixed(2)}%`)
+        : '';
+
+    const getDivisionInfo = (pct: number) => {
+        if (pct >= 75) return { label: 'First Class with Distinction', color: '#10B981', bg: 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)' };
+        if (pct >= 60) return { label: 'First Division', color: '#38BDF8', bg: 'rgba(56, 189, 248, 0.12)', border: 'rgba(56, 189, 248, 0.35)' };
+        if (pct >= 50) return { label: 'Second Division', color: '#F5B301', bg: 'rgba(245, 179, 1, 0.12)', border: 'rgba(245, 179, 1, 0.35)' };
+        if (pct >= 40) return { label: 'Pass', color: '#94A3B8', bg: 'rgba(148, 163, 184, 0.12)', border: 'rgba(148, 163, 184, 0.35)' };
+        return { label: 'Fail / Compartment', color: '#EF4444', bg: 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)' };
+    };
+
     // Typewriter Rotating Placeholder State
     const rotatingPlaceholders = [
         "Search 8th Sem Examination...",
@@ -375,48 +398,283 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
                         Instant access to official Bihar Engineering University semester results and marksheet records.
                     </motion.p>
 
+                    {/* Dedicated BEU Percentage Calculator Box */}
                     {onOpenCalculator && (
                         <motion.div
                             variants={{
                                 hidden: { opacity: 0, y: 15 },
                                 visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
                             }}
-                            style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'center' }}
+                            className="glass"
+                            style={{
+                                maxWidth: '640px',
+                                margin: '1.75rem auto 0 auto',
+                                padding: '1.25rem 1.4rem',
+                                borderRadius: '1.25rem',
+                                border: '1px solid rgba(56, 189, 248, 0.28)',
+                                boxShadow: '0 15px 40px -10px rgba(0, 0, 0, 0.5), 0 0 25px rgba(56, 189, 248, 0.08)',
+                                textAlign: 'left',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}
                         >
-                            <button
-                                onClick={onOpenCalculator}
-                                type="button"
-                                className="hero-pill hover-scale"
-                                style={{
-                                    cursor: 'pointer',
-                                    background: 'rgba(56, 189, 248, 0.1)',
-                                    border: '1px solid rgba(56, 189, 248, 0.35)',
-                                    color: '#38BDF8',
-                                    fontWeight: 600,
-                                    fontSize: '0.85rem',
-                                    padding: '0.5rem 1.25rem',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '0.55rem',
-                                    borderRadius: '2rem',
-                                    boxShadow: '0 4px 15px rgba(56, 189, 248, 0.12)',
-                                    transition: 'all 0.2s ease'
-                                }}
-                            >
-                                <Lucide.Calculator size={16} color="#38BDF8" />
-                                <span>BEU Percentage Calculator</span>
-                                <span style={{
-                                    fontSize: '0.7rem',
-                                    padding: '2px 8px',
-                                    borderRadius: '999px',
-                                    background: 'rgba(245, 179, 1, 0.15)',
-                                    color: '#F5B301',
-                                    border: '1px solid rgba(245, 179, 1, 0.3)',
-                                    fontWeight: 700
-                                }}>
-                                    CGPA • SGPA
-                                </span>
-                            </button>
+                            {/* Top decorative gradient shimmer line */}
+                            <div style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                height: '2.5px',
+                                background: 'linear-gradient(90deg, #38BDF8, #F5B301, #38BDF8)',
+                                opacity: 0.85
+                            }} />
+
+                            {/* Header */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.9rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                                    <div style={{
+                                        width: '36px',
+                                        height: '36px',
+                                        borderRadius: '0.65rem',
+                                        background: 'rgba(56, 189, 248, 0.15)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#38BDF8',
+                                        border: '1px solid rgba(56, 189, 248, 0.35)',
+                                        boxShadow: '0 2px 8px rgba(56, 189, 248, 0.2)'
+                                    }}>
+                                        <Lucide.Calculator size={18} />
+                                    </div>
+                                    <div>
+                                        <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, lineHeight: 1.2 }}>
+                                            BEU Percentage Calculator
+                                        </h3>
+                                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                            Live CGPA to Percentage & Division Converter
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{
+                                        fontSize: '0.68rem',
+                                        fontWeight: 700,
+                                        padding: '0.2rem 0.55rem',
+                                        borderRadius: '2rem',
+                                        background: 'rgba(245, 179, 1, 0.12)',
+                                        color: '#F5B301',
+                                        border: '1px solid rgba(245, 179, 1, 0.3)'
+                                    }}>
+                                        Official: CGPA × 10
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={onOpenCalculator}
+                                        style={{
+                                            background: 'rgba(56, 189, 248, 0.1)',
+                                            border: '1px solid rgba(56, 189, 248, 0.3)',
+                                            color: '#38BDF8',
+                                            fontSize: '0.74rem',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem',
+                                            padding: '0.25rem 0.6rem',
+                                            borderRadius: '1rem',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        className="hover-scale"
+                                        title="Open Full Calculator Modal (SGPA, Marks & BEU Guidelines)"
+                                    >
+                                        Full Tool <Lucide.ExternalLink size={12} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Input & Formula Selector Row */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.6rem', alignItems: 'center' }}>
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="10"
+                                        step="0.01"
+                                        placeholder="Enter CGPA (e.g. 7.82)"
+                                        value={homeCgpa}
+                                        onChange={(e) => setHomeCgpa(e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.65rem 0.9rem',
+                                            borderRadius: '0.7rem',
+                                            border: '1px solid rgba(255, 255, 255, 0.14)',
+                                            background: 'rgba(255, 255, 255, 0.04)',
+                                            color: 'var(--text-main)',
+                                            fontSize: '0.98rem',
+                                            fontWeight: 700,
+                                            outline: 'none',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                    {homeCgpa && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setHomeCgpa('')}
+                                            style={{
+                                                position: 'absolute',
+                                                right: '0.6rem',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                background: 'transparent',
+                                                border: 'none',
+                                                color: 'var(--text-muted)',
+                                                cursor: 'pointer',
+                                                padding: '0.2rem'
+                                            }}
+                                        >
+                                            <Lucide.X size={15} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Formula Choice */}
+                                <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(0, 0, 0, 0.25)', padding: '3px', borderRadius: '0.6rem', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setHomeFormula('beu')}
+                                        style={{
+                                            padding: '0.38rem 0.65rem',
+                                            fontSize: '0.72rem',
+                                            fontWeight: 700,
+                                            borderRadius: '0.45rem',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            background: homeFormula === 'beu' ? '#38BDF8' : 'transparent',
+                                            color: homeFormula === 'beu' ? '#0A1128' : 'var(--text-muted)',
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                        title="BEU Standard: CGPA × 10"
+                                    >
+                                        BEU (×10)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setHomeFormula('aicte')}
+                                        style={{
+                                            padding: '0.38rem 0.65rem',
+                                            fontSize: '0.72rem',
+                                            fontWeight: 700,
+                                            borderRadius: '0.45rem',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            background: homeFormula === 'aicte' ? '#38BDF8' : 'transparent',
+                                            color: homeFormula === 'aicte' ? '#0A1128' : 'var(--text-muted)',
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                        title="AICTE: (CGPA - 0.75) × 10"
+                                    >
+                                        AICTE
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Quick Presets */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.55rem', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>Presets:</span>
+                                {['6.50', '7.00', '7.50', '7.82', '8.00', '8.50', '9.00'].map((preset) => (
+                                    <button
+                                        key={preset}
+                                        type="button"
+                                        onClick={() => setHomeCgpa(preset)}
+                                        style={{
+                                            padding: '0.18rem 0.5rem',
+                                            fontSize: '0.72rem',
+                                            borderRadius: '0.4rem',
+                                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                                            background: homeCgpa === preset ? 'rgba(56, 189, 248, 0.22)' : 'rgba(255, 255, 255, 0.03)',
+                                            color: homeCgpa === preset ? '#38BDF8' : 'var(--text-muted)',
+                                            cursor: 'pointer',
+                                            fontWeight: 600,
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                        className="hover-scale"
+                                    >
+                                        {preset}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Live Result Box */}
+                            {isHomeCgpaValid && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 6 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ duration: 0.2 }}
+                                    style={{
+                                        marginTop: '0.85rem',
+                                        padding: '0.85rem 1.1rem',
+                                        borderRadius: '0.85rem',
+                                        background: 'linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(245, 179, 1, 0.08) 100%)',
+                                        border: '1px solid rgba(56, 189, 248, 0.35)',
+                                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        flexWrap: 'wrap',
+                                        gap: '0.75rem'
+                                    }}
+                                >
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.65rem' }}>
+                                            <span style={{ fontSize: '1.75rem', fontWeight: 900, color: '#38BDF8', lineHeight: 1 }}>
+                                                {homePercentage.toFixed(2)}%
+                                            </span>
+                                            <span style={{
+                                                fontSize: '0.72rem',
+                                                fontWeight: 700,
+                                                padding: '0.2rem 0.55rem',
+                                                borderRadius: '1rem',
+                                                color: getDivisionInfo(homePercentage).color,
+                                                background: getDivisionInfo(homePercentage).bg,
+                                                border: `1px solid ${getDivisionInfo(homePercentage).border}`
+                                            }}>
+                                                ★ {getDivisionInfo(homePercentage).label}
+                                            </span>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                                            Calculation: <code style={{ color: 'var(--text-main)', fontWeight: 600 }}>{homeFormulaText}</code>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(`BEU B.Tech Result:\nCGPA: ${parsedHomeCgpa.toFixed(2)}\nPercentage: ${homePercentage.toFixed(2)}%\nDivision: ${getDivisionInfo(homePercentage).label}\nFormula: ${homeFormulaText}`);
+                                                toast.success('Calculation copied to clipboard!');
+                                            }}
+                                            style={{
+                                                padding: '0.42rem 0.75rem',
+                                                borderRadius: '0.5rem',
+                                                background: 'rgba(255, 255, 255, 0.08)',
+                                                border: '1px solid rgba(255, 255, 255, 0.14)',
+                                                color: 'var(--text-main)',
+                                                fontSize: '0.74rem',
+                                                fontWeight: 600,
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.35rem'
+                                            }}
+                                            className="hover-scale"
+                                            title="Copy Result"
+                                        >
+                                            <Lucide.Copy size={13} /> Copy
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
                         </motion.div>
                     )}
                 </motion.div>
