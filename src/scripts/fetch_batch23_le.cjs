@@ -100,28 +100,42 @@ const BRANCHES = [
   { code: '151', name: 'CSE (Artificial Intelligence)' }
 ];
 
-// Lateral entry exams for Batch 23
+// Lateral entry exams for Batch 23 (Joined 2022-26 batch in Sem 3)
 const BATCH23_LE_EXAMS = [
   {
     semId: 3,
-    examName: "B.Tech. 3rd Semester Examination, 2024",
-    batchYear: "2024",
-    examHeld: "July/2025",
-    examId: "240103"
+    examName: "B.Tech 3rd Semester Examination 2023",
+    batchYear: "2023",
+    examHeld: "August/2024",
+    examId: "230103"
   },
   {
     semId: 4,
-    examName: "B.Tech. 4th Semester Examination, 2025",
-    batchYear: "2025",
-    examHeld: "December/2025",
-    examId: "250104"
+    examName: "B.Tech 4th Semester Examination 2024",
+    batchYear: "2024",
+    examHeld: "February/2025",
+    examId: "240104"
   },
   {
     semId: 5,
-    examName: "B.Tech 5th Semester Examination 2025",
+    examName: "B.Tech. 5th Semester Examination, 2024",
+    batchYear: "2024",
+    examHeld: "July/2025",
+    examId: "240105"
+  },
+  {
+    semId: 6,
+    examName: "B.Tech. 6th Semester Examination, 2025",
     batchYear: "2025",
-    examHeld: "May/2026",
-    examId: "250105"
+    examHeld: "November/2025",
+    examId: "250106"
+  },
+  {
+    semId: 7,
+    examName: "B.Tech. 7th Semester Examination, 2025",
+    batchYear: "2025",
+    examHeld: "February/2026",
+    examId: "250107"
   }
 ];
 
