@@ -47,7 +47,9 @@ export async function GET(request: Request) {
     const regNo = searchParams.get('redg_no') || searchParams.get('regNo');
     const semester = searchParams.get('semester');
     const examHeld = searchParams.get('exam_held') || searchParams.get('examHeld');
+    const examNameParam = searchParams.get('exam_name') || searchParams.get('examName') || '';
     const examId = searchParams.get('exam_id') || searchParams.get('examId') || '';
+    const isSuppRequest = (examNameParam && /supplementary|\(S\)/i.test(examNameParam)) || (examId && /98$/.test(examId));
     const captcha = searchParams.get('captcha');
 
     if (!regNo || !semester) {
@@ -64,9 +66,8 @@ export async function GET(request: Request) {
     try {
       await dbConnect();
       dbConnected = true;
-      // 1. Query local database strictly for the requested semester
-      cachedResult = await Result.findOne({
-        regNo,
+
+      const semesterFilter = {
         $or: [
           { semester: normalizedSemester },
           { semester: `${normalizedSemester}th Semester` },
@@ -75,7 +76,48 @@ export async function GET(request: Request) {
           { semester: `${normalizedSemester}rd Semester` },
           { semester: new RegExp(`(^|\\b)${normalizedSemester}(\\b|th|st|nd|rd)`, 'i') }
         ]
-      });
+      };
+
+      if (isSuppRequest) {
+        // Strictly look for Supplementary record in cache
+        cachedResult = await Result.findOne({
+          regNo,
+          $and: [
+            semesterFilter,
+            {
+              $or: [
+                { isSupplementary: true },
+                { examName: /supplementary/i },
+                { examName: /\(S\)/i },
+                { examId: /98$/ }
+              ]
+            }
+          ]
+        });
+      } else {
+        // Strictly look for Regular record in cache (exclude supplementary)
+        cachedResult = await Result.findOne({
+          regNo,
+          $and: [
+            semesterFilter,
+            {
+              $or: [
+                { isSupplementary: { $ne: true } },
+                { isSupplementary: { $exists: false } },
+                { examName: { $not: /supplementary|\(S\)/i } },
+                { examName: { $exists: false } }
+              ]
+            }
+          ]
+        });
+        if (!cachedResult) {
+          cachedResult = await Result.findOne({ regNo, ...semesterFilter });
+          // If the only record found is actually marked supplementary, do not treat as regular cache hit
+          if (cachedResult && (cachedResult.isSupplementary || (cachedResult.examName && /supplementary|\(S\)/i.test(cachedResult.examName)))) {
+            cachedResult = null;
+          }
+        }
+      }
     } catch (dbErr: any) {
       console.warn(`[Proxy Database Warning] DB connection/query failed: ${dbErr.message}. Bypassing cache...`);
     }
@@ -119,7 +161,6 @@ export async function GET(request: Request) {
 
     console.log(`[Proxy Cache MISS] regNo: ${regNo}, semester: ${semester}. Fetching from official BEU API via HTTPS...`);
 
-    const examNameParam = searchParams.get('exam_name') || searchParams.get('examName');
     const encodedExamHeld = encodeURIComponent(examHeld || '');
     const encodedExamName = encodeURIComponent(examNameParam || `B.Tech ${semesterNum}th Semester Examination ${year || '2026'}`);
 
@@ -172,6 +213,9 @@ export async function GET(request: Request) {
       motherName: officialData.mother_name,
       college: officialData.college_name,
       semester: normalizedSemester, // Store numeric string '1', '2', etc.
+      examName: examNameParam || (isSuppRequest ? `B.Tech ${semesterNum}th Semester Supplementary Examination ${year || '2026'}` : `B.Tech ${semesterNum}th Semester Examination ${year || '2026'}`),
+      examId: examId,
+      isSupplementary: !!isSuppRequest,
       course: officialData.course,
       sgpa: Array.isArray(officialData.sgpa) ? (officialData.sgpa[semesterNum - 1] || 'N/A') : (officialData.sgpa || 'N/A'),
       allSgpa: Array.isArray(officialData.sgpa) ? officialData.sgpa : (officialData.sgpa ? [officialData.sgpa] : []),
@@ -186,7 +230,7 @@ export async function GET(request: Request) {
     if (dbConnected) {
       try {
         await Result.findOneAndUpdate(
-          { regNo: mappedResult.regNo, semester: normalizedSemester },
+          { regNo: mappedResult.regNo, semester: normalizedSemester, isSupplementary: !!isSuppRequest },
           { $set: mappedResult },
           { upsert: true, new: true }
         );

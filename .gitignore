@@ -32,5 +32,6 @@ build/
 tsc.txt
 tsc_error.log
 .puppeteer_profile/
+.puppeteer_profile_supp/
 *.tsbuildinfo
 src/scripts/statewide_progress.json
