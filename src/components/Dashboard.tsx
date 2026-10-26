@@ -327,7 +327,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
     };
 
     return (
-        <div style={{ padding: '2rem', maxWidth: '1100px', margin: '0 auto' }}>
+        <div className="dashboard-container">
             <div className="no-print" style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '1rem' }}>
                 {onBack && (
                     <button
@@ -363,11 +363,11 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 )}
             </div>
 
-            <header className="no-print" style={{ textAlign: 'center', marginBottom: '3rem' }}>
-                <h1 style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--text-main)' }}>
+            <header className="no-print" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                <h1 style={{ fontSize: 'clamp(1.9rem, 5vw, 3rem)', fontWeight: 900, color: 'var(--text-main)', lineHeight: 1.2 }}>
                     BEU <span style={{ color: 'var(--primary)' }}>PRECISION</span>
                 </h1>
-                <p style={{ color: 'var(--text-muted)' }}>Official University Result Engine</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(0.85rem, 2vw, 1rem)', marginTop: '0.35rem' }}>Official University Result Engine</p>
             </header>
 
             <div className="no-print" style={{ position: 'relative', maxWidth: '600px', margin: '0 auto 3rem auto' }}>

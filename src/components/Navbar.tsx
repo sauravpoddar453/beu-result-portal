@@ -27,28 +27,15 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
 
     return (
         <header
+            className="nav-wrapper"
             style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 50,
-                width: '100%',
-                padding: '0.85rem 1rem 0.5rem',
                 backdropFilter: isScrolled ? 'blur(16px)' : 'none',
                 WebkitBackdropFilter: isScrolled ? 'blur(16px)' : 'none',
-                transition: 'background 0.25s ease'
             }}
         >
             <nav
                 className="glass nav-container"
                 style={{
-                    maxWidth: '1200px',
-                    margin: '0 auto',
-                    padding: '0.75rem 1.75rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderRadius: '1rem',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
                     boxShadow: isScrolled 
                         ? '0 10px 25px -5px rgba(0, 0, 0, 0.45)' 
                         : 'var(--glass-shadow)',
@@ -58,9 +45,9 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
             >
                 <div
                     onClick={onGoHome}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.9rem', cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
                 >
-                    <div style={{
+                    <div className="nav-logo-box hover-scale" style={{
                         background: 'white',
                         width: '36px',
                         height: '36px',
@@ -71,12 +58,13 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
                         boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                         overflow: 'hidden',
                         padding: '2px',
-                        transition: 'transform 0.2s ease'
-                    }} className="hover-scale">
+                        transition: 'transform 0.2s ease',
+                        flexShrink: 0
+                    }}>
                         <img src="/beu-logo.jpg" alt="BEU Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{
+                        <span className="nav-brand-title" style={{
                             fontSize: '1.1rem',
                             fontWeight: 800,
                             color: 'var(--text-main)',
@@ -95,8 +83,8 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
                     <a
                         href="#all-results"
                         onClick={onGoHome}
-                        style={{ textDecoration: 'none', color: 'var(--text-main)', fontSize: '0.82rem', fontWeight: 700, transition: 'color 0.2s ease' }}
-                        className="hover-scale"
+                        style={{ textDecoration: 'none', color: 'var(--text-main)', fontSize: '0.84rem', fontWeight: 700, transition: 'color 0.2s ease' }}
+                        className="hover-scale nav-link-results"
                     >
                         B.Tech Results
                     </a>

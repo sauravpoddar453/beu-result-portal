@@ -82,7 +82,7 @@ const App: React.FC = () => {
       {/* Glassmorphic Navbar */}
       <Navbar onGoHome={handleGoHome} />
 
-      <main style={{ position: 'relative', zIndex: 1, paddingTop: '1.5rem' }}>
+      <main style={{ position: 'relative', zIndex: 1, paddingTop: 'clamp(0.75rem, 2vw, 1.75rem)' }}>
         {/* Hidden SEO Section */}
         <section style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
           <h1>BEU Result</h1>

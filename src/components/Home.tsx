@@ -66,17 +66,12 @@ const AnimatedCounter: React.FC<{ value: number; duration?: number }> = ({ value
  * Skeleton shimmer cards shown while exam data is loading
  */
 const SkeletonCards: React.FC = () => (
-    <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 360px))',
-        gap: '1.25rem',
-        marginBottom: '3.5rem'
-    }}>
+    <div className="exams-grid">
         {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="glass" style={{
                 padding: '1.25rem',
                 borderRadius: '1rem',
-                height: '190px',
+                height: '210px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.85rem',
@@ -86,7 +81,7 @@ const SkeletonCards: React.FC = () => (
                 <div className="skeleton-bar" style={{ width: '85%', height: '22px', borderRadius: '4px', marginTop: '0.2rem' }} />
                 <div className="skeleton-bar" style={{ width: '60%', height: '14px', borderRadius: '4px' }} />
                 <div style={{ marginTop: 'auto' }}>
-                    <div className="skeleton-bar" style={{ width: '100%', height: '36px', borderRadius: '8px' }} />
+                    <div className="skeleton-bar" style={{ width: '100%', height: '40px', borderRadius: '8px' }} />
                 </div>
             </div>
         ))}
@@ -94,7 +89,7 @@ const SkeletonCards: React.FC = () => (
 );
 
 /**
- * Interactive Exam Card with 3D tilt, cursor light glare & hover lift
+ * Interactive Exam Card with responsive typography, hover lift & depth
  */
 interface ExamCardProps {
     exam: Exam;
@@ -118,50 +113,20 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, index, batchKey, onSelectSeme
             onClick={() => onSelectSemester(exam)}
             className="exam-card"
         >
-            {/* Top-Right Corner Batch Badge: translucent gold, no solid fill */}
-            <div style={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                padding: '0.3rem 0.75rem',
-                background: 'rgba(245, 179, 1, 0.12)',
-                borderBottomLeftRadius: '0.75rem',
-                borderLeft: '1px solid rgba(245, 179, 1, 0.22)',
-                borderBottom: '1px solid rgba(245, 179, 1, 0.22)',
-                color: '#F5B301',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem',
-                letterSpacing: '0.02em',
-                zIndex: 2
-            }}>
+            {/* Top-Right Corner Batch Badge */}
+            <div className="exam-card-badge">
                 <span>Batch {batchKey}</span>
                 <span style={{ opacity: 0.82 }}>({exam.session})</span>
             </div>
 
             {/* Accent Cyan Icon and Course/Semester Label */}
-            <div style={{
-                color: '#38BDF8',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                fontSize: '0.82rem',
-                fontWeight: 600
-            }}>
+            <div className="exam-card-course">
                 <Lucide.GraduationCap size={15} color="#38BDF8" />
                 <span>{exam.courseName || 'B.Tech'} • Sem {exam.semId}</span>
             </div>
 
             {/* Exam Title: Pure White & Bold */}
-            <h3 style={{
-                fontSize: '1.02rem',
-                fontWeight: 700,
-                lineHeight: 1.4,
-                color: '#FFFFFF',
-                minHeight: '2.85rem'
-            }}>
+            <h3 className="exam-card-title">
                 {exam.examName}
             </h3>
 
@@ -362,9 +327,9 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
     });
 
     return (
-        <div style={{ padding: '2rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="page-container">
             {/* Hero Section with Staggered Fade-Up & Text Shimmer */}
-            <header style={{ textAlign: 'center', marginBottom: '2.5rem', marginTop: '1.25rem' }}>
+            <header style={{ textAlign: 'center', marginBottom: '2.5rem', marginTop: '1rem' }}>
                 <motion.div
                     initial="hidden"
                     animate="visible"
@@ -384,22 +349,9 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             hidden: { opacity: 0, y: -15 },
                             visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
                         }}
-                        style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.45rem',
-                            padding: '0.35rem 0.95rem',
-                            borderRadius: '2rem',
-                            background: 'rgba(56, 189, 248, 0.1)',
-                            border: '1px solid rgba(56, 189, 248, 0.25)',
-                            color: '#38BDF8',
-                            fontSize: '0.8rem',
-                            fontWeight: 700,
-                            marginBottom: '1rem',
-                            letterSpacing: '0.02em'
-                        }}
+                        className="hero-pill"
                     >
-                        <Lucide.GraduationCap size={15} color="#38BDF8" /> B.Tech Examination Portal
+                        <Lucide.GraduationCap size={16} color="#38BDF8" /> B.Tech Examination Portal
                     </motion.div>
 
                     <motion.h1
@@ -407,14 +359,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             hidden: { opacity: 0, y: 15 },
                             visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
                         }}
-                        style={{
-                            fontSize: 'clamp(2rem, 3.5vw, 2.75rem)',
-                            fontWeight: 800,
-                            color: 'var(--text-main)',
-                            lineHeight: 1.2,
-                            letterSpacing: '-0.02em',
-                            margin: 0
-                        }}
+                        className="hero-title"
                     >
                         BEU <span className="shimmer-text">RESULTS</span> Portal
                     </motion.h1>
@@ -424,13 +369,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             hidden: { opacity: 0, y: 15 },
                             visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
                         }}
-                        style={{
-                            color: 'var(--text-muted)',
-                            fontSize: '1rem',
-                            maxWidth: '560px',
-                            margin: '0.75rem auto 0',
-                            lineHeight: 1.5
-                        }}
+                        className="hero-subtitle"
                     >
                         Instant access to official Bihar Engineering University semester results and marksheet records.
                     </motion.p>
@@ -461,20 +400,9 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             ) : (
                 <>
                     {/* Search & Batch Filter Section */}
-                    <div style={{ maxWidth: '850px', margin: '0 auto 3rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div className="search-filter-section">
                         {/* Live Search Input with Glowing Focus & Pulsing Icon */}
-                        <div
-                            className="glass search-input-wrapper"
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.75rem',
-                                padding: '0.85rem 1.25rem',
-                                borderRadius: '1.25rem',
-                                border: '1px solid var(--border)',
-                                background: 'rgba(255,255,255,0.02)'
-                            }}
-                        >
+                        <div className="glass search-input-wrapper">
                             <Lucide.Search className="search-pulse-icon" size={20} color="#38BDF8" />
                             <input
                                 type="text"
@@ -502,30 +430,15 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         </div>
 
                         {/* B.Tech Batch Filter Chips with Sliding Active Pill */}
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            flexWrap: 'wrap'
-                        }}>
+                        <div className="filter-chips-container">
                             <motion.button
                                 onClick={() => setActiveFilter('all')}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.96 }}
+                                className="filter-chip-btn"
                                 style={{
-                                    position: 'relative',
-                                    padding: '0.45rem 1.1rem',
-                                    borderRadius: '2rem',
-                                    border: '1px solid',
                                     borderColor: activeFilter === 'all' ? 'var(--primary)' : 'var(--border)',
-                                    background: 'transparent',
                                     color: activeFilter === 'all' ? 'var(--btn-text)' : 'var(--text-main)',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    fontSize: '0.82rem',
-                                    transition: 'color 0.2s ease, border-color 0.2s ease',
-                                    zIndex: 1,
-                                    overflow: 'hidden'
                                 }}
                             >
                                 {activeFilter === 'all' && (
@@ -555,20 +468,10 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                         title={meta ? `${meta.label} (${meta.session})` : `Batch ${batch}`}
                                         whileHover={{ scale: 1.04 }}
                                         whileTap={{ scale: 0.96 }}
+                                        className="filter-chip-btn"
                                         style={{
-                                            position: 'relative',
-                                            padding: '0.45rem 1.1rem',
-                                            borderRadius: '2rem',
-                                            border: '1px solid',
                                             borderColor: isSelected ? 'var(--primary)' : 'var(--border)',
-                                            background: 'transparent',
                                             color: isSelected ? 'var(--btn-text)' : 'var(--text-main)',
-                                            fontWeight: 700,
-                                            cursor: 'pointer',
-                                            fontSize: '0.82rem',
-                                            transition: 'color 0.2s ease, border-color 0.2s ease',
-                                            zIndex: 1,
-                                            overflow: 'hidden'
                                         }}
                                     >
                                         {isSelected && (
@@ -594,10 +497,10 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     {/* Section Header with Animated Counter & Sliding Arrow Link */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <div>
-                            <h2 style={{ fontSize: '1.6rem', color: 'var(--text-main)', fontWeight: 800 }}>
+                            <h2 className="section-header-title">
                                 Available B.Tech Examinations (<AnimatedCounter value={filteredExams.length} />)
                             </h2>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                            <p className="section-header-desc">
                                 Click any exam to check and download your official format marksheet directly.
                             </p>
                         </div>
@@ -622,13 +525,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         </a>
                     </div>
 
-                    {/* Compact Exams Grid with 3D Tilt, Glare & Hover Highlights */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 360px))',
-                        gap: '1.25rem',
-                        marginBottom: '3.5rem'
-                    }}>
+                    {/* Fluid Responsive Exams Grid */}
+                    <div className="exams-grid">
                         <AnimatePresence mode="popLayout">
                             {filteredExams.map((exam, index) => (
                                 <ExamCard
@@ -643,7 +541,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     </div>
 
                     {/* Examination Results Directory Table */}
-                    <div id="all-results" className="glass" style={{ marginBottom: '4rem', padding: '2rem', borderRadius: '1.25rem', border: '1px solid var(--border)' }}>
+                    <div id="all-results" className="glass responsive-table-box">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -732,7 +630,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             )}
 
             {/* Dynamic Notices & Quick Links Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem', marginTop: '2rem' }}>
+            <div className="notices-grid">
                 {/* Notice Board */}
                 <div className="glass" style={{ padding: '2rem', background: 'rgba(255,255,255,0.02)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -844,7 +742,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             </div>
 
             {/* SEO Content Section */}
-            <div className="glass" id="seo-content" style={{ marginTop: '4rem', padding: '3rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
+            <div className="glass seo-box" id="seo-content">
                 <h1 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '0.5rem', fontWeight: 800 }}>
                     BEU Result
                 </h1>
