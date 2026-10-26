@@ -514,16 +514,6 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                         -webkit-print-color-adjust: exact !important;
                                         print-color-adjust: exact !important;
                                     }
-                                    .watermark-wrapper {
-                                        opacity: 0.07 !important;
-                                        -webkit-print-color-adjust: exact !important;
-                                        print-color-adjust: exact !important;
-                                    }
-                                    .watermark-overlay {
-                                        opacity: 0.07 !important;
-                                        -webkit-print-color-adjust: exact !important;
-                                        print-color-adjust: exact !important;
-                                    }
                                 }
 
                                 .official-table {
@@ -582,46 +572,6 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     color: #a82d3b;
                                     font-weight: 700;
                                 }
-                                .watermark-overlay {
-                                    position: absolute;
-                                    top: 18%;
-                                    left: 50%;
-                                    transform: translate(-50%, -50%);
-                                    font-size: 50px;
-                                    color: rgba(168, 45, 59, 0.08);
-                                    z-index: 0;
-                                    pointer-events: none;
-                                    user-select: none;
-                                    font-weight: 900;
-                                    letter-spacing: 4px;
-                                    white-space: nowrap;
-                                }
-                                .watermark-wrapper {
-                                    position: absolute;
-                                    top: 45%;
-                                    left: 50%;
-                                    transform: translate(-50%, -50%);
-                                    z-index: 0;
-                                    text-align: center;
-                                    opacity: 0.07;
-                                    pointer-events: none;
-                                    user-select: none;
-                                    width: 80%;
-                                }
-                                .watermark-logo {
-                                    border-radius: 50%;
-                                    width: 130px;
-                                    margin: 0 auto 0.5rem auto;
-                                    display: block;
-                                }
-                                .watermark-text {
-                                    color: #a82d3b;
-                                    font-weight: 900;
-                                    font-size: 1.3rem;
-                                    white-space: nowrap;
-                                    text-transform: uppercase;
-                                    margin: 0;
-                                }
 
                                 @media screen and (max-width: 640px) {
                                     .marksheet-container {
@@ -667,27 +617,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                         font-size: 0.73rem !important;
                                         padding: 0.25rem 0.25rem !important;
                                     }
-                                    .watermark-overlay {
-                                        font-size: 34px !important;
-                                    }
-                                    .watermark-logo {
-                                        width: 85px !important;
-                                    }
-                                    .watermark-text {
-                                        font-size: 0.95rem !important;
-                                        letter-spacing: 1px !important;
-                                    }
                                 }
                             `}</style>
-
-                            {/* Top Watermark Overlay */}
-                            <div className="watermark-overlay no-print">WEB COPY</div>
-
-                            {/* Background Watermark */}
-                            <div className="watermark-wrapper">
-                                <img src="/beu-logo.jpg" alt="" className="watermark-logo" />
-                                <h1 className="watermark-text">BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
-                            </div>
 
                             {/* Official Header (Matching Official PDF) */}
                             <div className="marksheet-header-row" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
