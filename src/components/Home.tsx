@@ -261,13 +261,13 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                         <div style={{
                             display: 'flex',
                             justifyContent: 'center',
-                            gap: '0.6rem',
+                            gap: '0.5rem',
                             flexWrap: 'wrap'
                         }}>
                             <button
                                 onClick={() => setActiveFilter('all')}
                                 style={{
-                                    padding: '0.6rem 1.25rem',
+                                    padding: '0.45rem 1.05rem',
                                     borderRadius: '2rem',
                                     border: '1px solid',
                                     borderColor: activeFilter === 'all' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
@@ -275,7 +275,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                     color: 'var(--text-main)',
                                     fontWeight: 700,
                                     cursor: 'pointer',
-                                    fontSize: '0.85rem',
+                                    fontSize: '0.82rem',
                                     transition: 'all 0.2s ease'
                                 }}
                             >
@@ -285,13 +285,13 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 const batchCount = allExams.filter(e => getExamBatch(e.session) === batch).length;
                                 const isSelected = activeFilter === batch;
                                 const meta = batchMetadata[batch];
-                                const label = meta ? `${meta.label} (${meta.session})` : `Batch ${batch}`;
                                 return (
                                     <button
                                         key={`batch-${batch}`}
                                         onClick={() => setActiveFilter(batch)}
+                                        title={meta ? `${meta.label} (${meta.session})` : `Batch ${batch}`}
                                         style={{
-                                            padding: '0.6rem 1.25rem',
+                                            padding: '0.45rem 1.05rem',
                                             borderRadius: '2rem',
                                             border: '1px solid',
                                             borderColor: isSelected ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
@@ -299,11 +299,11 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                             color: 'var(--text-main)',
                                             fontWeight: 700,
                                             cursor: 'pointer',
-                                            fontSize: '0.85rem',
+                                            fontSize: '0.82rem',
                                             transition: 'all 0.2s ease'
                                         }}
                                     >
-                                        {label} ({batchCount})
+                                        Batch {batch} ({batchCount})
                                     </button>
                                 );
                             })}
@@ -339,9 +339,9 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     {/* Exams Grid */}
                     <div style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                        gap: '1.5rem',
-                        marginBottom: '4rem'
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 360px))',
+                        gap: '1.25rem',
+                        marginBottom: '3.5rem'
                     }}>
                         <AnimatePresence mode="popLayout">
                             {filteredExams.map((exam, index) => (
@@ -351,34 +351,34 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
                                     transition={{ delay: Math.min(index * 0.02, 0.2), duration: 0.3 }}
-                                    whileHover={{ scale: 1.02, translateY: -4 }}
+                                    whileHover={{ scale: 1.02, translateY: -3 }}
                                     className="glass"
                                     onClick={() => onSelectSemester(exam)}
                                     style={{
-                                        padding: '1.75rem',
+                                        padding: '1.25rem',
                                         cursor: 'pointer',
                                         border: '1px solid rgba(255,255,255,0.06)',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        gap: '1rem',
+                                        gap: '0.85rem',
                                         position: 'relative',
                                         overflow: 'hidden',
-                                        borderRadius: '1.25rem'
+                                        borderRadius: '1rem'
                                     }}
                                 >
                                     <div style={{
                                         position: 'absolute',
                                         top: 0,
                                         right: 0,
-                                        padding: '0.35rem 0.85rem',
+                                        padding: '0.25rem 0.75rem',
                                         background: 'linear-gradient(135deg, var(--primary), #4f46e5)',
                                         color: '#fff',
-                                        fontSize: '0.72rem',
+                                        fontSize: '0.7rem',
                                         fontWeight: 800,
-                                        borderBottomLeftRadius: '1rem',
+                                        borderBottomLeftRadius: '0.85rem',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.35rem'
+                                        gap: '0.3rem'
                                     }}>
                                         <span>Batch {getExamBatch(exam.session)}</span>
                                         <span style={{ opacity: 0.85 }}>({exam.session})</span>
@@ -388,38 +388,38 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                         color: 'var(--primary)',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.5rem',
-                                        fontSize: '0.85rem',
+                                        gap: '0.45rem',
+                                        fontSize: '0.82rem',
                                         fontWeight: 600
                                     }}>
-                                        <Lucide.GraduationCap size={18} />
+                                        <Lucide.GraduationCap size={16} />
                                         {exam.courseName || 'B.Tech'} • Sem {exam.semId}
                                     </div>
 
-                                    <h3 style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.35, color: 'var(--text-main)' }}>
+                                    <h3 style={{ fontSize: '1.02rem', fontWeight: 700, lineHeight: 1.35, color: 'var(--text-main)', minHeight: '2.75rem' }}>
                                         {exam.examName}
                                     </h3>
 
-                                    <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                <Lucide.Calendar size={13} /> {exam.examHeld}
+                                    <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                                <Lucide.Calendar size={12} /> {exam.examHeld}
                                             </span>
-                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--secondary)', fontWeight: 600 }}>
-                                                <Lucide.CheckCircle size={13} /> {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--secondary)', fontWeight: 600 }}>
+                                                <Lucide.CheckCircle size={12} /> {new Date(exam.publishDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                             </span>
                                         </div>
 
-                                        <div style={{ marginTop: '0.6rem' }}>
+                                        <div style={{ marginTop: '0.4rem' }}>
                                             <button
                                                 className="premium-btn"
-                                                style={{ width: '100%', padding: '0.65rem 1rem', fontSize: '0.85rem', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                                style={{ width: '100%', padding: '0.55rem 0.9rem', fontSize: '0.82rem', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.45rem', borderRadius: '0.75rem' }}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     onSelectSemester(exam);
                                                 }}
                                             >
-                                                <Lucide.GraduationCap size={16} /> Check Result
+                                                <Lucide.GraduationCap size={15} /> Check Result
                                             </button>
                                         </div>
                                     </div>
