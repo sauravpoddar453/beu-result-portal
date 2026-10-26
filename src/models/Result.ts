@@ -7,6 +7,9 @@ const resultSchema = new mongoose.Schema({
   motherName: String,
   college: String,
   semester: String,
+  examName: String,
+  examId: String,
+  isSupplementary: { type: Boolean, default: false },
   sgpa: mongoose.Schema.Types.Mixed,
   cgpa: mongoose.Schema.Types.Mixed,
   status: String,
@@ -27,7 +30,7 @@ const resultSchema = new mongoose.Schema({
   lastUpdated: { type: Date, default: Date.now },
 }, { strict: false });
 
-resultSchema.index({ regNo: 1, semester: 1 }, { unique: true });
+resultSchema.index({ regNo: 1, semester: 1, isSupplementary: 1 }, { unique: true });
 
 // Avoid OverwriteModelError in hot reload
 const Result = mongoose.models.Result || mongoose.model('Result', resultSchema);

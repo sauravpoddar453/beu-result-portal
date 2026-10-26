@@ -18,6 +18,8 @@ export async function GET(
     const { regNo } = await params;
     const { searchParams } = new URL(request.url);
     const semester = searchParams.get('semester');
+    const examName = searchParams.get('examName') || searchParams.get('exam_name') || '';
+    const examId = searchParams.get('examId') || searchParams.get('exam_id') || '';
 
     await dbConnect();
 
@@ -35,7 +37,56 @@ export async function GET(
       ];
     }
 
-    let result = await Result.findOne(query);
+    const isSuppRequest = (examName && /supplementary|\(S\)/i.test(examName)) || (examId && /98$/.test(examId));
+    let result = null;
+
+    if (isSuppRequest) {
+      // Specifically query for Supplementary record
+      const suppQuery = {
+        regNo,
+        $and: [
+          ...(query.$or ? [{ $or: query.$or }] : []),
+          {
+            $or: [
+              { isSupplementary: true },
+              { examName: /supplementary/i },
+              { examName: /\(S\)/i },
+              { examId: /98$/ }
+            ]
+          }
+        ]
+      };
+      result = await Result.findOne(suppQuery);
+
+      if (!result) {
+        return NextResponse.json({
+          message: 'No Supplementary result found for this registration number. The student may have cleared the regular exam and did not appear in supplementary.',
+          isSupplementaryNotFound: true
+        }, { status: 404 });
+      }
+    } else {
+      // Regular exam request: prioritize records that are NOT supplementary
+      const regQuery = {
+        regNo,
+        $and: [
+          ...(query.$or ? [{ $or: query.$or }] : []),
+          {
+            $or: [
+              { isSupplementary: { $ne: true } },
+              { isSupplementary: { $exists: false } },
+              { examName: { $not: /supplementary|\(S\)/i } },
+              { examName: { $exists: false } }
+            ]
+          }
+        ]
+      };
+      result = await Result.findOne(regQuery);
+
+      if (!result) {
+        result = await Result.findOne(query);
+      }
+    }
+
     if (!result && !semester) {
       result = await Result.findOne({ regNo });
     }

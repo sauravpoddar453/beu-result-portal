@@ -75,13 +75,12 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
         const year = currentExam?.batchYear || '2024';
         const semester = toRoman(currentExam?.semId || 0);
         const examHeld = encodeURIComponent(currentExam?.examHeld || '');
+        const examId = currentExam?.examId || currentExam?.id || '';
+        const examName = encodeURIComponent(currentExam?.examName || currentExam?.name || '');
 
         try {
             // Official BEU API Call
             // Note: In a production app, this might need a proxy for CORS, but we'll attempt direct fetch
-
-            const examId = currentExam?.examId || currentExam?.id || '';
-            const examName = encodeURIComponent(currentExam?.examName || currentExam?.name || '');
             const url = `/api/fetch-result?year=${year}&redg_no=${targetRegNo}&semester=${semester}&exam_held=${examHeld}&exam_id=${examId}&exam_name=${examName}`;
 
             const response = await fetch(url);
@@ -144,7 +143,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                 if (errJson.error === 'CAPTCHA_REQUIRED') {
                     // Try DB fallback before giving up
                     try {
-                        const dbRes = await fetch(`/api/result/${targetRegNo}?semester=${semester}`);
+                        const dbRes = await fetch(`/api/result/${targetRegNo}?semester=${semester}&examId=${examId}&examName=${examName}`);
                         if (dbRes.ok) {
                             const dbData = await dbRes.json();
                             const dbTheory = (dbData.theorySubjects && dbData.theorySubjects.length > 0)
@@ -189,6 +188,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             setShowNotFound(false);
                             toast.success('Result loaded from database backup!', { id: searchToast });
                             return;
+                        } else {
+                            const errData = await dbRes.json().catch(() => ({}));
+                            if (errData.isSupplementaryNotFound) {
+                                setShowNotFound(false);
+                                setLoading(false);
+                                setError(errData.message);
+                                toast.error(errData.message, { id: searchToast, duration: 6000 });
+                                return;
+                            }
                         }
                     } catch (dbErr) {
                         console.error('Local database lookup failed:', dbErr);
@@ -204,7 +212,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
 
             // Additional attempt to load from database backup
             try {
-                const dbRes = await fetch(`/api/result/${targetRegNo}?semester=${semester}`);
+                const dbRes = await fetch(`/api/result/${targetRegNo}?semester=${semester}&examId=${examId}&examName=${examName}`);
                 if (dbRes.ok) {
                     const dbData = await dbRes.json();
                     const dbTheory = (dbData.theorySubjects && dbData.theorySubjects.length > 0)
@@ -249,65 +257,23 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                     setShowNotFound(false);
                     toast.success('Result loaded from database backup!', { id: searchToast });
                     return;
+                } else {
+                    const errData = await dbRes.json().catch(() => ({}));
+                    if (errData.isSupplementaryNotFound) {
+                        setShowNotFound(false);
+                        setLoading(false);
+                        setError(errData.message);
+                        toast.error(errData.message, { id: searchToast, duration: 6000 });
+                        return;
+                    }
                 }
             } catch (dbErr) {
                 console.error('Local database lookup failed:', dbErr);
             }
 
-            // Fallback for demonstration if official API fails or is restricted by CORS
-            const fallbackSem = (overrideExam || selectedExam)?.semId || 6;
-            if (targetRegNo === '22151131015' || targetRegNo === '22151131026') {
-                if (targetRegNo === '22151131015') {
-                    setResult({
-                        name: 'ASEEM RAJ',
-                        rollNo: '22151131015',
-                        fatherName: 'JAY SHANKAR PRASAD',
-                        motherName: 'MANJU KUMARI',
-                        college: 'PURNEA COLLEGE OF ENGINEERING, PURNEA',
-                        course: 'Computer Science and Engineering (Artificial Intelligence)',
-                        semester: `${fallbackSem}th Semester`,
-                        sgpa: ['7.1', '7.4', '7.0', '6.8', '6.5', '6.3'][fallbackSem - 1] || 'N/A',
-                        allSgpa: ['7.1', '7.4', '7.0', '6.8', '6.5', '6.3'],
-                        cgpa: '7.23',
-                        status: 'FAIL:151603',
-                        theorySubjects: [
-                            { code: '151601', name: 'Machine Learning', ese: '34', ia: '16', total: '50', grade: 'D', credit: '4' },
-                            { code: '151602', name: 'Automata Theory and Compiler Design', ese: '52', ia: '24', total: '76', grade: 'B', credit: '3' },
-                            { code: '151603', name: 'Ad hoc & Network Sensors', ese: 'NA', ia: '27', total: '27', grade: 'F', credit: '3' },
-                            { code: '151604', name: 'AI and Ethics', ese: '41', ia: '26', total: '67', grade: 'C', credit: '1' },
-                            { code: '151609', name: 'Network Security', ese: '37', ia: '19', total: '56', grade: 'D', credit: '3' },
-                            { code: '151615', name: 'E-Commerce and ERP', ese: '46', ia: '26', total: '72', grade: 'B', credit: '3' }
-                        ],
-                        practicalSubjects: [
-                            { code: '151601P', name: 'Machine Learning Lab', ese: '25', ia: '17', total: '42', grade: 'A', credit: '2' },
-                            { code: '151603P', name: 'Ad hoc & Network Sensors Lab', ese: '25', ia: '18', total: '43', grade: 'A', credit: '2' },
-                            { code: '151606P', name: 'NPTEL Course-II Lab', ese: '31', ia: '20', total: '51', grade: 'D', credit: '2' }
-                        ]
-                    });
-                } else {
-                    setResult({
-                        name: 'SAURAV PODDAR',
-                        rollNo: '22151131026',
-                        college: 'PURNEA COLLEGE OF ENGINEERING, PURNEA',
-                        semester: `${fallbackSem}th Semester`,
-                        sgpa: ['8.1', '8.0', '8.2', '8.5', '8.3', '8.75'][fallbackSem - 1] || 'N/A',
-                        allSgpa: ['8.1', '8.0', '8.2', '8.5', '8.3', '8.75'],
-                        cgpa: '8.32',
-                        status: 'PASSED',
-                        theorySubjects: [
-                            { code: '151601', name: 'Machine Learning', ese: '48', ia: '22', total: '70', grade: 'A', credit: '4' }
-                        ],
-                        practicalSubjects: []
-                    });
-                }
-                fetchBranchStats(targetRegNo, fallbackSem);
-                setShowNotFound(false);
-                toast.success('Result Fetched Successfully!', { id: searchToast });
-            } else {
-                setShowNotFound(true);
-                setError(err.message || 'Result not found or server error.');
-                toast.error('Result Not Found', { id: searchToast });
-            }
+            setShowNotFound(true);
+            setError(err.message || 'Result not found or university server required verification.');
+            toast.error(err.message || 'Result Not Found', { id: searchToast });
         } finally {
             setLoading(false);
         }

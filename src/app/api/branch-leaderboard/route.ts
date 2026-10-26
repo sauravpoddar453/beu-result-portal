@@ -122,8 +122,22 @@ export async function GET(request: Request) {
       };
     });
 
+    // Deduplicate students by regNo (keep highest SGPA record)
+    const uniqueMap = new Map<string, typeof processed[0]>();
+    for (const item of processed) {
+      if (!uniqueMap.has(item.regNo)) {
+        uniqueMap.set(item.regNo, item);
+      } else {
+        const existing = uniqueMap.get(item.regNo)!;
+        if ((item.numericSgpa || 0) > (existing.numericSgpa || 0)) {
+          uniqueMap.set(item.regNo, item);
+        }
+      }
+    }
+    const deduped = Array.from(uniqueMap.values());
+
     // Sort descending: highest SGPA first, tie-break by CGPA
-    processed.sort((a, b) => {
+    deduped.sort((a, b) => {
       if (a.numericSgpa !== null && b.numericSgpa !== null) {
         if (b.numericSgpa !== a.numericSgpa) {
           return b.numericSgpa - a.numericSgpa;
@@ -136,7 +150,7 @@ export async function GET(request: Request) {
     });
 
     // Assign rank
-    const rankedStudents = processed.map((student, idx) => ({
+    const rankedStudents = deduped.map((student, idx) => ({
       rank: idx + 1,
       ...student
     }));
