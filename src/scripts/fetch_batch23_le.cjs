@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const mongoose = require('mongoose');
 const { execSync } = require('child_process');
+const path = require('path');
 require('dotenv').config();
 
 const toRoman = (num) => {
@@ -133,14 +134,17 @@ async function fetchBatch23LateralEntry() {
   await mongoose.connect(process.env.MONGO_URI);
   console.log('✅ Connected to MongoDB Atlas successfully!\n');
 
+  const profileDir = path.join(__dirname, '..', '..', '.puppeteer_profile');
   const browser = await puppeteer.launch({
     headless: false,
+    userDataDir: profileDir,
     ignoreDefaultArgs: ['--enable-automation'],
     args: [
       '--window-position=-2400,-2400',
       '--window-size=1280,800',
       '--no-sandbox',
-      '--disable-blink-features=AutomationControlled'
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=FirstPartySets'
     ]
   });
 
@@ -282,8 +286,8 @@ async function fetchBatch23LateralEntry() {
     console.log(`==================================================================\n`);
 
   } finally {
-    await browser.close();
-    await mongoose.disconnect();
+    try { await browser.close(); } catch (e) { console.warn('Browser close note:', e.message); }
+    try { await mongoose.disconnect(); } catch (e) {}
     updateBrowserArtifact();
   }
 }

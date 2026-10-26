@@ -663,9 +663,22 @@ async function runFilter() {
 </html>
 `;
 
-  const targetFile = 'C:\\\\Users\\\\Saurav\\\\.gemini\\\\antigravity\\\\brain\\\\968feea7-4f92-4c52-9793-36a990811327\\\\beu_result_browser.html';
-  fs.writeFileSync(targetFile, htmlContent, 'utf8');
-  console.log('Updated HTML browser artifact strictly for Batches 22, 23, 24, 25 and B.Tech only at:', targetFile);
+  const targetFiles = [
+    'C:\\\\Users\\\\Saurav\\\\.gemini\\\\antigravity\\\\brain\\\\f13ce696-e5f6-47cd-a650-df8111d44979\\\\beu_result_browser.html',
+    'C:\\\\Users\\\\Saurav\\\\.gemini\\\\antigravity\\\\brain\\\\968feea7-4f92-4c52-9793-36a990811327\\\\beu_result_browser.html',
+    path.join(__dirname, '..', '..', 'public', 'beu_result_browser.html')
+  ];
+
+  for (const file of targetFiles) {
+    try {
+      const dir = path.dirname(file);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(file, htmlContent, 'utf8');
+      console.log('✅ Updated HTML browser artifact at:', file);
+    } catch (e) {
+      console.warn('⚠️ Could not write artifact to', file, e.message);
+    }
+  }
 }
 
 runFilter().catch(console.error);
