@@ -5,9 +5,10 @@ import * as Lucide from 'lucide-react';
 
 interface NavbarProps {
     onGoHome: () => void;
+    onOpenCalculator?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
+const Navbar: React.FC<NavbarProps> = ({ onGoHome, onOpenCalculator }) => {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -97,6 +98,32 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome }) => {
                     >
                         ERP
                     </a>
+
+                    {onOpenCalculator && (
+                        <button
+                            onClick={onOpenCalculator}
+                            type="button"
+                            style={{
+                                background: 'rgba(var(--primary-rgb), 0.1)',
+                                border: '1px solid rgba(var(--primary-rgb), 0.25)',
+                                color: 'var(--primary)',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                padding: '0.35rem 0.75rem',
+                                borderRadius: '1.5rem',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                transition: 'all 0.2s ease'
+                            }}
+                            className="hover-scale"
+                            title="BEU CGPA to Percentage Calculator"
+                        >
+                            <Lucide.Calculator size={14} />
+                            <span>% Calculator</span>
+                        </button>
+                    )}
                     
                     <a 
                         href="https://github.com/sauravpoddar453/beu-result-portal" 

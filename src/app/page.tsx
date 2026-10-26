@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Dashboard from '@/components/Dashboard';
 import Home from '@/components/Home';
+import PercentageCalculator from '@/components/PercentageCalculator';
 
 /**
  * Desktop-only subtle cursor glow that follows mouse position smoothly.
@@ -51,6 +52,15 @@ const CursorGlow: React.FC = () => {
 const App: React.FC = () => {
   const [view, setView] = useState<'home' | 'dashboard'>('home');
   const [selectedExam, setSelectedExam] = useState<any>(null);
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calcScore, setCalcScore] = useState<string | number | null>(null);
+
+  const handleOpenCalculator = (score?: string | number) => {
+    if (score !== undefined) {
+      setCalcScore(score);
+    }
+    setShowCalculator(true);
+  };
 
   const handleSelectSemester = (exam: any) => {
     setSelectedExam(exam);
@@ -80,7 +90,7 @@ const App: React.FC = () => {
       <CursorGlow />
 
       {/* Glassmorphic Navbar */}
-      <Navbar onGoHome={handleGoHome} />
+      <Navbar onGoHome={handleGoHome} onOpenCalculator={() => handleOpenCalculator()} />
 
       <main style={{ position: 'relative', zIndex: 1, paddingTop: 'clamp(0.75rem, 2vw, 1.75rem)' }}>
         {/* Hidden SEO Section */}
@@ -102,7 +112,7 @@ const App: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.28, ease: 'easeInOut' }}
             >
-              <Home onSelectSemester={handleSelectSemester} />
+              <Home onSelectSemester={handleSelectSemester} onOpenCalculator={() => handleOpenCalculator()} />
             </motion.div>
           ) : (
             <motion.div
@@ -112,11 +122,21 @@ const App: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.28, ease: 'easeInOut' }}
             >
-              <Dashboard selectedExam={selectedExam} onBack={handleGoHome} />
+              <Dashboard selectedExam={selectedExam} onBack={handleGoHome} onOpenCalculator={handleOpenCalculator} />
             </motion.div>
           )}
         </AnimatePresence>
       </main>
+
+      {/* Interactive BEU Percentage Calculator Modal */}
+      <PercentageCalculator
+        isOpen={showCalculator}
+        onClose={() => {
+          setShowCalculator(false);
+          setCalcScore(null);
+        }}
+        initialCgpa={calcScore}
+      />
 
       <footer style={{
         textAlign: 'center',

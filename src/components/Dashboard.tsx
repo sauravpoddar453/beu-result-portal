@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 interface DashboardProps {
     selectedExam?: any;
     onBack?: () => void;
+    onOpenCalculator?: (score?: string | number) => void;
 }
 
 const toRoman = (num: number): string => {
@@ -16,7 +17,7 @@ const toRoman = (num: number): string => {
     return romanMap[num] || num.toString();
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
+const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalculator }) => {
     const [regNumber, setRegNumber] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -816,8 +817,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     </ul>
                                 </div>
 
-                                {/* Print / Download Button */}
-                                <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+                                {/* Print / Download & Percentage Calculator Buttons */}
+                                <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
                                     <button
                                         className="premium-btn"
                                         onClick={handlePrint}
@@ -834,6 +835,35 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                         <Lucide.Printer size={18} />
                                         Download Marksheet (PDF)
                                     </button>
+
+                                    {onOpenCalculator && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const score = (result?.cgpa && result.cgpa !== 'NA' && result.cgpa !== 'N/A') ? result.cgpa : result?.sgpa;
+                                                onOpenCalculator(score);
+                                            }}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.6rem',
+                                                padding: '0.75rem 1.6rem',
+                                                fontSize: '0.95rem',
+                                                fontWeight: 600,
+                                                borderRadius: '2rem',
+                                                background: 'rgba(56, 189, 248, 0.12)',
+                                                border: '1px solid #38BDF8',
+                                                color: '#38BDF8',
+                                                boxShadow: '0 4px 16px rgba(56, 189, 248, 0.2)',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                            className="hover-scale"
+                                        >
+                                            <Lucide.Calculator size={18} />
+                                            Calculate Percentage {result?.cgpa && result.cgpa !== 'NA' && result.cgpa !== 'N/A' && !isNaN(parseFloat(result.cgpa)) ? `(${(parseFloat(result.cgpa) * 10).toFixed(1)}%)` : ''}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>

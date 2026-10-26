@@ -26,6 +26,7 @@ interface Course {
 
 interface HomeProps {
     onSelectSemester: (exam: Exam) => void;
+    onOpenCalculator?: () => void;
 }
 
 /**
@@ -156,7 +157,7 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, index, batchKey, onSelectSeme
     );
 };
 
-const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
+const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -373,6 +374,51 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     >
                         Instant access to official Bihar Engineering University semester results and marksheet records.
                     </motion.p>
+
+                    {onOpenCalculator && (
+                        <motion.div
+                            variants={{
+                                hidden: { opacity: 0, y: 15 },
+                                visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+                            }}
+                            style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'center' }}
+                        >
+                            <button
+                                onClick={onOpenCalculator}
+                                type="button"
+                                className="hero-pill hover-scale"
+                                style={{
+                                    cursor: 'pointer',
+                                    background: 'rgba(56, 189, 248, 0.1)',
+                                    border: '1px solid rgba(56, 189, 248, 0.35)',
+                                    color: '#38BDF8',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    padding: '0.5rem 1.25rem',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.55rem',
+                                    borderRadius: '2rem',
+                                    boxShadow: '0 4px 15px rgba(56, 189, 248, 0.12)',
+                                    transition: 'all 0.2s ease'
+                                }}
+                            >
+                                <Lucide.Calculator size={16} color="#38BDF8" />
+                                <span>BEU Percentage Calculator</span>
+                                <span style={{
+                                    fontSize: '0.7rem',
+                                    padding: '2px 8px',
+                                    borderRadius: '999px',
+                                    background: 'rgba(245, 179, 1, 0.15)',
+                                    color: '#F5B301',
+                                    border: '1px solid rgba(245, 179, 1, 0.3)',
+                                    fontWeight: 700
+                                }}>
+                                    CGPA • SGPA
+                                </span>
+                            </button>
+                        </motion.div>
+                    )}
                 </motion.div>
             </header>
 
