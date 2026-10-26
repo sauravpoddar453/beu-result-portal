@@ -136,7 +136,15 @@ const App: React.FC = () => {
           >
             Saurav Poddar
           </a>{' '}
-          CSE(AI) 2022 | PCE Purnea
+          CSE(AI) 2022 | PCE Purnea •{' '}
+          <a
+            href="https://t.me/sauravpoddar453"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: '#38BDF8', textDecoration: 'none', fontWeight: 600 }}
+          >
+            Telegram
+          </a>
         </p>
       </footer>
     </div>
