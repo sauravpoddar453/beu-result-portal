@@ -495,7 +495,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                     </div>
 
                     {/* Section Header with Animated Counter & Sliding Arrow Link */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div style={{ marginBottom: '2rem' }}>
                         <div>
                             <h2 className="section-header-title">
                                 Available B.Tech Examinations (<AnimatedCounter value={filteredExams.length} />)
@@ -504,25 +504,6 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                 Click any exam to check and download your official format marksheet directly.
                             </p>
                         </div>
-                        <a
-                            href="#all-results"
-                            className="hover-arrow-link"
-                            style={{
-                                color: 'var(--primary)',
-                                textDecoration: 'none',
-                                fontSize: '0.85rem',
-                                fontWeight: 700,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                transition: 'color 0.2s ease'
-                            }}
-                        >
-                            <span>View Directory Table</span>
-                            <span className="arrow-icon" style={{ display: 'inline-flex', transition: 'transform 0.2s ease' }}>
-                                <Lucide.ArrowDown size={14} />
-                            </span>
-                        </a>
                     </div>
 
                     {/* Fluid Responsive Exams Grid */}
