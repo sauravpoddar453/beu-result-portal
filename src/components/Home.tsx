@@ -111,21 +111,30 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
 
     const getExamBatch = (session: string): string => {
         if (!session) return 'Other';
-        const match = session.match(/20\d{2}/);
+        const match = session.match(/^20(2[2-5])/);
         if (match) {
-            const start = parseInt(match[0]);
-            return `${start}-${(start + 4).toString().slice(-2)}`;
+            return match[1]; // '22', '23', '24', '25'
         }
-        return 'Arrear';
+        return 'Other';
     };
 
-    const allExams: Exam[] = courses.flatMap(c => (c.exams || []).map(e => ({ ...e, courseName: c.courseName })));
+    // Strictly filter to only include Batches 22, 23, 24, 25
+    const allExams: Exam[] = courses.flatMap(c => 
+        (c.exams || [])
+            .filter(e => getExamBatch(e.session) !== 'Other')
+            .map(e => ({ ...e, courseName: c.courseName }))
+    );
 
-    // Order of batches preferred by students
-    const preferredOrder = ['2022-26', '2023-27', '2024-28', '2025-29', '2021-25', '2020-24', '2019-23', 'Arrear'];
-    const uniqueBatchesInExams = Array.from(new Set(allExams.map(e => getExamBatch(e.session))));
-    const availableBatches = preferredOrder.filter(b => uniqueBatchesInExams.includes(b))
-        .concat(uniqueBatchesInExams.filter(b => !preferredOrder.includes(b)));
+    const batchMetadata: { [key: string]: { label: string; session: string } } = {
+        '22': { label: 'Batch 22', session: '2022-26' },
+        '23': { label: 'Batch 23', session: '2023-27' },
+        '24': { label: 'Batch 24', session: '2024-28' },
+        '25': { label: 'Batch 25', session: '2025-29' },
+    };
+
+    const availableBatches = ['22', '23', '24', '25'].filter(b => 
+        allExams.some(e => getExamBatch(e.session) === b)
+    );
 
     const filteredExams = allExams.filter(exam => {
         const batchKey = getExamBatch(exam.session);
@@ -138,7 +147,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
             exam.examHeld.toLowerCase().includes(q) ||
             (exam.courseName || '').toLowerCase().includes(q) ||
             `sem ${exam.semId}`.toLowerCase().includes(q) ||
-            `${exam.semId}th`.toLowerCase().includes(q);
+            `${exam.semId}th`.toLowerCase().includes(q) ||
+            `batch ${batchKey}`.toLowerCase().includes(q);
         return matchesBatch && matchesQuery;
     });
 
@@ -274,7 +284,8 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                             {availableBatches.map((batch) => {
                                 const batchCount = allExams.filter(e => getExamBatch(e.session) === batch).length;
                                 const isSelected = activeFilter === batch;
-                                const label = batch === 'Arrear' ? 'Arrear / Special' : `Batch ${batch}`;
+                                const meta = batchMetadata[batch];
+                                const label = meta ? `${meta.label} (${meta.session})` : `Batch ${batch}`;
                                 return (
                                     <button
                                         key={`batch-${batch}`}
@@ -359,14 +370,18 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                         position: 'absolute',
                                         top: 0,
                                         right: 0,
-                                        padding: '0.4rem 0.9rem',
+                                        padding: '0.35rem 0.85rem',
                                         background: 'linear-gradient(135deg, var(--primary), #4f46e5)',
                                         color: '#fff',
-                                        fontSize: '0.7rem',
+                                        fontSize: '0.72rem',
                                         fontWeight: 800,
-                                        borderBottomLeftRadius: '1rem'
+                                        borderBottomLeftRadius: '1rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.35rem'
                                     }}>
-                                        {exam.session}
+                                        <span>Batch {getExamBatch(exam.session)}</span>
+                                        <span style={{ opacity: 0.85 }}>({exam.session})</span>
                                     </div>
 
                                     <div style={{
@@ -378,7 +393,7 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                         fontWeight: 600
                                     }}>
                                         <Lucide.GraduationCap size={18} />
-                                        {exam.courseName || 'BEU'} • Sem {exam.semId}
+                                        {exam.courseName || 'B.Tech'} • Sem {exam.semId}
                                     </div>
 
                                     <h3 style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.35, color: 'var(--text-main)' }}>
@@ -459,8 +474,20 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester }) => {
                                             <td style={{ padding: '0.85rem 1rem', color: 'var(--primary)', fontWeight: 600 }}>
                                                 {exam.courseName} (Sem {exam.semId})
                                             </td>
-                                            <td style={{ padding: '0.85rem 1rem', color: 'var(--text-muted)' }}>
-                                                {exam.session}
+                                            <td style={{ padding: '0.85rem 1rem' }}>
+                                                <span style={{ 
+                                                    display: 'inline-block',
+                                                    padding: '0.2rem 0.55rem',
+                                                    borderRadius: '0.5rem',
+                                                    background: 'rgba(99, 102, 241, 0.12)',
+                                                    color: 'var(--primary)',
+                                                    fontWeight: 700,
+                                                    fontSize: '0.78rem',
+                                                    marginRight: '0.4rem'
+                                                }}>
+                                                    Batch {getExamBatch(exam.session)}
+                                                </span>
+                                                <span style={{ color: 'var(--text-muted)' }}>{exam.session}</span>
                                             </td>
                                             <td style={{ padding: '0.85rem 1rem', color: 'var(--text-muted)' }}>
                                                 {exam.examHeld}
