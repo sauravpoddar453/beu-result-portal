@@ -447,9 +447,9 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                             style={{
                                 background: '#ffffff',
                                 color: '#000000',
-                                borderRadius: '6px',
+                                borderRadius: '4px',
                                 border: '1px solid #000000',
-                                padding: '1.5rem',
+                                padding: '1.75rem',
                                 fontFamily: 'Arial, "Segoe UI", sans-serif',
                                 maxWidth: '850px',
                                 width: '100%',
@@ -488,6 +488,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                         max-width: 100% !important;
                                         min-width: 100% !important;
                                         margin: 0 !important;
+                                        background: #fff !important;
                                     }
                                     .marksheet-table-scroll {
                                         overflow: visible !important;
@@ -496,28 +497,30 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     .official-table {
                                         min-width: 100% !important;
                                         width: 100% !important;
+                                        table-layout: fixed !important;
                                     }
                                     .official-table th, .official-table td {
                                         border: 1px solid #000 !important;
-                                    }
-                                    .bg-secondary-beu {
-                                        background-color: #6c757d !important;
                                         -webkit-print-color-adjust: exact !important;
                                         print-color-adjust: exact !important;
-                                        color: #fff !important;
                                     }
-                                    .table-section-head {
-                                        background-color: #6c757d !important;
+                                    .official-section-title {
+                                        color: #6c757d !important;
                                         -webkit-print-color-adjust: exact !important;
                                         print-color-adjust: exact !important;
                                     }
                                     .text-danger-beu {
-                                        color: #dc3545 !important;
+                                        color: #a82d3b !important;
                                         -webkit-print-color-adjust: exact !important;
                                         print-color-adjust: exact !important;
                                     }
                                     .watermark-wrapper {
-                                        opacity: 0.08 !important;
+                                        opacity: 0.07 !important;
+                                        -webkit-print-color-adjust: exact !important;
+                                        print-color-adjust: exact !important;
+                                    }
+                                    .watermark-overlay {
+                                        opacity: 0.07 !important;
                                         -webkit-print-color-adjust: exact !important;
                                         print-color-adjust: exact !important;
                                     }
@@ -529,72 +532,63 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     font-size: 0.82rem;
                                     color: #000;
                                     table-layout: fixed;
+                                    margin-bottom: 0.5rem;
                                 }
                                 .official-table th, .official-table td {
                                     border: 1px solid #000;
-                                    padding: 0.32rem 0.45rem;
-                                    text-align: left;
+                                    padding: 0.35rem 0.45rem;
+                                    text-align: center;
+                                    vertical-align: middle;
                                     word-break: break-word;
                                     overflow-wrap: break-word;
                                 }
                                 .official-table th {
-                                    text-align: center;
-                                    font-weight: bold;
-                                    background: #f8f9fa;
+                                    font-weight: 700;
+                                    background: #fff;
                                     color: #000;
                                 }
-                                .official-table .center { text-align: center; }
-
-                                .table-section-head {
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: space-between;
-                                    background-color: #6c757d;
-                                    margin: 0.75rem 0 0 0;
-                                    padding-right: 0.5rem;
+                                .official-table td.text-left {
+                                    text-align: left;
                                 }
-                                .table-section-head .bg-secondary-beu {
-                                    background-color: transparent;
-                                    color: #fff;
+                                .official-table .center {
+                                    text-align: center;
+                                }
+
+                                .official-section-title {
+                                    font-size: 0.85rem;
                                     font-weight: 700;
-                                    padding: 0.35rem 0.5rem;
-                                    margin: 0;
-                                    font-size: 0.82rem;
+                                    color: #6c757d;
                                     letter-spacing: 0.5px;
+                                    text-transform: uppercase;
+                                    margin: 0;
                                 }
                                 .table-scroll-hint {
                                     display: none;
                                     align-items: center;
                                     gap: 0.25rem;
                                     font-size: 0.68rem;
-                                    color: #f1f5f9;
+                                    color: #6c757d;
                                     font-weight: 600;
                                 }
                                 .marksheet-table-scroll {
                                     width: 100%;
                                     overflow-x: auto;
                                     -webkit-overflow-scrolling: touch;
-                                    margin-bottom: 0.85rem;
+                                    margin-bottom: 0.5rem;
                                     background: #fff;
                                 }
 
-                                .bg-secondary-beu {
-                                    background-color: #6c757d;
-                                    color: #fff;
+                                .text-danger-beu {
+                                    color: #a82d3b;
                                     font-weight: 700;
-                                    padding: 0.35rem 0.5rem;
-                                    margin: 0.75rem 0 0 0;
-                                    font-size: 0.82rem;
-                                    letter-spacing: 0.5px;
                                 }
-                                .text-danger-beu { color: #dc3545; font-weight: 700; }
                                 .watermark-overlay {
                                     position: absolute;
-                                    top: 40%;
+                                    top: 18%;
                                     left: 50%;
                                     transform: translate(-50%, -50%);
-                                    font-size: 55px;
-                                    color: rgba(200, 0, 0, 0.08);
+                                    font-size: 50px;
+                                    color: rgba(168, 45, 59, 0.08);
                                     z-index: 0;
                                     pointer-events: none;
                                     user-select: none;
@@ -604,12 +598,12 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 }
                                 .watermark-wrapper {
                                     position: absolute;
-                                    top: 38%;
+                                    top: 45%;
                                     left: 50%;
                                     transform: translate(-50%, -50%);
                                     z-index: 0;
                                     text-align: center;
-                                    opacity: 0.08;
+                                    opacity: 0.07;
                                     pointer-events: none;
                                     user-select: none;
                                     width: 80%;
@@ -621,7 +615,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     display: block;
                                 }
                                 .watermark-text {
-                                    color: #dc3545;
+                                    color: #a82d3b;
                                     font-weight: 900;
                                     font-size: 1.3rem;
                                     white-space: nowrap;
@@ -632,7 +626,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 @media screen and (max-width: 640px) {
                                     .marksheet-container {
                                         padding: 0.85rem 0.6rem !important;
-                                        border-radius: 6px !important;
+                                        border-radius: 4px !important;
                                     }
                                     .official-beu-logo {
                                         width: 52px !important;
@@ -646,11 +640,11 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                         padding: 0 !important;
                                     }
                                     .official-beu-title {
-                                        font-size: 1rem !important;
+                                        font-size: 1.02rem !important;
                                         line-height: 1.25 !important;
                                     }
                                     .official-beu-subtitle {
-                                        font-size: 0.8rem !important;
+                                        font-size: 0.82rem !important;
                                         line-height: 1.25 !important;
                                     }
                                     .details-table {
@@ -658,7 +652,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                         font-size: 0.74rem !important;
                                     }
                                     .details-table td {
-                                        padding: 0.25rem 0.32rem !important;
+                                        padding: 0.25rem 0.35rem !important;
                                     }
                                     .table-scroll-hint {
                                         display: flex !important;
@@ -674,7 +668,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                         padding: 0.25rem 0.25rem !important;
                                     }
                                     .watermark-overlay {
-                                        font-size: 36px !important;
+                                        font-size: 34px !important;
                                     }
                                     .watermark-logo {
                                         width: 85px !important;
@@ -695,51 +689,53 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 <h1 className="watermark-text">BIHAR ENGINEERING UNIVERSITY, PATNA</h1>
                             </div>
 
-                            {/* Official Header */}
-                            <div className="marksheet-header-row" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '2px solid #000', paddingBottom: '0.75rem' }}>
-                                <img src="/beu-logo.jpg" alt="BEU Logo" className="official-beu-logo" style={{ width: '85px', height: '85px', objectFit: 'contain', flexShrink: 0 }} />
+                            {/* Official Header (Matching Official PDF) */}
+                            <div className="marksheet-header-row" style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                                <img src="/beu-logo.jpg" alt="BEU Logo" className="official-beu-logo" style={{ width: '88px', height: '88px', objectFit: 'contain', flexShrink: 0 }} />
                                 <div className="official-beu-header-center" style={{ textAlign: 'center', width: '100%', padding: '0 0.5rem' }}>
-                                    <h1 className="official-beu-title" style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0', color: '#000', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                                        Bihar Engineering University, Patna
+                                    <h1 className="official-beu-title" style={{ fontSize: '1.45rem', fontWeight: 800, margin: '0', color: '#000', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                                        BIHAR ENGINEERING UNIVERSITY, PATNA
                                     </h1>
-                                    <h2 className="text-danger-beu official-beu-subtitle" style={{ fontSize: '1.02rem', margin: '0.3rem 0 0 0', fontWeight: 700 }}>
+                                    <h2 className="text-danger-beu official-beu-subtitle" style={{ fontSize: '1.05rem', margin: '0.35rem 0 0 0', fontWeight: 700, color: '#a82d3b' }}>
                                         {selectedExam?.examName || `${result.course || 'B.Tech.'} ${result.semester || '6th Semester'} Examination`}
                                     </h2>
                                 </div>
-                                <div className="official-beu-spacer" style={{ width: '85px', flexShrink: 0 }} /> {/* Spacer for balance */}
+                                <div className="official-beu-spacer" style={{ width: '88px', flexShrink: 0 }} /> {/* Spacer for balance */}
                             </div>
 
-                            {/* Details Table */}
-                            <div style={{ position: 'relative', zIndex: 1, marginBottom: '0.75rem' }}>
+                            {/* Details Table (Exact 1:1 match to Official Format) */}
+                            <div style={{ position: 'relative', zIndex: 1, marginBottom: '0.5rem' }}>
                                 <table className="official-table details-table">
                                     <tbody>
                                         <tr>
-                                            <td style={{ width: '18%' }}><strong>Semester:</strong></td>
-                                            <td style={{ width: '14%' }}>{toRoman(result?.semester ? parseInt(result.semester) : (selectedExam?.semId || 6))}</td>
-                                            <td style={{ width: '36%' }}><strong>Exam (Month/Year):</strong></td>
-                                            <td style={{ width: '32%' }}>{result.examHeld || selectedExam?.examHeld || 'November/2025'}</td>
+                                            <td colSpan={2} className="text-left" style={{ width: '45%' }}>
+                                                <strong>Semester:</strong> {toRoman(result?.semester ? parseInt(result.semester) : (selectedExam?.semId || 6))}
+                                            </td>
+                                            <td colSpan={2} className="text-left" style={{ width: '55%' }}>
+                                                <strong>Examination (Month/Year):</strong> {result.examHeld || selectedExam?.examHeld || 'November/2025'}
+                                            </td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Registration No:</strong></td>
-                                            <td colSpan={3} style={{ fontWeight: 700 }}>{result.rollNo}</td>
+                                            <td className="text-left" style={{ width: '22%' }}><strong>Registration No:</strong></td>
+                                            <td colSpan={3} className="text-left">{result.rollNo}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Student Name:</strong></td>
-                                            <td colSpan={3} style={{ fontWeight: 700 }}>{result.name}</td>
+                                            <td className="text-left" style={{ width: '22%' }}><strong>Student Name:</strong></td>
+                                            <td colSpan={3} className="text-left">{result.name}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Father's Name:</strong></td>
-                                            <td>{result.fatherName || 'N/A'}</td>
-                                            <td><strong>Mother's Name:</strong></td>
-                                            <td>{result.motherName || 'N/A'}</td>
+                                            <td className="text-left" style={{ width: '22%' }}><strong>Father's Name:</strong></td>
+                                            <td className="text-left" style={{ width: '28%' }}>{result.fatherName || 'N/A'}</td>
+                                            <td className="text-left" style={{ width: '22%' }}><strong>Mother's Name:</strong></td>
+                                            <td className="text-left" style={{ width: '28%' }}>{result.motherName || 'N/A'}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>College Name:</strong></td>
-                                            <td colSpan={3}>{result.college}</td>
+                                            <td className="text-left" style={{ width: '22%' }}><strong>College Name:</strong></td>
+                                            <td colSpan={3} className="text-left">{result.college}</td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Course Name:</strong></td>
-                                            <td colSpan={3}>{result.course}</td>
+                                            <td className="text-left" style={{ width: '22%' }}><strong>Course Name:</strong></td>
+                                            <td colSpan={3} className="text-left">{result.course}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -747,8 +743,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
 
                             {/* Theory Subjects */}
                             <div style={{ position: 'relative', zIndex: 1 }}>
-                                <div className="table-section-head">
-                                    <div className="bg-secondary-beu">THEORY</div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0.85rem 0 0.3rem 0' }}>
+                                    <div className="official-section-title">THEORY</div>
                                     <div className="table-scroll-hint no-print">
                                         <Lucide.ArrowLeftRight size={12} /> Swipe table ↔
                                     </div>
@@ -770,11 +766,11 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                             {result.theorySubjects && result.theorySubjects.length > 0 ? result.theorySubjects.map((sub: any, idx: number) => (
                                                 <tr key={`th-${idx}`}>
                                                     <td className="center">{sub.code}</td>
-                                                    <td>{sub.name}</td>
+                                                    <td className="center">{sub.name}</td>
                                                     <td className="center">{sub.ese}</td>
                                                     <td className="center">{sub.ia}</td>
                                                     <td className="center">{sub.total}</td>
-                                                    <td className="center" style={{ fontWeight: 700 }}>{sub.grade}</td>
+                                                    <td className="center">{sub.grade}</td>
                                                     <td className="center">{sub.credit}</td>
                                                 </tr>
                                             )) : (
@@ -787,8 +783,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 {/* Practical Subjects */}
                                 {result.practicalSubjects && result.practicalSubjects.length > 0 && (
                                     <>
-                                        <div className="table-section-head">
-                                            <div className="bg-secondary-beu">PRACTICAL</div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0.85rem 0 0.3rem 0' }}>
+                                            <div className="official-section-title">PRACTICAL</div>
                                             <div className="table-scroll-hint no-print">
                                                 <Lucide.ArrowLeftRight size={12} /> Swipe table ↔
                                             </div>
@@ -810,11 +806,11 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                                     {result.practicalSubjects.map((sub: any, idx: number) => (
                                                         <tr key={`pr-${idx}`}>
                                                             <td className="center">{sub.code}</td>
-                                                            <td>{sub.name}</td>
+                                                            <td className="center">{sub.name}</td>
                                                             <td className="center">{sub.ese}</td>
                                                             <td className="center">{sub.ia}</td>
                                                             <td className="center">{sub.total}</td>
-                                                            <td className="center" style={{ fontWeight: 700 }}>{sub.grade}</td>
+                                                            <td className="center">{sub.grade}</td>
                                                             <td className="center">{sub.credit}</td>
                                                         </tr>
                                                     ))}
@@ -825,14 +821,14 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                 )}
 
                                 {/* SGPA / CGPA */}
-                                <div className="table-section-head">
-                                    <div className="bg-secondary-beu">SGPA / CGPA</div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0.85rem 0 0.3rem 0' }}>
+                                    <div className="official-section-title">SGPA / CGPA</div>
                                     <div className="table-scroll-hint no-print">
                                         <Lucide.ArrowLeftRight size={12} /> Swipe table ↔
                                     </div>
                                 </div>
                                 <div className="marksheet-table-scroll">
-                                    <table className="official-table sgpa-table" style={{ textAlign: 'center' }}>
+                                    <table className="official-table sgpa-table">
                                         <thead>
                                             <tr>
                                                 <th style={{ textAlign: 'center', width: '14%' }}>Semester</th>
@@ -861,18 +857,18 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack }) => {
                                     </table>
                                 </div>
 
-                                {/* Remarks */}
-                                <div style={{ border: '1px solid #000', padding: '0.45rem 0.6rem', margin: '0.75rem 0', fontSize: '0.85rem' }}>
+                                {/* Remarks (Exact official box format) */}
+                                <div style={{ border: '1px solid #000', padding: '0.4rem 0.6rem', margin: '0.85rem 0', fontSize: '0.85rem' }}>
                                     <strong style={{ color: '#000' }}>Remarks: &nbsp;&nbsp;</strong>
-                                    <span className="text-danger-beu">
+                                    <span style={{ color: '#a82d3b', fontWeight: 700 }}>
                                         {result.status || 'PASS'}
                                     </span>
                                 </div>
 
-                                {/* Notes */}
-                                <div style={{ marginTop: '0.5rem' }}>
+                                {/* Notes (Official BEU Statement) */}
+                                <div style={{ marginTop: '0.65rem' }}>
                                     <strong style={{ fontSize: '0.82rem', color: '#000' }}>Note:</strong>
-                                    <ul style={{ listStyleType: 'disc', paddingLeft: '1.25rem', fontSize: '0.72rem', lineHeight: '1.4', margin: '0.2rem 0 0 0', color: '#222' }}>
+                                    <ul style={{ listStyleType: 'disc', paddingLeft: '1.25rem', fontSize: '0.74rem', lineHeight: '1.5', margin: '0.25rem 0 0 0', color: '#111' }}>
                                         <li><b>ESE:</b> End Semester Exam</li>
                                         <li><b>IA:</b> Internal Assessment</li>
                                         <li><b>SGPA:</b> Semester Grade Point Average</li>
