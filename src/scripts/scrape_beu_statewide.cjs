@@ -362,6 +362,11 @@ async function scrapeStatewideBEU() {
 
   try {
     for (let eIdx = 0; eIdx < STATEWIDE_EXAMS.length; eIdx++) {
+      if (eIdx < (state.lastExamIndex || 0)) {
+        console.log(`⏩ [EXAM ${eIdx + 1}/${STATEWIDE_EXAMS.length}] "${STATEWIDE_EXAMS[eIdx].examName}" previously completed. Skipping.`);
+        continue;
+      }
+
       const exam = STATEWIDE_EXAMS[eIdx];
       const { batch, semId, examName, batchYear, examHeld, examId } = exam;
       const semNumStr = semId.toString();
@@ -395,6 +400,9 @@ async function scrapeStatewideBEU() {
       }
 
       for (let cIdx = 0; cIdx < COLLEGES.length; cIdx++) {
+        if (eIdx === (state.lastExamIndex || 0) && cIdx < (state.lastCollegeIndex || 0)) {
+          continue;
+        }
         const college = COLLEGES[cIdx];
         console.log(`\n🏛️ [Exam ${semId} | Col ${cIdx + 1}/${COLLEGES.length}] ${college.name} (Code: ${college.code})...`);
 
@@ -519,104 +527,110 @@ async function scrapeStatewideBEU() {
 
           // Lateral entry check for Semesters >= 3
           if (semId >= 3 && branchHasStudents) {
-            let latConsecutiveNotFound = 0;
-            for (let lr = 901; lr <= 915; lr++) {
-              if (latConsecutiveNotFound >= 3) break;
+            const nextBatch = String(Number(batch) + 1).padStart(2, '0');
+            const leBatches = Array.from(new Set([nextBatch, batch]));
 
-              const regNo = `${batch}${branch.code}${college.code}${lr}`;
+            for (const bYear of leBatches) {
+              let latConsecutiveNotFound = 0;
+              for (let lr = 901; lr <= 915; lr++) {
+                if (latConsecutiveNotFound >= 3) break;
 
-              const existing = await Result.findOne({
-                regNo,
-                $or: [
-                  { semester: semNumStr },
-                  { semester: `${semNumStr}th Semester` },
-                  { semester: `${semNumStr}st Semester` },
-                  { semester: `${semNumStr}nd Semester` },
-                  { semester: `${semNumStr}rd Semester` }
-                ]
-              });
+                const regNo = `${bYear}${branch.code}${college.code}${lr}`;
 
-              if (existing && existing.subjects && existing.subjects.length > 0) {
-                latConsecutiveNotFound = 0;
-                continue;
+                const existing = await Result.findOne({
+                  regNo,
+                  $or: [
+                    { semester: semNumStr },
+                    { semester: `${semNumStr}th Semester` },
+                    { semester: `${semNumStr}st Semester` },
+                    { semester: `${semNumStr}nd Semester` },
+                    { semester: `${semNumStr}rd Semester` }
+                  ]
+                });
+
+                if (existing && existing.subjects && existing.subjects.length > 0) {
+                  latConsecutiveNotFound = 0;
+                  continue;
+                }
+
+                const token = await getTurnstileToken(page, url);
+                if (!token) continue;
+
+                let res = null;
+                try {
+                  res = await page.evaluate(async (yr, reg, sem, held, exId, tok) => {
+                    const u = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${encodeURIComponent(yr)}&redg_no=${reg}&semester=${sem}&exam_held=${encodeURIComponent(held)}&exam_id=${exId}&token=${tok}`;
+                    try {
+                      const resp = await fetch(u);
+                      return { status: resp.status, json: await resp.json() };
+                    } catch (e) {
+                      return { error: e.message };
+                    }
+                  }, batchYear, regNo, semRoman, examHeld, examId, token);
+                } catch (evalErr) {
+                  console.warn('⚠️ LE evaluation note:', evalErr.message);
+                  continue;
+                }
+
+                if (res?.json?.status === 200 && res.json.data) {
+                  const data = res.json.data;
+                  latConsecutiveNotFound = 0;
+
+                  const semIdx = semId - 1;
+                  const studentSgpa = Array.isArray(data.sgpa) ? (data.sgpa[semIdx] || 'N/A') : (data.sgpa || 'N/A');
+
+                  const doc = {
+                    regNo: data.redg_no ? data.redg_no.toString() : regNo,
+                    name: data.name || 'N/A',
+                    fatherName: data.father_name || 'N/A',
+                    motherName: data.mother_name || 'N/A',
+                    college: data.college_name || college.name,
+                    semester: semNumStr,
+                    course: data.course || branch.name,
+                    sgpa: studentSgpa,
+                    allSgpa: Array.isArray(data.sgpa) ? data.sgpa : (data.sgpa ? [data.sgpa] : []),
+                    cgpa: data.cgpa || 'N/A',
+                    status: data.fail_any === 'PASS' ? 'PASSED' : (data.fail_any || 'PASSED'),
+                    examHeld: data.exam_held || examHeld,
+                    examName: examName,
+                    theorySubjects: data.theorySubjects || [],
+                    practicalSubjects: data.practicalSubjects || [],
+                    subjects: [ ...(data.theorySubjects || []), ...(data.practicalSubjects || []) ].map(s => ({
+                      code: s.code,
+                      name: s.name,
+                      grade: s.grade,
+                      credit: s.credit,
+                      point: parseFloat(s.total) || 0,
+                      ese: s.ese,
+                      ia: s.ia,
+                      total: s.total
+                    })),
+                    lastUpdated: new Date()
+                  };
+
+                  await Result.findOneAndUpdate(
+                    { regNo: doc.regNo, semester: semNumStr },
+                    { $set: doc },
+                    { upsert: true, returnDocument: 'after' }
+                  );
+
+                  sessionSaved++;
+                  collegeSavedCount++;
+                  newSinceLastSync++;
+                  console.log(`     🎉 [SAVED LE] ${doc.regNo} (Sem ${semNumStr}) | ${doc.name} | ${college.name.split(',')[0]} | ${doc.course} | SGPA: ${doc.sgpa}`);
+                } else {
+                  latConsecutiveNotFound++;
+                }
+                await sleep(250);
               }
-
-              const token = await getTurnstileToken(page, url);
-              if (!token) continue;
-
-              let res = null;
-              try {
-                res = await page.evaluate(async (yr, reg, sem, held, exId, tok) => {
-                  const u = `https://beu-bih.ac.in/backend/v1/result/get-result?year=${encodeURIComponent(yr)}&redg_no=${reg}&semester=${sem}&exam_held=${encodeURIComponent(held)}&exam_id=${exId}&token=${tok}`;
-                  try {
-                    const resp = await fetch(u);
-                    return { status: resp.status, json: await resp.json() };
-                  } catch (e) {
-                    return { error: e.message };
-                  }
-                }, batchYear, regNo, semRoman, examHeld, examId, token);
-              } catch (evalErr) {
-                console.warn('⚠️ LE evaluation note:', evalErr.message);
-                continue;
-              }
-
-              if (res?.json?.status === 200 && res.json.data) {
-                const data = res.json.data;
-                latConsecutiveNotFound = 0;
-
-                const semIdx = semId - 1;
-                const studentSgpa = Array.isArray(data.sgpa) ? (data.sgpa[semIdx] || 'N/A') : (data.sgpa || 'N/A');
-
-                const doc = {
-                  regNo: data.redg_no ? data.redg_no.toString() : regNo,
-                  name: data.name || 'N/A',
-                  fatherName: data.father_name || 'N/A',
-                  motherName: data.mother_name || 'N/A',
-                  college: data.college_name || college.name,
-                  semester: semNumStr,
-                  course: data.course || branch.name,
-                  sgpa: studentSgpa,
-                  allSgpa: Array.isArray(data.sgpa) ? data.sgpa : (data.sgpa ? [data.sgpa] : []),
-                  cgpa: data.cgpa || 'N/A',
-                  status: data.fail_any === 'PASS' ? 'PASSED' : (data.fail_any || 'PASSED'),
-                  examHeld: data.exam_held || examHeld,
-                  examName: examName,
-                  theorySubjects: data.theorySubjects || [],
-                  practicalSubjects: data.practicalSubjects || [],
-                  subjects: [ ...(data.theorySubjects || []), ...(data.practicalSubjects || []) ].map(s => ({
-                    code: s.code,
-                    name: s.name,
-                    grade: s.grade,
-                    credit: s.credit,
-                    point: parseFloat(s.total) || 0,
-                    ese: s.ese,
-                    ia: s.ia,
-                    total: s.total
-                  })),
-                  lastUpdated: new Date()
-                };
-
-                await Result.findOneAndUpdate(
-                  { regNo: doc.regNo, semester: semNumStr },
-                  { $set: doc },
-                  { upsert: true, returnDocument: 'after' }
-                );
-
-                sessionSaved++;
-                collegeSavedCount++;
-                newSinceLastSync++;
-                console.log(`     🎉 [SAVED LE] ${doc.regNo} (Sem ${semNumStr}) | ${doc.name} | ${college.name.split(',')[0]} | ${doc.course} | SGPA: ${doc.sgpa}`);
-              } else {
-                latConsecutiveNotFound++;
-              }
-              await sleep(250);
             }
           }
         }
 
-        saveState({ lastExamIndex: eIdx, lastCollegeIndex: cIdx, totalSavedSession: sessionSaved });
+        saveState({ lastExamIndex: eIdx, lastCollegeIndex: cIdx + 1, totalSavedSession: sessionSaved });
       }
 
+      saveState({ lastExamIndex: eIdx + 1, lastCollegeIndex: 0, totalSavedSession: sessionSaved });
       updateBrowserArtifact();
     }
 
