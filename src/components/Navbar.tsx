@@ -6,9 +6,10 @@ import * as Lucide from 'lucide-react';
 interface NavbarProps {
     onGoHome: () => void;
     onOpenCalculator?: () => void;
+    onOpenLeaderboard?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onGoHome, onOpenCalculator }) => {
+const Navbar: React.FC<NavbarProps> = ({ onGoHome, onOpenCalculator, onOpenLeaderboard }) => {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -98,6 +99,33 @@ const Navbar: React.FC<NavbarProps> = ({ onGoHome, onOpenCalculator }) => {
                     >
                         ERP
                     </a>
+
+                    {onOpenLeaderboard && (
+                        <button
+                            onClick={onOpenLeaderboard}
+                            type="button"
+                            style={{
+                                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.1) 100%)',
+                                border: '1px solid rgba(245, 158, 11, 0.4)',
+                                color: '#F59E0B',
+                                fontSize: '0.8rem',
+                                fontWeight: 800,
+                                padding: '0.35rem 0.8rem',
+                                borderRadius: '1.5rem',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 2px 8px rgba(245, 158, 11, 0.12)'
+                            }}
+                            className="hover-scale"
+                            title="BEU Statewide Toppers & College Rankings"
+                        >
+                            <Lucide.Trophy size={14} color="#F59E0B" />
+                            <span>🏆 Toppers & Ranks</span>
+                        </button>
+                    )}
 
                     {onOpenCalculator && (
                         <button

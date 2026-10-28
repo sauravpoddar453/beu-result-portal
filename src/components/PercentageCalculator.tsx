@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as Lucide from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export type CalculatorTab = 'cgpa' | 'sgpa-to-cgpa' | 'sgpa' | 'marks' | 'info';
+export type CalculatorTab = 'cgpa' | 'sgpa-to-cgpa' | 'sgpa' | 'marks' | 'target-cgpa' | 'grace-rules' | 'info';
 
 export interface SemesterEntry {
     sem: number;
@@ -57,6 +57,19 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
     const [obtainedMarks, setObtainedMarks] = useState<string>('');
     const [totalMarks, setTotalMarks] = useState<string>('750');
 
+    // Target CGPA Simulator State
+    const [targetCurrentCgpa, setTargetCurrentCgpa] = useState<string>('7.20');
+    const [targetCompletedSems, setTargetCompletedSems] = useState<number>(4);
+    const [targetGoalCgpa, setTargetGoalCgpa] = useState<string>('8.00');
+    const [targetProgramLength, setTargetProgramLength] = useState<number>(8); // 8 = Regular B.Tech, 6 = Lateral Entry
+
+    // Grace & Promotion Rules State
+    const [graceMarksShort, setGraceMarksShort] = useState<string>('3');
+    const [graceSubjectsCount, setGraceSubjectsCount] = useState<string>('1');
+    const [allOtherPassed, setAllOtherPassed] = useState<boolean>(true);
+    const [promoTotalCredits, setPromoTotalCredits] = useState<string>('42');
+    const [promoEarnedCredits, setPromoEarnedCredits] = useState<string>('24');
+
     // Sync tab when initialTab changes
     useEffect(() => {
         if (isOpen && initialTab) {
@@ -83,6 +96,7 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
             const parsed = parseFloat(initialCgpa.toString());
             if (!isNaN(parsed) && parsed > 0 && parsed <= 10) {
                 setCgpa(parsed.toFixed(2));
+                setTargetCurrentCgpa(parsed.toFixed(2));
             }
         }
     }, [isOpen, initialCgpa]);
@@ -181,6 +195,64 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
 
     const sgpaToCgpaPercentage = computedCgpa * 10;
     const sgpaToCgpaDivision = getDivision(sgpaToCgpaPercentage);
+
+    // Computed Target CGPA calculations
+    const curCgpaNum = parseFloat(targetCurrentCgpa);
+    const goalCgpaNum = parseFloat(targetGoalCgpa);
+    const completedCount = targetCompletedSems;
+    const remainingCount = Math.max(1, targetProgramLength - completedCount);
+
+    let requiredAvgSgpa: number | null = null;
+    let maxPossibleCgpa = 10;
+    let targetStatus: 'achieved' | 'easy' | 'moderate' | 'challenging' | 'extreme' | 'impossible' = 'moderate';
+    let targetStatusMessage = '';
+    let targetStatusColor = '#10B981';
+
+    if (!isNaN(curCgpaNum) && !isNaN(goalCgpaNum) && curCgpaNum > 0 && goalCgpaNum > 0) {
+        const earnedPoints = curCgpaNum * completedCount;
+        const totalNeededPoints = goalCgpaNum * targetProgramLength;
+        const remainingNeeded = totalNeededPoints - earnedPoints;
+        requiredAvgSgpa = remainingNeeded / remainingCount;
+
+        // Max possible CGPA if student scores 10.0 in all remaining sems
+        maxPossibleCgpa = (earnedPoints + (remainingCount * 10)) / targetProgramLength;
+
+        if (requiredAvgSgpa <= 0) {
+            targetStatus = 'achieved';
+            targetStatusColor = '#10B981';
+            targetStatusMessage = '🎉 Target Already Secured! Even with basic passing grades, your target CGPA is safe.';
+        } else if (requiredAvgSgpa <= 7.5) {
+            targetStatus = 'easy';
+            targetStatusColor = '#10B981';
+            targetStatusMessage = '🟢 Easily Achievable! Regular class attendance and standard revision will comfortably get you there.';
+        } else if (requiredAvgSgpa <= 8.5) {
+            targetStatus = 'moderate';
+            targetStatusColor = '#38BDF8';
+            targetStatusMessage = '🟡 Moderately Challenging. Focus on core theory subjects and securing maximum practical and assignment marks.';
+        } else if (requiredAvgSgpa <= 9.3) {
+            targetStatus = 'challenging';
+            targetStatusColor = '#F5B301';
+            targetStatusMessage = '🟠 High Effort Required. Aim for "O" (Outstanding) and "A+" grades across all upcoming papers.';
+        } else if (requiredAvgSgpa <= 10.0) {
+            targetStatus = 'extreme';
+            targetStatusColor = '#F97316';
+            targetStatusMessage = '🔥 Extreme Performance. You need near-perfect 10 SGPA in every single remaining semester.';
+        } else {
+            targetStatus = 'impossible';
+            targetStatusColor = '#EF4444';
+            targetStatusMessage = `❌ Mathematically Unattainable. Even with a perfect 10.0 SGPA in all remaining semesters, the absolute ceiling CGPA is ${maxPossibleCgpa.toFixed(2)}.`;
+        }
+    }
+
+    // Computed Grace & Promotion Rules
+    const marksShortNum = parseInt(graceMarksShort || '0', 10);
+    const subCountNum = parseInt(graceSubjectsCount || '1', 10);
+    const isGraceEligible = marksShortNum > 0 && marksShortNum <= 5 && subCountNum <= 2 && allOtherPassed;
+
+    const promoTotalNum = parseFloat(promoTotalCredits || '42');
+    const promoEarnedNum = parseFloat(promoEarnedCredits || '24');
+    const promoPercentage = promoTotalNum > 0 ? (promoEarnedNum / promoTotalNum) * 100 : 0;
+    const isPromoted = promoPercentage >= 50;
 
     // Copy to clipboard
     const handleCopy = (text: string) => {
@@ -307,6 +379,8 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                     }}>
                         {[
                             { id: 'cgpa', label: 'CGPA to %', icon: Lucide.Award },
+                            { id: 'target-cgpa', label: '🎯 Target CGPA', icon: Lucide.Target },
+                            { id: 'grace-rules', label: '⚖️ Grace & Promo', icon: Lucide.Scale },
                             { id: 'sgpa-to-cgpa', label: 'SGPA to CGPA', icon: Lucide.Calculator },
                             { id: 'sgpa', label: 'SGPA to %', icon: Lucide.TrendingUp },
                             { id: 'marks', label: 'Marks to %', icon: Lucide.Percent },
@@ -654,7 +728,7 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                 }}>
                                     {semesters.map((s, idx) => (
                                         <div
-                                            key={s.sem}
+                                            key={`target-cgpa-sem-${s.sem}-${idx}`}
                                             style={{
                                                 padding: '0.65rem',
                                                 borderRadius: '0.75rem',
@@ -1139,6 +1213,481 @@ export const PercentageCalculator: React.FC<PercentageCalculatorProps> = ({
                                         </button>
                                     </motion.div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* TAB: Target CGPA Simulator */}
+                        {activeTab === 'target-cgpa' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                <div style={{
+                                    padding: '0.85rem 1rem',
+                                    borderRadius: '0.75rem',
+                                    background: 'linear-gradient(135deg, rgba(245, 179, 1, 0.12) 0%, rgba(56, 189, 248, 0.08) 100%)',
+                                    border: '1px solid rgba(245, 179, 1, 0.3)'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#F5B301', fontWeight: 800, fontSize: '0.82rem' }}>
+                                        <Lucide.Target size={16} />
+                                        <span>BEU CGPA Goal Planner & What-If Simulator</span>
+                                    </div>
+                                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                                        Calculate the exact average SGPA required in your remaining semesters to graduate with your dream CGPA.
+                                    </p>
+                                </div>
+
+                                {/* Program Mode: Regular vs Lateral Entry */}
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setTargetProgramLength(8);
+                                            if (targetCompletedSems >= 8) setTargetCompletedSems(4);
+                                        }}
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.5rem',
+                                            borderRadius: '0.6rem',
+                                            border: targetProgramLength === 8 ? '1px solid var(--primary)' : '1px solid var(--border)',
+                                            background: targetProgramLength === 8 ? 'rgba(var(--primary-rgb), 0.15)' : 'transparent',
+                                            color: targetProgramLength === 8 ? 'var(--primary)' : 'var(--text-muted)',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 700,
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Regular B.Tech (8 Sems)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setTargetProgramLength(6);
+                                            if (targetCompletedSems >= 6) setTargetCompletedSems(3);
+                                        }}
+                                        style={{
+                                            flex: 1,
+                                            padding: '0.5rem',
+                                            borderRadius: '0.6rem',
+                                            border: targetProgramLength === 6 ? '1px solid var(--primary)' : '1px solid var(--border)',
+                                            background: targetProgramLength === 6 ? 'rgba(var(--primary-rgb), 0.15)' : 'transparent',
+                                            color: targetProgramLength === 6 ? 'var(--primary)' : 'var(--text-muted)',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 700,
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Lateral Entry (6 Sems)
+                                    </button>
+                                </div>
+
+                                {/* Inputs Grid */}
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    {/* Current CGPA */}
+                                    <div>
+                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>
+                                            CURRENT CGPA (0.0 - 10.0)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            max="10"
+                                            value={targetCurrentCgpa}
+                                            onChange={(e) => setTargetCurrentCgpa(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.65rem 0.85rem',
+                                                borderRadius: '0.65rem',
+                                                border: '1px solid var(--border)',
+                                                background: 'rgba(255, 255, 255, 0.04)',
+                                                color: 'var(--text-main)',
+                                                fontSize: '0.95rem',
+                                                fontWeight: 800,
+                                                outline: 'none',
+                                                boxSizing: 'border-box'
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Target Final CGPA */}
+                                    <div>
+                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>
+                                            TARGET FINAL CGPA
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            max="10"
+                                            value={targetGoalCgpa}
+                                            onChange={(e) => setTargetGoalCgpa(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '0.65rem 0.85rem',
+                                                borderRadius: '0.65rem',
+                                                border: '1px solid #F5B301',
+                                                background: 'rgba(245, 179, 1, 0.05)',
+                                                color: '#F5B301',
+                                                fontSize: '0.95rem',
+                                                fontWeight: 800,
+                                                outline: 'none',
+                                                boxSizing: 'border-box'
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Target Quick Presets */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>Quick Targets:</span>
+                                    {['7.50', '8.00', '8.50', '9.00'].map((preset) => (
+                                        <button
+                                            key={preset}
+                                            type="button"
+                                            onClick={() => setTargetGoalCgpa(preset)}
+                                            style={{
+                                                padding: '0.2rem 0.55rem',
+                                                fontSize: '0.75rem',
+                                                borderRadius: '0.45rem',
+                                                border: '1px solid var(--border)',
+                                                background: targetGoalCgpa === preset ? 'rgba(245, 179, 1, 0.2)' : 'rgba(255, 255, 255, 0.03)',
+                                                color: targetGoalCgpa === preset ? '#F5B301' : 'var(--text-muted)',
+                                                cursor: 'pointer',
+                                                fontWeight: 700
+                                            }}
+                                        >
+                                            {preset} CGPA
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Semesters Completed Selector */}
+                                <div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                                            SEMESTERS COMPLETED SO FAR
+                                        </label>
+                                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--primary)' }}>
+                                            {targetCompletedSems} of {targetProgramLength} ({remainingCount} left)
+                                        </span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.35rem' }}>
+                                        {Array.from({ length: targetProgramLength - 1 }, (_, i) => i + 1).map((s) => (
+                                            <button
+                                                key={s}
+                                                type="button"
+                                                onClick={() => setTargetCompletedSems(s)}
+                                                style={{
+                                                    flex: 1,
+                                                    padding: '0.5rem 0',
+                                                    borderRadius: '0.5rem',
+                                                    border: targetCompletedSems === s ? '1px solid var(--primary)' : '1px solid var(--border)',
+                                                    background: targetCompletedSems === s ? 'var(--primary)' : 'rgba(255, 255, 255, 0.03)',
+                                                    color: targetCompletedSems === s ? '#fff' : 'var(--text-muted)',
+                                                    fontSize: '0.78rem',
+                                                    fontWeight: 800,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Sem {s}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Results Output Box */}
+                                {requiredAvgSgpa !== null && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        style={{
+                                            padding: '1.25rem',
+                                            borderRadius: '1rem',
+                                            background: 'rgba(255, 255, 255, 0.03)',
+                                            border: `1px solid ${targetStatusColor}`,
+                                            boxShadow: `0 8px 24px ${targetStatusColor}22`,
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '0.85rem'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                            <div>
+                                                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
+                                                    REQUIRED SGPA (PER REMAINING SEMESTER)
+                                                </span>
+                                                <div style={{ fontSize: '2.4rem', fontWeight: 900, color: targetStatusColor, lineHeight: 1.1, marginTop: '0.2rem' }}>
+                                                    {requiredAvgSgpa <= 0 ? '0.00' : requiredAvgSgpa > 10 ? '10.00+' : requiredAvgSgpa.toFixed(2)}
+                                                </div>
+                                            </div>
+
+                                            <span style={{
+                                                fontSize: '0.75rem',
+                                                padding: '0.35rem 0.75rem',
+                                                borderRadius: '2rem',
+                                                fontWeight: 800,
+                                                color: targetStatusColor,
+                                                background: `${targetStatusColor}18`,
+                                                border: `1px solid ${targetStatusColor}`
+                                            }}>
+                                                {targetStatus.toUpperCase()}
+                                            </span>
+                                        </div>
+
+                                        <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-main)', lineHeight: 1.5, fontWeight: 600 }}>
+                                            {targetStatusMessage}
+                                        </p>
+
+                                        {/* Metric stats grid */}
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(3, 1fr)',
+                                            gap: '0.5rem',
+                                            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                                            paddingTop: '0.75rem',
+                                            textAlign: 'center',
+                                            fontSize: '0.74rem'
+                                        }}>
+                                            <div>
+                                                <div style={{ color: 'var(--text-muted)' }}>Remaining Sems</div>
+                                                <div style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '0.9rem', marginTop: '0.1rem' }}>
+                                                    {remainingCount}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div style={{ color: 'var(--text-muted)' }}>Target Equiv. %</div>
+                                                <div style={{ fontWeight: 800, color: '#38BDF8', fontSize: '0.9rem', marginTop: '0.1rem' }}>
+                                                    {(goalCgpaNum * 10).toFixed(1)}%
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div style={{ color: 'var(--text-muted)' }}>Max Possible CGPA</div>
+                                                <div style={{ fontWeight: 800, color: '#10B981', fontSize: '0.9rem', marginTop: '0.1rem' }}>
+                                                    {Math.min(10, maxPossibleCgpa).toFixed(2)}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={() => handleCopy(`BEU Target CGPA Roadmap:\nCurrent CGPA: ${curCgpaNum} (${completedCount} Sems Completed)\nGoal CGPA: ${goalCgpaNum} (${(goalCgpaNum * 10).toFixed(1)}%)\nRequired SGPA: ${requiredAvgSgpa <= 0 ? '0.00' : requiredAvgSgpa.toFixed(2)} in next ${remainingCount} semesters\nMax Achievable CGPA: ${Math.min(10, maxPossibleCgpa).toFixed(2)}`)}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '0.45rem',
+                                                padding: '0.55rem 1rem',
+                                                borderRadius: '0.65rem',
+                                                background: 'rgba(255, 255, 255, 0.05)',
+                                                border: '1px solid var(--border)',
+                                                color: 'var(--text-main)',
+                                                fontSize: '0.82rem',
+                                                fontWeight: 700,
+                                                cursor: 'pointer',
+                                                width: '100%',
+                                                transition: 'all 0.2s ease'
+                                            }}
+                                            className="hover-scale"
+                                        >
+                                            <Lucide.Copy size={15} /> Copy Target Goal Roadmap
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB: BEU Grace Marks & Promotion Rules */}
+                        {activeTab === 'grace-rules' && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                
+                                {/* Section 1: Grace Marks Calculator */}
+                                <div
+                                    className="glass"
+                                    style={{
+                                        padding: '1.15rem',
+                                        borderRadius: '0.85rem',
+                                        border: '1px solid var(--border)',
+                                        background: 'rgba(255, 255, 255, 0.02)'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#10B981', fontWeight: 800, fontSize: '0.9rem', marginBottom: '0.35rem' }}>
+                                        <Lucide.Scale size={18} />
+                                        <span>1. BEU Grace Marks Eligibility Checker</span>
+                                    </div>
+                                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.76rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                                        Under BEU / AKU Examination Ordinance: A maximum of <b>5 grace marks</b> can be awarded in up to 2 subjects if the candidate passes all other papers.
+                                    </p>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginBottom: '0.85rem' }}>
+                                        <div>
+                                            <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '0.3rem' }}>
+                                                MARKS SHORT OF PASSING (1 - 10)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="15"
+                                                value={graceMarksShort}
+                                                onChange={(e) => setGraceMarksShort(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.55rem 0.75rem',
+                                                    borderRadius: '0.55rem',
+                                                    border: '1px solid var(--border)',
+                                                    background: 'rgba(255, 255, 255, 0.04)',
+                                                    color: 'var(--text-main)',
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: 700,
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box'
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '0.3rem' }}>
+                                                NUMBER OF FAILED SUBJECTS
+                                            </label>
+                                            <select
+                                                value={graceSubjectsCount}
+                                                onChange={(e) => setGraceSubjectsCount(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.55rem 0.75rem',
+                                                    borderRadius: '0.55rem',
+                                                    border: '1px solid var(--border)',
+                                                    background: 'rgba(255, 255, 255, 0.04)',
+                                                    color: 'var(--text-main)',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: 700,
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <option value="1">1 Subject</option>
+                                                <option value="2">2 Subjects</option>
+                                                <option value="3">3+ Subjects</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
+                                        <input
+                                            type="checkbox"
+                                            id="allOtherPassed"
+                                            checked={allOtherPassed}
+                                            onChange={(e) => setAllOtherPassed(e.target.checked)}
+                                            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                                        />
+                                        <label htmlFor="allOtherPassed" style={{ fontSize: '0.78rem', color: 'var(--text-main)', cursor: 'pointer', fontWeight: 600 }}>
+                                            Student passed all other theory & practical subjects in this exam
+                                        </label>
+                                    </div>
+
+                                    {/* Grace Result Banner */}
+                                    <div style={{
+                                        padding: '0.75rem 1rem',
+                                        borderRadius: '0.65rem',
+                                        background: isGraceEligible ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.1)',
+                                        border: isGraceEligible ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(239, 68, 68, 0.3)',
+                                        color: isGraceEligible ? '#10B981' : '#EF4444'
+                                    }}>
+                                        <div style={{ fontWeight: 800, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                            {isGraceEligible ? '✅ Eligible for BEU Grace Marks' : '❌ Not Eligible for Grace Marks'}
+                                        </div>
+                                        <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                                            {isGraceEligible
+                                                ? `Since the deficiency is ${marksShortNum} marks (<= 5 marks) across ${subCountNum} subject(s), BEU ordinance permits awarding grace to declare the student Passed.`
+                                                : `BEU ordinance allows a maximum of 5 marks grace across at most 2 subjects only if all other subjects are cleared. You must take the supplementary/carry-over exam.`}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Section 2: Year Promotion & Carry-Over Checker */}
+                                <div
+                                    className="glass"
+                                    style={{
+                                        padding: '1.15rem',
+                                        borderRadius: '0.85rem',
+                                        border: '1px solid var(--border)',
+                                        background: 'rgba(255, 255, 255, 0.02)'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#38BDF8', fontWeight: 800, fontSize: '0.9rem', marginBottom: '0.35rem' }}>
+                                        <Lucide.GraduationCap size={18} />
+                                        <span>2. Year-to-Year Promotion Rules (50% Credits Rule)</span>
+                                    </div>
+                                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.76rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                                        In BEU CBCS regulations, a student must clear at least <b>50% of the prescribed credits</b> of the academic year to be promoted to the higher class.
+                                    </p>
+
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', marginBottom: '0.85rem' }}>
+                                        <div>
+                                            <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '0.3rem' }}>
+                                                TOTAL YEAR CREDITS (ODD + EVEN SEM)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={promoTotalCredits}
+                                                onChange={(e) => setPromoTotalCredits(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.55rem 0.75rem',
+                                                    borderRadius: '0.55rem',
+                                                    border: '1px solid var(--border)',
+                                                    background: 'rgba(255, 255, 255, 0.04)',
+                                                    color: 'var(--text-main)',
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: 700,
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box'
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)', display: 'block', marginBottom: '0.3rem' }}>
+                                                CREDITS CLEARED / EARNED
+                                            </label>
+                                            <input
+                                                type="number"
+                                                value={promoEarnedCredits}
+                                                onChange={(e) => setPromoEarnedCredits(e.target.value)}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '0.55rem 0.75rem',
+                                                    borderRadius: '0.55rem',
+                                                    border: '1px solid var(--border)',
+                                                    background: 'rgba(255, 255, 255, 0.04)',
+                                                    color: 'var(--text-main)',
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: 700,
+                                                    outline: 'none',
+                                                    boxSizing: 'border-box'
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Promotion Result Banner */}
+                                    <div style={{
+                                        padding: '0.75rem 1rem',
+                                        borderRadius: '0.65rem',
+                                        background: isPromoted ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.1)',
+                                        border: isPromoted ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(239, 68, 68, 0.3)',
+                                        color: isPromoted ? '#10B981' : '#EF4444'
+                                    }}>
+                                        <div style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+                                            {isPromoted
+                                                ? `🎉 Promoted to Next Academic Year (${promoPercentage.toFixed(1)}% Credits Cleared)`
+                                                : `🚨 Year Back / Not Promoted (${promoPercentage.toFixed(1)}% Credits Cleared)`}
+                                        </div>
+                                        <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                                            {isPromoted
+                                                ? `You have satisfied the BEU 50% minimum credit threshold (${promoEarnedNum} of ${promoTotalNum} credits). You can carry over remaining backlogs.`
+                                                : `You have cleared less than 50% credits (${promoEarnedNum} of ${promoTotalNum}). You must clear pending papers before enrolling in the next academic year.`}
+                                        </p>
+                                    </div>
+                                </div>
+
                             </div>
                         )}
 

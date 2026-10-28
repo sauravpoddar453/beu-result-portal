@@ -3,11 +3,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import * as Lucide from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import StudentProfileModal from '@/components/StudentProfileModal';
+import StoryResultCardModal from '@/components/StoryResultCardModal';
 
 interface DashboardProps {
     selectedExam?: any;
     onBack?: () => void;
     onOpenCalculator?: (options?: any) => void;
+    initialRegNo?: string;
 }
 
 const toRoman = (num: number): string => {
@@ -17,12 +20,14 @@ const toRoman = (num: number): string => {
     return romanMap[num] || num.toString();
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalculator }) => {
-    const [regNumber, setRegNumber] = useState('');
+const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalculator, initialRegNo }) => {
+    const [regNumber, setRegNumber] = useState(initialRegNo || '');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState('');
     const [showNotFound, setShowNotFound] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showStoryModal, setShowStoryModal] = useState(false);
     const pdfRef = useRef<HTMLDivElement>(null);
 
     // Dynamic Batch Detection from Reg Number
@@ -306,6 +311,13 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalcu
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (initialRegNo) {
+            setRegNumber(initialRegNo);
+            handleSearch(initialRegNo);
+        }
+    }, [initialRegNo]);
 
     const handlePrint = () => {
         // We rely on native browser print -> Save as PDF.
@@ -953,6 +965,28 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalcu
                                                             <Lucide.Layers size={14} /> SGPA ➔ CGPA
                                                         </button>
                                                     )}
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onOpenCalculator({ score: result.cgpa, tab: 'target-cgpa' })}
+                                                        style={{
+                                                            padding: '0.45rem 0.95rem',
+                                                            borderRadius: '2rem',
+                                                            background: 'rgba(16, 185, 129, 0.15)',
+                                                            border: '1px solid #10B981',
+                                                            color: '#10B981',
+                                                            fontSize: '0.78rem',
+                                                            fontWeight: 700,
+                                                            cursor: 'pointer',
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.35rem'
+                                                        }}
+                                                        className="hover-scale"
+                                                        title="Simulate Target CGPA Goal & Future SGPAs"
+                                                    >
+                                                        <Lucide.Target size={14} /> 🎯 Target CGPA
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>
@@ -961,6 +995,31 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalcu
 
                                 {/* Print / Download & Percentage Calculator Buttons */}
                                 <div className="no-print" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowProfileModal(true)}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.6rem',
+                                            padding: '0.75rem 1.6rem',
+                                            fontSize: '0.95rem',
+                                            fontWeight: 800,
+                                            borderRadius: '2rem',
+                                            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(56, 189, 248, 0.15) 100%)',
+                                            border: '1px solid #10B981',
+                                            color: '#10B981',
+                                            boxShadow: '0 4px 16px rgba(16, 185, 129, 0.25)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        className="hover-scale"
+                                        title="View All Semesters Progression & Transcript"
+                                    >
+                                        <Lucide.TrendingUp size={18} />
+                                        <span>📈 4-Year Progression & Transcript</span>
+                                    </button>
+
                                     <button
                                         className="premium-btn"
                                         onClick={handlePrint}
@@ -976,6 +1035,31 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalcu
                                     >
                                         <Lucide.Printer size={18} />
                                         Download Marksheet (PDF)
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowStoryModal(true)}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.6rem',
+                                            padding: '0.75rem 1.6rem',
+                                            fontSize: '0.95rem',
+                                            fontWeight: 800,
+                                            borderRadius: '2rem',
+                                            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(236, 72, 153, 0.15) 100%)',
+                                            border: '1px solid #F59E0B',
+                                            color: '#F59E0B',
+                                            boxShadow: '0 4px 16px rgba(245, 158, 11, 0.25)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        className="hover-scale"
+                                        title="Generate Instagram & WhatsApp Story Card"
+                                    >
+                                        <Lucide.Sparkles size={18} />
+                                        <span>📸 Story Card (PNG)</span>
                                     </button>
 
                                     {onOpenCalculator && (
@@ -1428,6 +1512,24 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedExam, onBack, onOpenCalcu
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Multi-Semester Academic Progression & Transcript Modal */}
+            <StudentProfileModal
+                isOpen={showProfileModal}
+                onClose={() => setShowProfileModal(false)}
+                regNo={result?.rollNo || regNumber}
+                onSelectSemesterExam={(sem) => {
+                    const semRoman = toRoman(sem);
+                    handleSearch(result?.rollNo || regNumber, { ...selectedExam, semId: sem, semester: semRoman });
+                }}
+            />
+
+            {/* Instagram & WhatsApp Story Result Card Modal */}
+            <StoryResultCardModal
+                isOpen={showStoryModal}
+                onClose={() => setShowStoryModal(false)}
+                result={result}
+            />
         </div>
     );
 };

@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Dashboard from '@/components/Dashboard';
 import Home from '@/components/Home';
 import PercentageCalculator from '@/components/PercentageCalculator';
+import StatewideLeaderboard from '@/components/StatewideLeaderboard';
 
 /**
  * Desktop-only subtle cursor glow that follows mouse position smoothly.
@@ -50,14 +51,15 @@ const CursorGlow: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const [view, setView] = useState<'home' | 'dashboard'>('home');
+  const [view, setView] = useState<'home' | 'dashboard' | 'leaderboard'>('home');
   const [selectedExam, setSelectedExam] = useState<any>(null);
+  const [searchedRegNo, setSearchedRegNo] = useState<string>('');
   const [showCalculator, setShowCalculator] = useState(false);
   const [calcScore, setCalcScore] = useState<string | number | null>(null);
-  const [calcTab, setCalcTab] = useState<'cgpa' | 'sgpa-to-cgpa' | 'sgpa' | 'marks' | 'info'>('cgpa');
+  const [calcTab, setCalcTab] = useState<any>('cgpa');
   const [calcAllSgpa, setCalcAllSgpa] = useState<(string | null | undefined)[] | null>(null);
 
-  const handleOpenCalculator = (options?: { score?: string | number; tab?: 'cgpa' | 'sgpa-to-cgpa' | 'sgpa' | 'marks' | 'info'; allSgpa?: (string | null | undefined)[] } | string | number) => {
+  const handleOpenCalculator = (options?: { score?: string | number; tab?: any; allSgpa?: (string | null | undefined)[] } | string | number) => {
     if (typeof options === 'string' || typeof options === 'number') {
       setCalcScore(options);
       setCalcTab('cgpa');
@@ -73,6 +75,31 @@ const App: React.FC = () => {
 
   const handleSelectSemester = (exam: any) => {
     setSelectedExam(exam);
+    setSearchedRegNo('');
+    setView('dashboard');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleOpenLeaderboard = () => {
+    setView('leaderboard');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleViewStudentResult = (regNo: string, semester?: string) => {
+    setSearchedRegNo(regNo);
+    const semNum = semester ? parseInt(semester.replace(/\D/g, ''), 10) || 1 : 1;
+    const batchYear = regNo.length >= 2 ? `20${regNo.substring(0, 2)}` : '2024';
+    setSelectedExam({
+      semId: semNum,
+      batchYear,
+      examName: `B.Tech Semester ${semNum} Examination`,
+      session: batchYear,
+      id: semNum
+    });
     setView('dashboard');
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -82,6 +109,7 @@ const App: React.FC = () => {
   const handleGoHome = () => {
     setView('home');
     setSelectedExam(null);
+    setSearchedRegNo('');
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -99,7 +127,11 @@ const App: React.FC = () => {
       <CursorGlow />
 
       {/* Glassmorphic Navbar */}
-      <Navbar onGoHome={handleGoHome} onOpenCalculator={() => handleOpenCalculator()} />
+      <Navbar
+        onGoHome={handleGoHome}
+        onOpenCalculator={() => handleOpenCalculator()}
+        onOpenLeaderboard={handleOpenLeaderboard}
+      />
 
       <main style={{ position: 'relative', zIndex: 1, paddingTop: 'clamp(0.75rem, 2vw, 1.75rem)' }}>
         {/* Hidden SEO Section */}
@@ -111,9 +143,9 @@ const App: React.FC = () => {
           </p>
         </section>
 
-        {/* Gentle Page Transition between Home & Marksheet Dashboard */}
+        {/* Gentle Page Transition between Home, Marksheet Dashboard, & Statewide Leaderboard */}
         <AnimatePresence mode="wait">
-          {view === 'home' ? (
+          {view === 'home' && (
             <motion.div
               key="home"
               initial={{ opacity: 0, y: 10 }}
@@ -121,9 +153,15 @@ const App: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.28, ease: 'easeInOut' }}
             >
-              <Home onSelectSemester={handleSelectSemester} onOpenCalculator={() => handleOpenCalculator()} />
+              <Home
+                onSelectSemester={handleSelectSemester}
+                onOpenCalculator={() => handleOpenCalculator()}
+                onOpenLeaderboard={handleOpenLeaderboard}
+              />
             </motion.div>
-          ) : (
+          )}
+
+          {view === 'dashboard' && (
             <motion.div
               key="dashboard"
               initial={{ opacity: 0, y: 10 }}
@@ -131,7 +169,27 @@ const App: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.28, ease: 'easeInOut' }}
             >
-              <Dashboard selectedExam={selectedExam} onBack={handleGoHome} onOpenCalculator={handleOpenCalculator} />
+              <Dashboard
+                selectedExam={selectedExam}
+                initialRegNo={searchedRegNo}
+                onBack={handleGoHome}
+                onOpenCalculator={handleOpenCalculator}
+              />
+            </motion.div>
+          )}
+
+          {view === 'leaderboard' && (
+            <motion.div
+              key="leaderboard"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.28, ease: 'easeInOut' }}
+            >
+              <StatewideLeaderboard
+                onBack={handleGoHome}
+                onViewStudentResult={handleViewStudentResult}
+              />
             </motion.div>
           )}
         </AnimatePresence>

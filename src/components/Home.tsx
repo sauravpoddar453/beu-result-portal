@@ -27,6 +27,7 @@ interface Course {
 interface HomeProps {
     onSelectSemester: (exam: Exam) => void;
     onOpenCalculator?: (options?: any) => void;
+    onOpenLeaderboard?: () => void;
 }
 
 /**
@@ -157,7 +158,7 @@ const ExamCard: React.FC<ExamCardProps> = ({ exam, index, batchKey, onSelectSeme
     );
 };
 
-const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
+const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator, onOpenLeaderboard }) => {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -377,6 +378,53 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
                         Instant access to official Bihar Engineering University semester results and marksheet records.
                     </motion.p>
 
+                    {onOpenLeaderboard && (
+                        <motion.div
+                            variants={{
+                                hidden: { opacity: 0, y: 15 },
+                                visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+                            }}
+                            style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'center' }}
+                        >
+                            <button
+                                onClick={onOpenLeaderboard}
+                                type="button"
+                                className="hover-scale"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.65rem',
+                                    padding: '0.7rem 1.4rem',
+                                    borderRadius: '2rem',
+                                    border: '1px solid rgba(245, 158, 11, 0.45)',
+                                    background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(56, 189, 248, 0.1) 100%)',
+                                    color: 'var(--text-main)',
+                                    fontSize: '0.88rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 20px rgba(245, 158, 11, 0.15)',
+                                    backdropFilter: 'blur(10px)'
+                                }}
+                            >
+                                <span style={{ fontSize: '1.1rem' }}>🏆</span>
+                                <span>Bihar Statewide Toppers & College Rankings</span>
+                                <span style={{
+                                    background: '#F59E0B',
+                                    color: '#000',
+                                    fontSize: '0.68rem',
+                                    fontWeight: 900,
+                                    padding: '0.2rem 0.5rem',
+                                    borderRadius: '0.8rem',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em'
+                                }}>
+                                    Live
+                                </span>
+                                <Lucide.ChevronRight size={16} color="var(--text-muted)" />
+                            </button>
+                        </motion.div>
+                    )}
+
                 </motion.div>
             </header>
 
@@ -527,6 +575,481 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
                 </>
             )}
 
+            {/* =========================================================================
+                NEW SECTION: Statewide Rankings & Academic Toolkit
+                Showcases all recently added features:
+                1. Statewide Topper Leaderboard & College Rankings
+                2. Target CGPA Simulator & Planner
+                3. BEU Grace & Promotion Rules
+                4. Story Marksheets & Multi-Semester Transcript
+               ========================================================================= */}
+            <section
+                id="academic-toolkit"
+                style={{
+                    marginTop: '3.5rem',
+                    marginBottom: '3rem',
+                    position: 'relative'
+                }}
+            >
+                <div style={{ textAlign: 'center', marginBottom: '2.25rem' }}>
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.35rem 0.9rem',
+                        borderRadius: '2rem',
+                        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(56, 189, 248, 0.12))',
+                        border: '1px solid rgba(245, 158, 11, 0.35)',
+                        color: 'var(--text-main)',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        letterSpacing: '0.06em',
+                        textTransform: 'uppercase',
+                        marginBottom: '0.85rem'
+                    }}>
+                        <span style={{ fontSize: '1rem' }}>✨</span>
+                        <span>New Features • Academic Suite</span>
+                    </div>
+
+                    <h2 style={{
+                        fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
+                        fontWeight: 900,
+                        color: 'var(--text-main)',
+                        letterSpacing: '-0.02em',
+                        marginBottom: '0.6rem'
+                    }}>
+                        Statewide Rankings & Academic Toolkit
+                    </h2>
+                    <p style={{
+                        color: 'var(--text-muted)',
+                        fontSize: '0.98rem',
+                        maxWidth: '680px',
+                        margin: '0 auto',
+                        lineHeight: 1.6
+                    }}>
+                        Explore university-wide topper rank lists, simulate your required CGPA goals, check official BEU promotion rules, and generate shareable story marksheets.
+                    </p>
+                </div>
+
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gap: '1.5rem',
+                    width: '100%'
+                }}>
+                    {/* Card 1: Statewide Leaderboard */}
+                    <motion.div
+                        whileHover={{ y: -5, boxShadow: '0 12px 30px rgba(245, 158, 11, 0.18)' }}
+                        transition={{ duration: 0.2 }}
+                        className="glass"
+                        style={{
+                            padding: '1.85rem',
+                            borderRadius: '1.25rem',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                            background: 'linear-gradient(145deg, rgba(245, 158, 11, 0.08) 0%, rgba(18, 28, 61, 0.5) 100%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        <div style={{
+                            position: 'absolute',
+                            top: '-15px',
+                            right: '-15px',
+                            opacity: 0.08,
+                            color: '#F59E0B'
+                        }}>
+                            <Lucide.Trophy size={110} />
+                        </div>
+
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                                <div style={{
+                                    width: '46px',
+                                    height: '46px',
+                                    borderRadius: '1rem',
+                                    background: 'rgba(245, 158, 11, 0.15)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    border: '1px solid rgba(245, 158, 11, 0.4)'
+                                }}>
+                                    <Lucide.Trophy size={24} color="#F59E0B" />
+                                </div>
+                                <span style={{
+                                    fontSize: '0.72rem',
+                                    fontWeight: 800,
+                                    padding: '0.25rem 0.65rem',
+                                    borderRadius: '1rem',
+                                    background: 'rgba(245, 158, 11, 0.18)',
+                                    color: '#F59E0B',
+                                    border: '1px solid rgba(245, 158, 11, 0.3)'
+                                }}>
+                                    38+ Colleges
+                                </span>
+                            </div>
+
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.6rem' }}>
+                                Statewide Toppers & Rankings
+                            </h3>
+                            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.25rem' }}>
+                                Live rank list across all BEU engineering colleges. Compare college performance, pass percentage, and top rankers.
+                            </p>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>🥇</span> <span>Top 10 Statewide Rankers & Scorecards</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>🏛️</span> <span>College-wise Distinction & Pass %</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>🔍</span> <span>Filter by Batch, Semester & Branch</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {onOpenLeaderboard && (
+                            <button
+                                type="button"
+                                onClick={onOpenLeaderboard}
+                                className="hover-scale"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.85rem',
+                                    background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                                    color: '#000',
+                                    fontWeight: 800,
+                                    fontSize: '0.88rem',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)'
+                                }}
+                            >
+                                <span>Explore Leaderboard</span>
+                                <Lucide.ArrowRight size={16} />
+                            </button>
+                        )}
+                    </motion.div>
+
+                    {/* Card 2: Target CGPA Planner */}
+                    <motion.div
+                        whileHover={{ y: -5, boxShadow: '0 12px 30px rgba(16, 185, 129, 0.18)' }}
+                        transition={{ duration: 0.2 }}
+                        className="glass"
+                        style={{
+                            padding: '1.85rem',
+                            borderRadius: '1.25rem',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            background: 'linear-gradient(145deg, rgba(16, 185, 129, 0.08) 0%, rgba(18, 28, 61, 0.5) 100%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        <div style={{
+                            position: 'absolute',
+                            top: '-15px',
+                            right: '-15px',
+                            opacity: 0.08,
+                            color: '#10B981'
+                        }}>
+                            <Lucide.Target size={110} />
+                        </div>
+
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                                <div style={{
+                                    width: '46px',
+                                    height: '46px',
+                                    borderRadius: '1rem',
+                                    background: 'rgba(16, 185, 129, 0.15)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    border: '1px solid rgba(16, 185, 129, 0.4)'
+                                }}>
+                                    <Lucide.Target size={24} color="#10B981" />
+                                </div>
+                                <span style={{
+                                    fontSize: '0.72rem',
+                                    fontWeight: 800,
+                                    padding: '0.25rem 0.65rem',
+                                    borderRadius: '1rem',
+                                    background: 'rgba(16, 185, 129, 0.18)',
+                                    color: '#10B981',
+                                    border: '1px solid rgba(16, 185, 129, 0.3)'
+                                }}>
+                                    Goal Setting
+                                </span>
+                            </div>
+
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.6rem' }}>
+                                Target CGPA Planner
+                            </h3>
+                            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.25rem' }}>
+                                Want to graduate with 8.0+ CGPA or First Class? Calculate the exact required SGPA in upcoming semesters to hit your dream target.
+                            </p>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>🎯</span> <span>Real-time Required SGPA Forecast</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>⚖️</span> <span>Credit-Weighted Multi-Sem Calculations</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>⚡</span> <span>Instant Feasibility & Goal Guidance</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {onOpenCalculator && (
+                            <button
+                                type="button"
+                                onClick={() => onOpenCalculator({ tab: 'target-cgpa' })}
+                                className="hover-scale"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.85rem',
+                                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                                    color: '#FFFFFF',
+                                    fontWeight: 800,
+                                    fontSize: '0.88rem',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
+                                }}
+                            >
+                                <span>Launch Target Planner</span>
+                                <Lucide.ArrowRight size={16} />
+                            </button>
+                        )}
+                    </motion.div>
+
+                    {/* Card 3: BEU Grace & Promotion Rules */}
+                    <motion.div
+                        whileHover={{ y: -5, boxShadow: '0 12px 30px rgba(56, 189, 248, 0.18)' }}
+                        transition={{ duration: 0.2 }}
+                        className="glass"
+                        style={{
+                            padding: '1.85rem',
+                            borderRadius: '1.25rem',
+                            border: '1px solid rgba(56, 189, 248, 0.3)',
+                            background: 'linear-gradient(145deg, rgba(56, 189, 248, 0.08) 0%, rgba(18, 28, 61, 0.5) 100%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        <div style={{
+                            position: 'absolute',
+                            top: '-15px',
+                            right: '-15px',
+                            opacity: 0.08,
+                            color: '#38BDF8'
+                        }}>
+                            <Lucide.ShieldCheck size={110} />
+                        </div>
+
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                                <div style={{
+                                    width: '46px',
+                                    height: '46px',
+                                    borderRadius: '1rem',
+                                    background: 'rgba(56, 189, 248, 0.15)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    border: '1px solid rgba(56, 189, 248, 0.4)'
+                                }}>
+                                    <Lucide.ShieldCheck size={24} color="#38BDF8" />
+                                </div>
+                                <span style={{
+                                    fontSize: '0.72rem',
+                                    fontWeight: 800,
+                                    padding: '0.25rem 0.65rem',
+                                    borderRadius: '1rem',
+                                    background: 'rgba(56, 189, 248, 0.18)',
+                                    color: '#38BDF8',
+                                    border: '1px solid rgba(56, 189, 248, 0.3)'
+                                }}>
+                                    University Guide
+                                </span>
+                            </div>
+
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.6rem' }}>
+                                Grace Marks & Promotion
+                            </h3>
+                            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.25rem' }}>
+                                Official regulations simplified: know exactly how BEU 5-mark grace works, Year Back criteria, and ATKT semester promotion rules.
+                            </p>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>⚖️</span> <span>Official 5-Mark Grace Policy</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>🚫</span> <span>Year-Back vs ATKT Carryover Rules</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>📚</span> <span>Minimum Credit Requirements by Year</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {onOpenCalculator && (
+                            <button
+                                type="button"
+                                onClick={() => onOpenCalculator({ tab: 'grace-rules' })}
+                                className="hover-scale"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.85rem',
+                                    background: 'linear-gradient(135deg, #38BDF8 0%, #0284C7 100%)',
+                                    color: '#FFFFFF',
+                                    fontWeight: 800,
+                                    fontSize: '0.88rem',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    boxShadow: '0 4px 15px rgba(56, 189, 248, 0.3)'
+                                }}
+                            >
+                                <span>Check Promotion Rules</span>
+                                <Lucide.ArrowRight size={16} />
+                            </button>
+                        )}
+                    </motion.div>
+
+                    {/* Card 4: Story Marksheet Cards & Multi-Sem Journey */}
+                    <motion.div
+                        whileHover={{ y: -5, boxShadow: '0 12px 30px rgba(236, 72, 153, 0.18)' }}
+                        transition={{ duration: 0.2 }}
+                        className="glass"
+                        style={{
+                            padding: '1.85rem',
+                            borderRadius: '1.25rem',
+                            border: '1px solid rgba(236, 72, 153, 0.3)',
+                            background: 'linear-gradient(145deg, rgba(236, 72, 153, 0.08) 0%, rgba(18, 28, 61, 0.5) 100%)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        <div style={{
+                            position: 'absolute',
+                            top: '-15px',
+                            right: '-15px',
+                            opacity: 0.08,
+                            color: '#EC4899'
+                        }}>
+                            <Lucide.Sparkles size={110} />
+                        </div>
+
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                                <div style={{
+                                    width: '46px',
+                                    height: '46px',
+                                    borderRadius: '1rem',
+                                    background: 'rgba(236, 72, 153, 0.15)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    border: '1px solid rgba(236, 72, 153, 0.4)'
+                                }}>
+                                    <Lucide.Sparkles size={24} color="#EC4899" />
+                                </div>
+                                <span style={{
+                                    fontSize: '0.72rem',
+                                    fontWeight: 800,
+                                    padding: '0.25rem 0.65rem',
+                                    borderRadius: '1rem',
+                                    background: 'rgba(236, 72, 153, 0.18)',
+                                    color: '#EC4899',
+                                    border: '1px solid rgba(236, 72, 153, 0.3)'
+                                }}>
+                                    Viral Format
+                                </span>
+                            </div>
+
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.6rem' }}>
+                                Story Cards & Transcript
+                            </h3>
+                            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.55, marginBottom: '1.25rem' }}>
+                                Celebrate your success with aesthetic Instagram & WhatsApp story result cards, or view your complete 4-year semester SGPA trajectory.
+                            </p>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.8rem', color: 'var(--text-main)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>📱</span> <span>9:16 Instagram & WhatsApp Story Cards</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>📈</span> <span>Multi-Semester Progression Curve</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span>📥</span> <span>High-Res PNG & Official Transcript</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const el = document.getElementById('all-results');
+                                if (el) {
+                                    el.scrollIntoView({ behavior: 'smooth' });
+                                }
+                            }}
+                            className="hover-scale"
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                borderRadius: '0.85rem',
+                                background: 'linear-gradient(135deg, #EC4899 0%, #BE185D 100%)',
+                                color: '#FFFFFF',
+                                fontWeight: 800,
+                                fontSize: '0.88rem',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                boxShadow: '0 4px 15px rgba(236, 72, 153, 0.3)'
+                            }}
+                        >
+                            <span>Check Result to Create Card</span>
+                            <Lucide.ArrowUp size={16} />
+                        </button>
+                    </motion.div>
+                </div>
+            </section>
+
             {/* Dynamic Notices & Quick Links Section */}
             <div className="notices-grid">
                 {/* Notice Board */}
@@ -658,31 +1181,6 @@ const Home: React.FC<HomeProps> = ({ onSelectSemester, onOpenCalculator }) => {
                     <p>
                         Bihar Engineering University (BEU), Patna releases semester examination results for undergraduate engineering students throughout the academic year. This portal provides an accelerated, mobile-optimized platform ensuring students can easily check, verify, and print their official marksheet records online without server interruptions.
                     </p>
-                </div>
-                
-                <h2 style={{ fontSize: '1.5rem', color: 'var(--text-main)', marginTop: '3rem', marginBottom: '1.5rem', fontWeight: 800 }}>
-                    BEU Result Updates
-                </h2>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.6 }}>
-                    <p>Students searching for the following terms can use this portal to check their results:</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1rem' }}>
-                        {['BEU Result', 'Bihar Engineering University Result', 'BEU BTech Result', 'BEU Semester Result', 'BEU Result Portal'].map(keyword => (
-                            <span key={keyword} style={{ padding: '0.4rem 0.8rem', background: 'rgba(255,255,255,0.05)', borderRadius: '2rem', border: '1px solid var(--border)', fontSize: '0.85rem', color: 'var(--secondary)' }}>
-                                {keyword}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Internal Linking Section */}
-                <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
-                    <h3 style={{ color: 'var(--text-main)', fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 700 }}>Quick Result Access 🔗</h3>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', alignItems: 'center' }}>
-                        <a href="/beu-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '1rem', fontWeight: 800, padding: '0.4rem 1rem', background: 'rgba(var(--primary-rgb), 0.1)', borderRadius: '0.75rem' }}>Check BEU Result 🔥</a>
-                        <a href="/beu-4th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>4th Sem Result</a>
-                        <a href="/beu-6th-sem-result" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>6th Sem Result</a>
-                        <a href="/beu-notification" style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 600 }}>BEU News</a>
-                    </div>
                 </div>
             </div>
 
