@@ -286,6 +286,14 @@ const STATEWIDE_EXAMS = [
   // --- BATCH 24 (2024-28) ---
   {
     batch: '24',
+    semId: 1,
+    examName: "B.Tech. 1st Semester Examination, 2024",
+    batchYear: "2024",
+    examHeld: "May/2025",
+    examId: "240101"
+  },
+  {
+    batch: '24',
     semId: 2,
     examName: "B.Tech. 2nd Semester Examination, 2025",
     batchYear: "2025",
@@ -329,6 +337,42 @@ function saveState(state) {
   } catch (e) {}
 }
 
+async function getDynamicExams() {
+  try {
+    const res = await fetch('https://beu-bih.ac.in/backend/v1/result/sem-get');
+    const json = await res.json();
+    const bt = json.find(c => c.courseName && c.courseName.toLowerCase().includes('b.tech'));
+    if (!bt || !bt.exams) return STATEWIDE_EXAMS;
+
+    const targetBatches = ['22', '23', '24', '25'];
+    const dynamicList = [];
+
+    bt.exams.forEach(e => {
+      const sess = e.session || '';
+      const matchedBatch = targetBatches.find(b => sess.startsWith('20' + b) || sess.includes('20' + b));
+      if (matchedBatch) {
+        dynamicList.push({
+          batch: matchedBatch,
+          semId: e.semId,
+          examName: e.examName,
+          batchYear: e.batchYear,
+          examHeld: e.examHeld,
+          examId: e.examId,
+          session: e.session
+        });
+      }
+    });
+
+    if (dynamicList.length > 0) {
+      console.log(`📡 Dynamically detected ${dynamicList.length} published exams from BEU for Batches 22, 23, 24, 25.`);
+      return dynamicList;
+    }
+  } catch (err) {
+    console.warn('⚠️ Could not dynamically sync exams from BEU, using static catalog:', err.message);
+  }
+  return STATEWIDE_EXAMS;
+}
+
 async function scrapeStatewideBEU() {
   console.log("==================================================================");
   console.log("🌍 BIHAR ENGINEERING UNIVERSITY (BEU) - STATEWIDE DATA CRAWLER");
@@ -360,14 +404,16 @@ async function scrapeStatewideBEU() {
   let sessionSaved = 0;
   let newSinceLastSync = 0;
 
+  const examsToScrape = await getDynamicExams();
+
   try {
-    for (let eIdx = 0; eIdx < STATEWIDE_EXAMS.length; eIdx++) {
+    for (let eIdx = 0; eIdx < examsToScrape.length; eIdx++) {
       if (eIdx < (state.lastExamIndex || 0)) {
-        console.log(`⏩ [EXAM ${eIdx + 1}/${STATEWIDE_EXAMS.length}] "${STATEWIDE_EXAMS[eIdx].examName}" previously completed. Skipping.`);
+        console.log(`⏩ [EXAM ${eIdx + 1}/${examsToScrape.length}] "${examsToScrape[eIdx].examName}" previously completed. Skipping.`);
         continue;
       }
 
-      const exam = STATEWIDE_EXAMS[eIdx];
+      const exam = examsToScrape[eIdx];
       const { batch, semId, examName, batchYear, examHeld, examId } = exam;
       const semNumStr = semId.toString();
       const semRoman = toRoman(semId);
@@ -382,7 +428,7 @@ async function scrapeStatewideBEU() {
       const url = `https://beu-bih.ac.in/result-two/${encodeURIComponent(examName)}?d=${encodeURIComponent(d)}`;
 
       console.log(`\n========================================================================================`);
-      console.log(`📋 [EXAM ${eIdx + 1}/${STATEWIDE_EXAMS.length}] "${examName}" (Batch ${batch} | Sem ${semId})`);
+      console.log(`📋 [EXAM ${eIdx + 1}/${examsToScrape.length}] "${examName}" (Batch ${batch} | Sem ${semId})`);
       console.log(`🌐 URL: ${url}`);
       console.log(`========================================================================================\n`);
 
