@@ -1,0 +1,49 @@
+name: BEU Result Cloud Auto-Scheduler
+
+on:
+  schedule:
+    # Runs every 2 hours automatically in the cloud (UTC)
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Allows manual 1-click trigger from GitHub Actions tab
+
+concurrency:
+  group: beu-cloud-scraper
+  cancel-in-progress: false
+
+jobs:
+  auto-fetch-and-monitor:
+    name: Check BEU & Fetch Results
+    runs-on: ubuntu-latest
+    timeout-minutes: 180 # 3 hour max per run
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci || npm install
+
+      - name: 🌐 Install Headless Chrome & Linux Display Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2
+
+      - name: 🛰️ Run BEU Cloud Watcher
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: |
+          xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" node src/scripts/beu_auto_watcher.cjs --cloud
+
+      - name: 💾 Commit & Push Browser Artifacts (if updated)
+        run: |
+          git config --global user.name "BEU Cloud Bot"
+          git config --global user.email "bot@beuresult.com"
+          git add src/scripts/known_beu_exams.json public/beu_result_browser.html || true
+          git commit -m "chore(cloud-bot): sync latest results & browser artifact [skip ci]" || echo "No changes to commit"
+          git push || echo "Push skipped or no remote changes"

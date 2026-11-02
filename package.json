@@ -11,7 +11,9 @@
     "scrape": "node scrape-results.js",
     "scrape:pce": "node src/scripts/scrape_pce.cjs",
     "scrape:all": "node src/scripts/scrape_all_pce.cjs",
-    "scrape:statewide": "node src/scripts/scrape_beu_statewide.cjs"
+    "scrape:statewide": "node src/scripts/scrape_beu_statewide.cjs",
+    "watch": "node src/scripts/beu_auto_watcher.cjs",
+    "watch:check": "node src/scripts/beu_auto_watcher.cjs --once"
   },
   "dependencies": {
     "axios": "^1.16.0",
