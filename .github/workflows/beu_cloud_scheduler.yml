@@ -1,24 +1,42 @@
-name: BEU Result Cloud Auto-Scheduler
+name: BEU Result Cloud Scheduler & 24/7 Crawler
 
 on:
   schedule:
-    # Runs every 2 hours automatically in the cloud (UTC)
-    - cron: '0 */2 * * *'
+    # Runs automatically every 3 hours in GitHub Cloud (24/7, even when laptop is off)
+    - cron: '0 */3 * * *'
   workflow_dispatch: # Allows manual 1-click trigger from GitHub Actions tab
+    inputs:
+      job_type:
+        description: 'Select Task to Run'
+        required: true
+        default: 'full_crawler'
+        type: choice
+        options:
+          - 'full_crawler'
+          - 'auto_watcher'
+      max_duration_mins:
+        description: 'Max runtime (minutes) before graceful save'
+        required: false
+        default: '150'
+
+permissions:
+  contents: write
 
 concurrency:
   group: beu-cloud-scraper
   cancel-in-progress: false
 
 jobs:
-  auto-fetch-and-monitor:
-    name: Check BEU & Fetch Results
+  cloud-crawler:
+    name: Run BEU Cloud Fetcher
     runs-on: ubuntu-latest
-    timeout-minutes: 180 # 3 hour max per run
+    timeout-minutes: 180 # 3 hours max per run
 
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: 🟢 Setup Node.js 20
         uses: actions/setup-node@v4
@@ -34,16 +52,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xvfb libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2
 
-      - name: 🛰️ Run BEU Cloud Watcher
+      - name: 🚀 Run BEU Cloud Crawler / Watcher
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
+          MAX_DURATION_MINS: ${{ github.event.inputs.max_duration_mins || '150' }}
         run: |
-          xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" node src/scripts/beu_auto_watcher.cjs --cloud
+          JOB="${{ github.event.inputs.job_type || 'full_crawler' }}"
+          echo "=========================================================="
+          echo "🛰️ Starting BEU Cloud Job: $JOB"
+          echo "=========================================================="
+          if [ "$JOB" = "auto_watcher" ]; then
+            xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" node src/scripts/beu_auto_watcher.cjs --cloud
+          else
+            xvfb-run --auto-servernum --server-args="-screen 0 1280x800x24" node src/scripts/scrape_beu_statewide.cjs
+          fi
 
-      - name: 💾 Commit & Push Browser Artifacts (if updated)
+      - name: 💾 Commit & Push Progress Checkpoint
+        if: always()
         run: |
           git config --global user.name "BEU Cloud Bot"
           git config --global user.email "bot@beuresult.com"
-          git add src/scripts/known_beu_exams.json public/beu_result_browser.html || true
-          git commit -m "chore(cloud-bot): sync latest results & browser artifact [skip ci]" || echo "No changes to commit"
+          git add src/scripts/statewide_progress.json src/scripts/known_beu_exams.json public/beu_result_browser.html || true
+          git commit -m "chore(cloud-bot): sync latest results & progress [skip ci]" || echo "No changes to commit"
           git push || echo "Push skipped or no remote changes"

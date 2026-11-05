@@ -337,6 +337,35 @@ function saveState(state) {
   } catch (e) {}
 }
 
+async function loadStateAsync() {
+  try {
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      const meta = await mongoose.connection.collection('crawler_metadata').findOne({ _id: 'statewide_progress' });
+      if (meta && typeof meta.lastExamIndex === 'number') {
+        return {
+          lastExamIndex: meta.lastExamIndex,
+          lastCollegeIndex: meta.lastCollegeIndex || 0,
+          totalSavedSession: meta.totalSavedSession || 0
+        };
+      }
+    }
+  } catch (e) {}
+  return loadState();
+}
+
+async function saveStateAsync(state) {
+  saveState(state);
+  try {
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      await mongoose.connection.collection('crawler_metadata').updateOne(
+        { _id: 'statewide_progress' },
+        { $set: { ...state, updatedAt: new Date() } },
+        { upsert: true }
+      );
+    }
+  } catch (e) {}
+}
+
 async function getDynamicExams() {
   try {
     const res = await fetch('https://beu-bih.ac.in/backend/v1/result/sem-get');
@@ -392,6 +421,9 @@ async function scrapeStatewideBEU() {
       '--window-position=-2400,-2400',
       '--window-size=1280,800',
       '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
       '--disable-blink-features=AutomationControlled',
       '--disable-features=FirstPartySets'
     ]
@@ -400,9 +432,11 @@ async function scrapeStatewideBEU() {
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 800 });
 
-  let state = loadState();
+  let state = await loadStateAsync();
   let sessionSaved = 0;
   let newSinceLastSync = 0;
+  const maxDurationMinutes = parseInt(process.env.MAX_DURATION_MINS || '0', 10);
+  const crawlStartTime = Date.now();
 
   const examsToScrape = await getDynamicExams();
 
@@ -411,6 +445,11 @@ async function scrapeStatewideBEU() {
       if (eIdx < (state.lastExamIndex || 0)) {
         console.log(`⏩ [EXAM ${eIdx + 1}/${examsToScrape.length}] "${examsToScrape[eIdx].examName}" previously completed. Skipping.`);
         continue;
+      }
+
+      if (maxDurationMinutes > 0 && (Date.now() - crawlStartTime) >= maxDurationMinutes * 60 * 1000) {
+        console.log(`\n⏱️ Reached cloud max duration limit (${maxDurationMinutes} mins). Gracefully pausing and saving state.`);
+        break;
       }
 
       const exam = examsToScrape[eIdx];
@@ -449,6 +488,14 @@ async function scrapeStatewideBEU() {
         if (eIdx === (state.lastExamIndex || 0) && cIdx < (state.lastCollegeIndex || 0)) {
           continue;
         }
+
+        if (maxDurationMinutes > 0 && (Date.now() - crawlStartTime) >= maxDurationMinutes * 60 * 1000) {
+          console.log(`\n⏱️ Reached cloud max duration limit (${maxDurationMinutes} mins). Saving progress checkpoint...`);
+          await saveStateAsync({ lastExamIndex: eIdx, lastCollegeIndex: cIdx, totalSavedSession: sessionSaved });
+          updateBrowserArtifact();
+          return;
+        }
+
         const college = COLLEGES[cIdx];
         console.log(`\n🏛️ [Exam ${semId} | Col ${cIdx + 1}/${COLLEGES.length}] ${college.name} (Code: ${college.code})...`);
 
@@ -673,10 +720,10 @@ async function scrapeStatewideBEU() {
           }
         }
 
-        saveState({ lastExamIndex: eIdx, lastCollegeIndex: cIdx + 1, totalSavedSession: sessionSaved });
+        await saveStateAsync({ lastExamIndex: eIdx, lastCollegeIndex: cIdx + 1, totalSavedSession: sessionSaved });
       }
 
-      saveState({ lastExamIndex: eIdx + 1, lastCollegeIndex: 0, totalSavedSession: sessionSaved });
+      await saveStateAsync({ lastExamIndex: eIdx + 1, lastCollegeIndex: 0, totalSavedSession: sessionSaved });
       updateBrowserArtifact();
     }
 
